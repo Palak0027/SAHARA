@@ -11,7 +11,7 @@ export default function App() {
       <main className="relative z-10 max-w-2xl w-full text-center space-y-8 backdrop-blur-xl bg-slate-900/60 p-8 sm:p-12 rounded-3xl border border-slate-800 shadow-2xl">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium">
           <Sparkles className="w-4 h-4" />
-          <span>React + Vite + Tailwind CSS v4 Configured</span>
+          <span>React + Vite + Tailwind CSS v4 + Axios Setup</span>
         </div>
 
         <div className="space-y-3">
@@ -43,7 +43,7 @@ export default function App() {
 
         <div className="pt-4 flex items-center justify-center gap-4">
           <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-lg shadow-indigo-600/25 transition">
-            <span>Explore Architecture</span>
+            <span>Explore Platform</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

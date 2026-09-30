@@ -38,7 +38,6 @@
 - **Authentication & Roles**: Secure JWT-based auth with Role-Based Access Control (Admin, Volunteer, Donor, Recipient).
 - **Donation Management**: Real-time listing, categorizing, and status updates for donated goods.
 - **Request Tracking**: Need requests categorized by urgency (Low, Medium, High, Critical).
-- **Inventory & Warehouse Tracking**: Stock monitoring for received aid items.
 - **Volunteer Coordination**: Assigning pickups and deliveries to ground volunteers.
 - **Reports & Analytics**: Visual insights on donations received, items disbursed, and pending needs.
 
