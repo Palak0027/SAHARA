@@ -50,7 +50,9 @@ export default function Register() {
         navigate("/donator-dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.");
+      setError(
+        err.message || "Registration failed. Please try again."
+      );
     }
   };
 
@@ -83,6 +85,7 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
 
+            {/* Full Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name
@@ -95,10 +98,11 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Enter your full name"
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number
@@ -112,10 +116,11 @@ export default function Register() {
                 placeholder="10-digit phone number"
                 maxLength={10}
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email <span className="text-gray-400">(optional)</span>
@@ -127,10 +132,11 @@ export default function Register() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -144,10 +150,11 @@ export default function Register() {
                 placeholder="Minimum 6 characters"
                 minLength={6}
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Role */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 I want to
@@ -157,13 +164,19 @@ export default function Register() {
                 name="intent"
                 value={form.intent}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               >
-                <option value="donor">Donate to people in need</option>
-                <option value="receiver">Receive donations</option>
+                <option value="donor">
+                  Donate to people in need
+                </option>
+
+                <option value="receiver">
+                  Receive donations
+                </option>
               </select>
             </div>
 
+            {/* City */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 City
@@ -176,10 +189,11 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Enter your city"
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Address */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Address
@@ -192,22 +206,26 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Enter your address"
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Register Button */}
             <button
               type="submit"
               disabled={loading}
               className="w-full rounded-xl bg-green-700 py-3 font-semibold text-white transition hover:bg-green-800 disabled:opacity-60"
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading
+                ? "Creating Account..."
+                : "Create Account"}
             </button>
 
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{" "}
+
             <Link
               to="/login"
               className="font-semibold text-green-700 hover:underline"

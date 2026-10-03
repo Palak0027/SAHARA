@@ -23,7 +23,9 @@ export default function Login() {
         navigate("/donator-dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "Login failed. Please try again.");
+      setError(
+        err.message || "Login failed. Please try again."
+      );
     }
   };
 
@@ -31,8 +33,12 @@ export default function Login() {
     <div className="min-h-screen bg-[#f8f5ed] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
 
+        {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-bold text-green-700">
+          <Link
+            to="/"
+            className="text-3xl font-bold text-green-700"
+          >
             SAHARA
           </Link>
 
@@ -45,16 +51,22 @@ export default function Login() {
           </p>
         </div>
 
+        {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
 
+          {/* Error */}
           {error && (
             <div className="mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+          >
 
+            {/* Email / Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email or Phone
@@ -63,13 +75,16 @@ export default function Login() {
               <input
                 type="text"
                 value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                onChange={(e) =>
+                  setIdentifier(e.target.value)
+                }
                 placeholder="Enter email or phone"
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -78,13 +93,16 @@ export default function Login() {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
                 placeholder="Enter password"
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Login Button */}
             <button
               type="submit"
               disabled={loading}
@@ -95,8 +113,10 @@ export default function Login() {
 
           </form>
 
+          {/* Register Link */}
           <p className="text-center text-sm text-gray-500 mt-6">
             Don't have an account?{" "}
+
             <Link
               to="/register"
               className="font-semibold text-green-700 hover:underline"
