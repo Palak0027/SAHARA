@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Register from './pages/Register';
+import Homepage from'./pages/Homepage';
 
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -243,34 +246,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-[#FAF8F3] text-[#26332F]">
-
-      <Navbar
-        language={language}
-        toggleLanguage={toggleLanguage}
-        t={t}
-      />
-
-      <main>
-        <Hero
-          language={language}
-          t={t}
-        />
-
-        <DonationCategories t={t} />
-
-        <LocationSection t={t} />
-
-        <HowItWorks t={t} />
-
-        <CTA t={t} />
-      </main>
-
-      <Footer t={t} />
-
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/register" element={<Register />} />
+        
+        <Route path="/" element={<Homepage />} />
+       
+       
+      </Routes>
+    </BrowserRouter>
   );
 }
-
 * 
  */
