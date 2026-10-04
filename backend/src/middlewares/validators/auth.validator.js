@@ -5,8 +5,10 @@ const { body, validationResult } = require('express-validator');
  */
 const validate = (req, res, next) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
     const errorMap = {};
+
     errors.array().forEach((err) => {
       if (!errorMap[err.path]) {
         errorMap[err.path] = err.msg;
@@ -15,15 +17,23 @@ const validate = (req, res, next) => {
 
     return res.status(400).json({
       success: false,
-      message: 'Validation failed',
-      errors: errorMap
+      message: 'Please fill in all required fields with valid information.',
+      errors: errorMap,
     });
   }
+
   next();
 };
 
 /**
  * Validation rules for user registration
+ *
+ * Public registration is allowed for:
+ * - donor
+ * - receiver
+ * - volunteer
+ *
+ * Admin is intentionally NOT allowed here.
  */
 const validateRegister = [
   body('name')
@@ -55,8 +65,10 @@ const validateRegister = [
   body('intent')
     .notEmpty()
     .withMessage('Intent is required')
-    .isIn(['donor', 'receiver'])
-    .withMessage("Intent must be either 'donor' or 'receiver'"),
+    .isIn(['donor', 'receiver', 'volunteer'])
+    .withMessage(
+      "Intent must be either 'donor', 'receiver', or 'volunteer'"
+    ),
 
   body('location.city')
     .trim()
@@ -68,14 +80,14 @@ const validateRegister = [
     .notEmpty()
     .withMessage('Address is required in location'),
 
-  // Conditional: if intent is receiver and receiverType is organization, require organization.orgName
+  // Receiver-specific validation
   body('organization.orgName')
     .if(body('receiverType').equals('organization'))
     .trim()
     .notEmpty()
     .withMessage('Organization Name is required for organization receiver'),
 
-  validate
+  validate,
 ];
 
 /**
@@ -91,10 +103,10 @@ const validateLogin = [
     .notEmpty()
     .withMessage('Password is required'),
 
-  validate
+  validate,
 ];
 
 module.exports = {
   validateRegister,
-  validateLogin
+  validateLogin,
 };
