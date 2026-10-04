@@ -5,9 +5,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
 import { http } from "../services/api/http";
 
-export type UserRole = "donor" | "receiver";
+export type UserRole =
+  | "donor"
+  | "receiver"
+  | "admin"
+  | "volunteer";
 
 export interface User {
   id: string;
@@ -31,6 +36,7 @@ export interface User {
   };
 
   onBehalfOf?: string;
+
   createdAt?: string;
   updatedAt?: string;
 }
@@ -41,7 +47,8 @@ export interface RegisterData {
   email?: string;
   password: string;
 
-  intent: UserRole;
+  // Volunteer is now publicly registerable
+  intent: "donor" | "receiver" | "volunteer";
 
   location: {
     city: string;
@@ -72,7 +79,9 @@ interface ProfileResponse {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+
   isAuthenticated: boolean;
+
   loading: boolean;
 
   login: (
@@ -87,15 +96,20 @@ interface AuthContextType {
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+const AuthContext =
+  createContext<AuthContextType | undefined>(
+    undefined
+  );
 
 export function AuthProvider({
   children,
 }: {
   children: ReactNode;
 }) {
+  // --------------------------------
+  // Restore saved user
+  // --------------------------------
+
   const [user, setUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem("user");
 
@@ -111,21 +125,30 @@ export function AuthProvider({
     }
   });
 
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("token")
+  // --------------------------------
+  // Restore saved token
+  // --------------------------------
+
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem("token")
   );
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState<boolean>(true);
 
-  // --------------------------------------------------
-  // Save authentication data
-  // --------------------------------------------------
+  // --------------------------------
+  // Save authentication
+  // --------------------------------
 
   const saveAuth = (
     authToken: string,
     authUser: User
   ) => {
-    localStorage.setItem("token", authToken);
+    localStorage.setItem(
+      "token",
+      authToken
+    );
+
     localStorage.setItem(
       "user",
       JSON.stringify(authUser)
@@ -135,9 +158,9 @@ export function AuthProvider({
     setUser(authUser);
   };
 
-  // --------------------------------------------------
-  // Login
-  // --------------------------------------------------
+  // --------------------------------
+  // LOGIN
+  // --------------------------------
 
   const login = async (
     identifier: string,
@@ -146,13 +169,14 @@ export function AuthProvider({
     setLoading(true);
 
     try {
-      const response = await http.post<AuthResponse>(
-        "/api/auth/login",
-        {
-          identifier,
-          password,
-        }
-      );
+      const response =
+        await http.post<AuthResponse>(
+          "/api/auth/login",
+          {
+            identifier,
+            password,
+          }
+        );
 
       saveAuth(
         response.token,
@@ -165,9 +189,9 @@ export function AuthProvider({
     }
   };
 
-  // --------------------------------------------------
-  // Register
-  // --------------------------------------------------
+  // --------------------------------
+  // REGISTER
+  // --------------------------------
 
   const register = async (
     data: RegisterData
@@ -175,10 +199,11 @@ export function AuthProvider({
     setLoading(true);
 
     try {
-      const response = await http.post<AuthResponse>(
-        "/api/auth/register",
-        data
-      );
+      const response =
+        await http.post<AuthResponse>(
+          "/api/auth/register",
+          data
+        );
 
       saveAuth(
         response.token,
@@ -191,9 +216,9 @@ export function AuthProvider({
     }
   };
 
-  // --------------------------------------------------
-  // Logout
-  // --------------------------------------------------
+  // --------------------------------
+  // LOGOUT
+  // --------------------------------
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -204,9 +229,9 @@ export function AuthProvider({
     setUser(null);
   };
 
-  // --------------------------------------------------
-  // Restore logged-in user on page refresh
-  // --------------------------------------------------
+  // --------------------------------
+  // RESTORE SESSION
+  // --------------------------------
 
   useEffect(() => {
     const existingToken =
@@ -241,18 +266,21 @@ export function AuthProvider({
     loadProfile();
   }, []);
 
-  // --------------------------------------------------
-  // Context
-  // --------------------------------------------------
+  // --------------------------------
+  // PROVIDER
+  // --------------------------------
 
   return (
     <AuthContext.Provider
       value={{
         user,
         token,
+
         isAuthenticated:
           Boolean(token && user),
+
         loading,
+
         login,
         register,
         logout,
@@ -263,12 +291,13 @@ export function AuthProvider({
   );
 }
 
-// --------------------------------------------------
+// --------------------------------
 // useAuth Hook
-// --------------------------------------------------
+// --------------------------------
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context =
+    useContext(AuthContext);
 
   if (!context) {
     throw new Error(

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth, type UserRole } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -11,7 +11,11 @@ export default function Register() {
     phone: "",
     email: "",
     password: "",
-    intent: "donor" as UserRole,
+    intent:
+      "donor" as
+        | "donor"
+        | "receiver"
+        | "volunteer",
     city: "",
     address: "",
   });
@@ -19,50 +23,83 @@ export default function Register() {
   const [error, setError] = useState("");
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement
+    >
   ) => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [e.target.name]:
+        e.target.value,
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
+
     setError("");
 
     try {
       const user = await register({
         name: form.name,
         phone: form.phone,
-        email: form.email || undefined,
+
+        email:
+          form.email || undefined,
+
         password: form.password,
+
         intent: form.intent,
+
         location: {
           city: form.city,
           address: form.address,
         },
       });
 
-      if (user.activeRole === "receiver") {
-        navigate("/receiver-dashboard");
+      // --------------------------------
+      // Redirect according to role
+      // --------------------------------
+
+      if (
+        user.activeRole ===
+        "receiver"
+      ) {
+        navigate(
+          "/receiver-dashboard"
+        );
+      } else if (
+        user.activeRole ===
+        "volunteer"
+      ) {
+        navigate(
+          "/volunteer-dashboard"
+        );
       } else {
-        navigate("/donator-dashboard");
+        navigate(
+          "/donator-dashboard"
+        );
       }
     } catch (err: any) {
       setError(
-        err.message || "Registration failed. Please try again."
+        err?.message ||
+          "Registration failed. Please try again."
       );
     }
   };
 
   return (
     <div className="min-h-screen bg-[#f8f5ed] flex items-center justify-center px-4 py-8">
-
       <div className="w-full max-w-lg">
 
+        {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-bold text-green-700">
+          <Link
+            to="/"
+            className="text-3xl font-bold text-green-700"
+          >
             SAHARA
           </Link>
 
@@ -75,15 +112,20 @@ export default function Register() {
           </p>
         </div>
 
+        {/* Card */}
         <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
 
+          {/* Error */}
           {error && (
             <div className="mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+          >
 
             {/* Full Name */}
             <div>
@@ -116,14 +158,17 @@ export default function Register() {
                 placeholder="10-digit phone number"
                 maxLength={10}
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email <span className="text-gray-400">(optional)</span>
+                Email{" "}
+                <span className="text-gray-400">
+                  (optional)
+                </span>
               </label>
 
               <input
@@ -132,7 +177,7 @@ export default function Register() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
@@ -150,7 +195,7 @@ export default function Register() {
                 placeholder="Minimum 6 characters"
                 minLength={6}
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
@@ -164,7 +209,7 @@ export default function Register() {
                 name="intent"
                 value={form.intent}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               >
                 <option value="donor">
                   Donate to people in need
@@ -172,6 +217,10 @@ export default function Register() {
 
                 <option value="receiver">
                   Receive donations
+                </option>
+
+                <option value="volunteer">
+                  Volunteer with SAHARA
                 </option>
               </select>
             </div>
@@ -189,7 +238,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Enter your city"
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
@@ -206,11 +255,11 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Enter your address"
                 required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
-            {/* Register Button */}
+            {/* Register */}
             <button
               type="submit"
               disabled={loading}
@@ -223,6 +272,7 @@ export default function Register() {
 
           </form>
 
+          {/* Login */}
           <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{" "}
 
