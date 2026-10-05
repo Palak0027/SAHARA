@@ -9,7 +9,7 @@ import '../styles/Login.css';
 
 // Change these paths to match the routes declared in App.tsx
 const ROLE_ROUTES: Record<string, string> = {
-  donor: '/donor-dashboard',
+  donor: '/dashboard',
   receiver: '/receiver-dashboard',
   volunteer: '/',
   admin: '/'

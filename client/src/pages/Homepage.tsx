@@ -150,6 +150,9 @@ const Home: React.FC = () => {
           z-index: 1000;
           padding: 14px 0;
           transition: 0.25s ease;
+             
+  
+           
         }
 
         .sahara-nav.scrolled {
@@ -219,6 +222,7 @@ const Home: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 9px;
+           
         }
 
         .language-switch {
