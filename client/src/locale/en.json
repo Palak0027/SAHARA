@@ -1,0 +1,122 @@
+{
+  "brand": "SAHARA",
+  "tagline": "Give what you can, help someone nearby.",
+  "languageLabel": "Language",
+  "welcome": "Join the SAHARA community",
+  "welcomeText": "Create an account and become part of a community where small acts of kindness create big smiles.",
+  "features": [
+    "Support Communities",
+    "Help People",
+    "Build a Better Tomorrow",
+    "Safe & Secure"
+  ],
+  "quote": "Together, we can build kinder, stronger communities.",
+  "donorTab": "I Want to Donate",
+  "receiverTab": "I Need Help / Resources",
+  "title": "Create Your Account",
+  "subtitle": "Create your SAHARA profile and start making an impact.",
+  "badge": "SIGN UP",
+
+  "labels": {
+    "name": "Full Name*",
+    "phone": "Phone Number*",
+    "email": "Email Address",
+    "city": "City*",
+    "pincode": "Pincode",
+    "address": "Full Address / Area*",
+    "password": "Password*",
+    "confirmPassword": "Confirm Password*",
+    "receiverType": "Receiver Type*",
+    "orgName": "Organization Name*",
+    "regNumber": "Registration / Darpan ID",
+    "description": "About Organization",
+    "beneficiaryName": "Beneficiary Name*",
+    "beneficiaryAge": "Beneficiary Age",
+    "relationship": "Relationship with them*",
+    "beneficiaryLocation": "Beneficiary Area / City"
+  },
+
+  "placeholders": {
+    "name": "Enter your full name",
+    "phone": "10-digit phone number",
+    "email": "Enter your email address",
+    "city": "Enter city",
+    "pincode": "6-digit pincode",
+    "address": "House no, Street, Area",
+    "password": "Minimum 6 characters",
+    "confirmPassword": "Re-enter your password"
+  },
+
+  "receiverTypes": {
+    "individual": "Individual - For myself",
+    "family": "Family - For my family",
+    "community": "Community - Shelter / Group",
+    "organization": "Organization - NGO / Trust"
+  },
+
+  "onBehalfCheck": "Are you applying on behalf of someone else?",
+  "createAccount": "Create Account",
+  "creating": "Creating account...",
+  "alreadyAccount": "Already have an account?",
+  "login": "Login",
+  "secureNote": "Your information is kept safe and secure.",
+
+  "successTitle": "Registration Successful!",
+  "successMessage": "Welcome to SAHARA. Your account has been created successfully.",
+
+  "errors": {
+    "nameRequired": "Full name is required.",
+    "nameShort": "Name must be at least 2 characters.",
+    "phoneRequired": "Phone number is required.",
+    "phoneInvalid": "Enter a valid 10-digit phone number.",
+    "emailInvalid": "Enter a valid email address.",
+    "cityRequired": "City is required.",
+    "pincodeInvalid": "Pincode must be 6 digits.",
+    "addressRequired": "Full address is required.",
+    "passwordRequired": "Password is required.",
+    "passwordShort": "Password must be at least 6 characters.",
+    "confirmRequired": "Please confirm your password.",
+    "passwordMismatch": "Passwords do not match.",
+    "orgNameRequired": "Organization name is required.",
+    "beneficiaryRequired": "Beneficiary name is required.",
+    "relationshipRequired": "Relationship is required."
+  },
+
+  "loginPage": {
+    "brand": "SAHARA",
+    "tagline": "Give what you can, help someone nearby.",
+    "languageLabel": "Language",
+    "welcome": "Welcome back to SAHARA",
+    "welcomeText": "Log in to continue donating, requesting help and making a difference in your community.",
+    "features": [
+      "Support Communities",
+      "Help People",
+      "Build a Better Tomorrow",
+      "Safe & Secure"
+    ],
+    "quote": "Together, we can build kinder, stronger communities.",
+    "title": "Login to Your Account",
+    "subtitle": "Enter your phone number and password to continue.",
+    "badge": "LOGIN",
+    "labels": {
+      "phone": "Phone Number*",
+      "password": "Password*"
+    },
+    "placeholders": {
+      "phone": "Enter 10-digit phone number",
+      "password": "Enter your password"
+    },
+    "loginBtn": "Login",
+    "loggingIn": "Logging in...",
+    "noAccount": "Sign-Up?",
+    "forgotaccount": "Create a Password?",
+    "Password1": "Forget Password",
+    "register": "Register",
+    "secureNote": "Your information is kept safe and secure.",
+    "errors": {
+      "phoneRequired": "Phone number is required.",
+      "phoneInvalid": "Enter a valid 10-digit phone number.",
+      "passwordRequired": "Password is required."
+    }
+  }
+}
