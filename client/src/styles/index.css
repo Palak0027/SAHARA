@@ -165,3 +165,47 @@
   background: #cfe1d4;
   color: #26332f;
 }
+/* =========================================================
+   SAHARA GLOBAL RESPONSIVE FIX
+   ========================================================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Prevent long text/content from forcing horizontal overflow */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+/* Better mobile tap behaviour */
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}

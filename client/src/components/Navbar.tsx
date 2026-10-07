@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { HeartHandshake, Languages, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type NavbarProps = {
   language: "en" | "hi";
@@ -28,7 +29,7 @@ export default function Navbar({
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
 
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2F5547] text-white shadow-sm">
             <HeartHandshake className="h-5 w-5" />
           </div>
@@ -42,25 +43,39 @@ export default function Navbar({
               Community Care
             </p>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
-          <a href="#" className="nav-link active">
-            {t.nav.home}
-          </a>
 
-          <a href="#about" className="nav-link">
+          <Link
+            to="/"
+            className="nav-link active"
+          >
+            {t.nav.home}
+          </Link>
+
+          <a
+            href="#about"
+            className="nav-link"
+          >
             {t.nav.about}
           </a>
 
-          <a href="#how-it-works" className="nav-link">
+          <a
+            href="#how-it-works"
+            className="nav-link"
+          >
             {t.nav.how}
           </a>
 
-          <a href="#donations" className="nav-link">
+          <a
+            href="#donations"
+            className="nav-link"
+          >
             {t.nav.explore}
           </a>
+
         </div>
 
         {/* Right Actions */}
@@ -77,18 +92,27 @@ export default function Navbar({
             }
           >
             <Languages className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            {language === "en" ? "हिंदी" : "English"}
+
+            {language === "en"
+              ? "हिंदी"
+              : "English"}
           </button>
 
           {/* Login */}
-          <button className="hidden rounded-xl border border-[#D8E0DA] px-4 py-2 text-sm font-medium text-[#2F5547] transition hover:bg-white sm:block">
+          <Link
+            to="/login"
+            className="hidden rounded-xl border border-[#D8E0DA] px-4 py-2 text-sm font-medium text-[#2F5547] transition hover:bg-white sm:block"
+          >
             {t.nav.login}
-          </button>
+          </Link>
 
           {/* Sign Up */}
-          <button className="hidden rounded-xl bg-[#2F5547] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#234438] sm:block">
+          <Link
+            to="/register"
+            className="hidden rounded-xl bg-[#2F5547] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#234438] sm:block"
+          >
             {t.nav.signup}
-          </button>
+          </Link>
 
           {/* Mobile Menu */}
           <button
@@ -99,23 +123,28 @@ export default function Navbar({
             {menuOpen ? (
               <X className="h-5 w-5" />
             ) : (
-              <span className="text-lg leading-none">☰</span>
+              <span className="text-lg leading-none">
+                ☰
+              </span>
             )}
           </button>
+
         </div>
       </nav>
 
       {/* Mobile Navigation */}
       {menuOpen && (
         <div className="border-t border-[#E4E9E4] bg-[#FAF8F3] px-5 py-4 md:hidden">
+
           <div className="flex flex-col gap-4">
-            <a
-              href="#"
+
+            <Link
+              to="/"
               onClick={() => setMenuOpen(false)}
               className="nav-link"
             >
               {t.nav.home}
-            </a>
+            </Link>
 
             <a
               href="#about"
@@ -142,13 +171,25 @@ export default function Navbar({
             </a>
 
             <div className="flex gap-2 pt-2">
-              <button className="flex-1 rounded-xl border border-[#D8E0DA] px-4 py-2 text-sm font-medium text-[#2F5547]">
-                {t.nav.login}
-              </button>
 
-              <button className="flex-1 rounded-xl bg-[#2F5547] px-4 py-2 text-sm font-semibold text-white">
+              {/* Mobile Login */}
+              <Link
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+                className="flex-1 rounded-xl border border-[#D8E0DA] px-4 py-2 text-center text-sm font-medium text-[#2F5547]"
+              >
+                {t.nav.login}
+              </Link>
+
+              {/* Mobile Sign Up */}
+              <Link
+                to="/register"
+                onClick={() => setMenuOpen(false)}
+                className="flex-1 rounded-xl bg-[#2F5547] px-4 py-2 text-center text-sm font-semibold text-white"
+              >
                 {t.nav.signup}
-              </button>
+              </Link>
+
             </div>
           </div>
         </div>

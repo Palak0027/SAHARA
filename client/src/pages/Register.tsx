@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logoImg from '../components/image/image.png';
 import { translations, type ErrorKey, type Language } from './translations';
-import { registerUser } from '../services/api/auth';
+import { useAuth, type RegisterData, type UserRole } from '../context/AuthContext';
 import '../styles/Register.css';
 
 /* ---------- Types ---------- */
 
-type Intent = 'donor' | 'receiver';
+type Intent = 'donor' | 'receiver' | 'volunteer';
 type ReceiverType = 'individual' | 'family' | 'community' | 'organization';
 
 interface FormData {
@@ -126,8 +127,8 @@ const getFieldsToValidate = (form: FormData, intent: Intent): FieldName[] => {
 
 /* ---------- Payload ---------- */
 
-const buildPayload = (form: FormData, intent: Intent) => {
-  const payload: Record<string, unknown> = {
+const buildPayload = (form: FormData, intent: Intent): RegisterData => {
+  const payload: RegisterData = {
     intent,
     name: form.name,
     phone: form.phone,
@@ -231,12 +232,12 @@ const Field: React.FC<FieldProps> = ({
 /* ---------- Page ---------- */
 
 const Register: React.FC = () => {
+  const navigate = useNavigate();
+  const { register, loading } = useAuth();
   const [language, setLanguage] = useState<Language>('en');
   const [intent, setIntent] = useState<Intent>('donor');
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
   const t = translations[language];
@@ -296,14 +297,18 @@ const Register: React.FC = () => {
     }
 
     try {
-      setLoading(true);
       setServerError('');
-      await registerUser(buildPayload(form, intent));
-      setSubmitted(true);
+      const user = await register(buildPayload(form, intent));
+      const role: UserRole = user.activeRole || user.role || intent;
+      const destination: Record<UserRole, string> = {
+        donor: '/donator-dashboard',
+        receiver: '/receiver-dashboard',
+        volunteer: '/volunteer-dashboard',
+        admin: '/admin-dashboard'
+      };
+      navigate(destination[role], { replace: true });
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -381,17 +386,17 @@ const Register: React.FC = () => {
             >
               {t.receiverTab}
             </button>
+            <button
+              type="button"
+              className={`tabs__btn${intent === 'volunteer' ? ' is-active' : ''}`}
+              onClick={() => handleIntentChange('volunteer')}
+            >
+              Volunteer
+            </button>
           </div>
 
           <div className="card__body">
-            {submitted ? (
-              <div className="success">
-                <div className="success__icon">✓</div>
-                <h3>{t.successTitle}</h3>
-                <p>{t.successMessage}</p>
-              </div>
-            ) : (
-              <form className="form" onSubmit={handleSubmit} noValidate>
+            <form className="form" onSubmit={handleSubmit} noValidate>
                 {isReceiver && (
                   <div className="field field--wide">
                     <label htmlFor="receiverType">{t.labels.receiverType}</label>
@@ -570,8 +575,7 @@ const Register: React.FC = () => {
                 <button type="submit" className="submit" disabled={loading}>
                   {loading ? t.creating : <>{t.createAccount} <span aria-hidden="true">→</span></>}
                 </button>
-              </form>
-            )}
+            </form>
           </div>
 
           <div className="card__foot">

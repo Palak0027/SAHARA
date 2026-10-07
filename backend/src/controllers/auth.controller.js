@@ -3,9 +3,14 @@ const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 
 /**
- * @desc    Register a new user (Donor or Receiver)
+ * @desc    Register a new user
  * @route   POST /api/auth/register
  * @access  Public
+ *
+ * Public registration is allowed for:
+ * Donor, Receiver, Volunteer
+ *
+ * Admin registration is NOT allowed.
  */
 const register = async (req, res, next) => {
   try {
@@ -18,114 +23,220 @@ const register = async (req, res, next) => {
       location,
       receiverType,
       onBehalfOf,
-      organization
+      organization,
     } = req.body;
 
-    // 1. Strict Role Guard: Only 'donor' and 'receiver' can be registered publicly
-    if (!['donor', 'receiver'].includes(intent)) {
+    // --------------------------------------------------
+    // 1. Strict public registration role guard
+    // --------------------------------------------------
+    if (!['donor', 'receiver', 'volunteer'].includes(intent)) {
       return res.status(403).json({
         success: false,
-        message: 'Public registration is only allowed for Donor and Receiver roles.'
+        message:
+          'Public registration is only allowed for Donor, Receiver, and Volunteer roles.',
       });
     }
 
+    // --------------------------------------------------
+    // 2. Clean input
+    // --------------------------------------------------
     const cleanPhone = phone.trim();
-    const cleanEmail = email && email.trim() ? email.toLowerCase().trim() : undefined;
 
-    // 2. Check for duplicate phone
-    const existingPhone = await User.findOne({ phone: cleanPhone });
+    const cleanEmail =
+      email && email.trim()
+        ? email.toLowerCase().trim()
+        : undefined;
+
+    // --------------------------------------------------
+    // 3. Check duplicate phone
+    // --------------------------------------------------
+    const existingPhone = await User.findOne({
+      phone: cleanPhone,
+    });
+
     if (existingPhone) {
       return res.status(409).json({
         success: false,
-        message: 'A user with this phone number is already registered.'
+        message:
+          'A user with this phone number is already registered.',
       });
     }
 
-    // 3. Check for duplicate email (if provided)
+    // --------------------------------------------------
+    // 4. Check duplicate email
+    // --------------------------------------------------
     if (cleanEmail) {
-      const existingEmail = await User.findOne({ email: cleanEmail });
+      const existingEmail = await User.findOne({
+        email: cleanEmail,
+      });
+
       if (existingEmail) {
         return res.status(409).json({
           success: false,
-          message: 'A user with this email address is already registered.'
+          message:
+            'A user with this email address is already registered.',
         });
       }
     }
 
-    // 4. Hash the password
+    // --------------------------------------------------
+    // 5. Hash password
+    // --------------------------------------------------
     const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // 5. Construct User Document according to role & intent
+    const passwordHash = await bcrypt.hash(
+      password,
+      saltRounds
+    );
+
+    // --------------------------------------------------
+    // 6. Construct base user document
+    // --------------------------------------------------
     const userData = {
       name: name.trim(),
+
       phone: cleanPhone,
+
       email: cleanEmail,
+
       passwordHash,
+
       role: intent,
+
       roles: [intent],
+
       activeRole: intent,
+
       location: {
         address: location?.address?.trim() || '',
         city: location?.city?.trim() || '',
         state: location?.state?.trim() || '',
         pincode: location?.pincode?.trim() || '',
+
         coordinates: {
           lat: location?.coordinates?.lat || null,
-          lng: location?.coordinates?.lng || null
-        }
-      }
+          lng: location?.coordinates?.lng || null,
+        },
+      },
+
+      isActive: true,
     };
 
-    // If intent is receiver, configure receiver-specific metadata
+    // --------------------------------------------------
+    // 7. Receiver-specific information
+    // --------------------------------------------------
     if (intent === 'receiver') {
-      userData.receiverType = receiverType || 'individual';
+      userData.receiverType =
+        receiverType || 'individual';
 
-      if (onBehalfOf && onBehalfOf.isOnBehalf) {
+      if (
+        onBehalfOf &&
+        onBehalfOf.isOnBehalf
+      ) {
         userData.onBehalfOf = {
           isOnBehalf: true,
-          beneficiaryName: onBehalfOf.beneficiaryName?.trim() || '',
-          beneficiaryAge: Number(onBehalfOf.beneficiaryAge) || null,
-          relationship: onBehalfOf.relationship?.trim() || '',
-          beneficiaryLocation: onBehalfOf.beneficiaryLocation?.trim() || ''
+
+          beneficiaryName:
+            onBehalfOf.beneficiaryName?.trim() || '',
+
+          beneficiaryAge:
+            Number(onBehalfOf.beneficiaryAge) || null,
+
+          relationship:
+            onBehalfOf.relationship?.trim() || '',
+
+          beneficiaryLocation:
+            onBehalfOf.beneficiaryLocation?.trim() || '',
         };
       }
 
-      if (userData.receiverType === 'organization') {
+      if (
+        userData.receiverType ===
+        'organization'
+      ) {
         userData.organization = {
-          orgName: organization?.orgName?.trim() || '',
-          regNumber: organization?.regNumber?.trim() || '',
-          description: organization?.description?.trim() || '',
-          verificationStatus: 'pending' // Default state for admin review
+          orgName:
+            organization?.orgName?.trim() || '',
+
+          regNumber:
+            organization?.regNumber?.trim() || '',
+
+          description:
+            organization?.description?.trim() || '',
+
+          verificationStatus: 'pending',
         };
       }
     }
 
-    // 6. Save to MongoDB
+    // --------------------------------------------------
+    // 8. Volunteer-specific information
+    // --------------------------------------------------
+    if (intent === 'volunteer') {
+      userData.volunteerDetails = {
+        availability: true,
+        vehicleType: 'two_wheeler',
+      };
+    }
+
+    // --------------------------------------------------
+    // 9. Save user
+    // --------------------------------------------------
     const newUser = await User.create(userData);
 
-    // 7. Generate JWT token
-    const token = generateToken(newUser._id, newUser.role, newUser.roles, newUser.activeRole);
+    // --------------------------------------------------
+    // 10. Generate JWT
+    // --------------------------------------------------
+    const token = generateToken(
+      newUser._id,
+      newUser.role,
+      newUser.roles,
+      newUser.activeRole
+    );
 
-    // 8. Return response
+    // --------------------------------------------------
+    // 11. Return response
+    // --------------------------------------------------
     return res.status(201).json({
       success: true,
+
       message: 'Registration successful',
+
       token,
+
       user: {
         id: newUser._id,
+
         name: newUser.name,
+
         phone: newUser.phone,
+
         email: newUser.email,
+
         role: newUser.role,
+
         roles: newUser.roles,
+
         activeRole: newUser.activeRole,
-        receiverType: newUser.receiverType,
-        location: newUser.location,
-        organization: newUser.organization,
-        onBehalfOf: newUser.onBehalfOf,
-        createdAt: newUser.createdAt
-      }
+
+        receiverType:
+          newUser.receiverType,
+
+        location:
+          newUser.location,
+
+        organization:
+          newUser.organization,
+
+        onBehalfOf:
+          newUser.onBehalfOf,
+
+        volunteerDetails:
+          newUser.volunteerDetails,
+
+        createdAt:
+          newUser.createdAt,
+      },
     });
   } catch (error) {
     next(error);
@@ -139,68 +250,136 @@ const register = async (req, res, next) => {
  */
 const login = async (req, res, next) => {
   try {
-    const { identifier, password } = req.body;
+    const {
+      identifier,
+      password,
+    } = req.body;
 
-    const cleanIdentifier = identifier.trim();
-    const isEmail = cleanIdentifier.includes('@');
+    const cleanIdentifier =
+      identifier.trim();
 
-    // Query by email (case-insensitive) or phone
+    const isEmail =
+      cleanIdentifier.includes('@');
+
+    // --------------------------------------------------
+    // Find user
+    // --------------------------------------------------
     const query = isEmail
-      ? { email: cleanIdentifier.toLowerCase() }
-      : { phone: cleanIdentifier };
+      ? {
+          email:
+            cleanIdentifier
+              .toLowerCase(),
+        }
+      : {
+          phone: cleanIdentifier,
+        };
 
-    // Explicitly include passwordHash which is hidden by default in schema
-    const user = await User.findOne(query).select('+passwordHash');
+    // passwordHash is hidden by default,
+    // so explicitly include it.
+    const user =
+      await User.findOne(query)
+        .select('+passwordHash');
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials. Please verify your phone/email and password.'
+        message:
+          'Invalid credentials. Please verify your phone/email and password.',
       });
     }
 
+    // --------------------------------------------------
     // Check account status
+    // --------------------------------------------------
     if (!user.isActive) {
       return res.status(403).json({
         success: false,
-        message: 'Your account has been deactivated. Please contact support.'
+        message:
+          'Your account has been deactivated. Please contact support.',
       });
     }
 
-    // Verify password with bcrypt
-    const isMatch = await user.comparePassword(password);
+    // --------------------------------------------------
+    // Check password
+    // --------------------------------------------------
+    const isMatch =
+      await user.comparePassword(password);
+
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials. Please verify your phone/email and password.'
+        message:
+          'Invalid credentials. Please verify your phone/email and password.',
       });
     }
 
-    // Ensure roles array has at least the primary role
-    const roles = user.roles && user.roles.length > 0 ? user.roles : [user.role];
-    const activeRole = user.activeRole || user.role;
+    // --------------------------------------------------
+    // Roles
+    // --------------------------------------------------
+    const roles =
+      user.roles &&
+      user.roles.length > 0
+        ? user.roles
+        : [user.role];
 
-    // Generate JWT token
-    const token = generateToken(user._id, user.role, roles, activeRole);
+    const activeRole =
+      user.activeRole ||
+      user.role;
 
+    // --------------------------------------------------
+    // Generate JWT
+    // --------------------------------------------------
+    const token =
+      generateToken(
+        user._id,
+        user.role,
+        roles,
+        activeRole
+      );
+
+    // --------------------------------------------------
+    // Return response
+    // --------------------------------------------------
     return res.status(200).json({
       success: true,
+
       message: 'Login successful',
+
       token,
+
       user: {
         id: user._id,
+
         name: user.name,
+
         phone: user.phone,
+
         email: user.email,
+
         role: user.role,
-        roles: roles,
-        activeRole: activeRole,
-        receiverType: user.receiverType,
-        location: user.location,
-        organization: user.organization,
-        onBehalfOf: user.onBehalfOf,
-        createdAt: user.createdAt
-      }
+
+        roles,
+
+        activeRole,
+
+        receiverType:
+          user.receiverType,
+
+        location:
+          user.location,
+
+        organization:
+          user.organization,
+
+        onBehalfOf:
+          user.onBehalfOf,
+
+        volunteerDetails:
+          user.volunteerDetails,
+
+        createdAt:
+          user.createdAt,
+      },
     });
   } catch (error) {
     next(error);
@@ -208,85 +387,176 @@ const login = async (req, res, next) => {
 };
 
 /**
- * @desc    Switch active mode or unlock new role (Dual-role capability)
+ * @desc    Switch active mode
  * @route   PUT /api/auth/switch-role
- * @access  Private (Requires JWT)
+ * @access  Private
+ *
+ * Only Donor <-> Receiver switching is allowed.
+ * Volunteer/Admin cannot be unlocked through this endpoint.
  */
-const switchRole = async (req, res, next) => {
+const switchRole = async (
+  req,
+  res,
+  next
+) => {
   try {
-    const { targetRole, receiverType, onBehalfOf, organization } = req.body;
+    const {
+      targetRole,
+      receiverType,
+      onBehalfOf,
+      organization,
+    } = req.body;
 
-    if (!targetRole || !['donor', 'receiver'].includes(targetRole)) {
+    if (
+      !targetRole ||
+      !['donor', 'receiver'].includes(
+        targetRole
+      )
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Target role must be either 'donor' or 'receiver'."
+        message:
+          "Target role must be either 'donor' or 'receiver'.",
       });
     }
 
-    const user = await User.findById(req.user._id);
+    const user =
+      await User.findById(
+        req.user._id
+      );
+
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.'
+        message: 'User not found.',
       });
     }
 
-    // Add targetRole to roles array if not already present
-    if (!user.roles.includes(targetRole)) {
+    // Add role if not already present
+    if (
+      !user.roles.includes(targetRole)
+    ) {
       user.roles.push(targetRole);
     }
 
-    // Update activeRole and primary role
-    user.activeRole = targetRole;
-    user.role = targetRole;
+    user.activeRole =
+      targetRole;
 
-    // If switching to receiver mode, optionally set receiver-specific details
-    if (targetRole === 'receiver') {
-      if (receiverType) user.receiverType = receiverType;
+    user.role =
+      targetRole;
 
-      if (onBehalfOf && onBehalfOf.isOnBehalf) {
+    // Receiver-specific details
+    if (
+      targetRole === 'receiver'
+    ) {
+      if (receiverType) {
+        user.receiverType =
+          receiverType;
+      }
+
+      if (
+        onBehalfOf &&
+        onBehalfOf.isOnBehalf
+      ) {
         user.onBehalfOf = {
           isOnBehalf: true,
-          beneficiaryName: onBehalfOf.beneficiaryName?.trim() || '',
-          beneficiaryAge: Number(onBehalfOf.beneficiaryAge) || null,
-          relationship: onBehalfOf.relationship?.trim() || '',
-          beneficiaryLocation: onBehalfOf.beneficiaryLocation?.trim() || ''
+
+          beneficiaryName:
+            onBehalfOf.beneficiaryName?.trim() ||
+            '',
+
+          beneficiaryAge:
+            Number(
+              onBehalfOf.beneficiaryAge
+            ) || null,
+
+          relationship:
+            onBehalfOf.relationship?.trim() ||
+            '',
+
+          beneficiaryLocation:
+            onBehalfOf.beneficiaryLocation?.trim() ||
+            '',
         };
       }
 
-      if (receiverType === 'organization' && organization?.orgName) {
+      if (
+        receiverType ===
+          'organization' &&
+        organization?.orgName
+      ) {
         user.organization = {
-          orgName: organization.orgName.trim(),
-          regNumber: organization.regNumber?.trim() || '',
-          description: organization.description?.trim() || '',
-          verificationStatus: user.organization?.verificationStatus || 'pending'
+          orgName:
+            organization.orgName.trim(),
+
+          regNumber:
+            organization.regNumber?.trim() ||
+            '',
+
+          description:
+            organization.description?.trim() ||
+            '',
+
+          verificationStatus:
+            user.organization
+              ?.verificationStatus ||
+            'pending',
         };
       }
     }
 
     await user.save();
 
-    // Generate fresh JWT token with updated activeRole & roles
-    const token = generateToken(user._id, user.role, user.roles, user.activeRole);
+    const token =
+      generateToken(
+        user._id,
+        user.role,
+        user.roles,
+        user.activeRole
+      );
 
     return res.status(200).json({
       success: true,
-      message: `Switched to ${targetRole} mode successfully`,
+
+      message:
+        `Switched to ${targetRole} mode successfully`,
+
       token,
+
       user: {
         id: user._id,
+
         name: user.name,
+
         phone: user.phone,
+
         email: user.email,
+
         role: user.role,
+
         roles: user.roles,
-        activeRole: user.activeRole,
-        receiverType: user.receiverType,
-        location: user.location,
-        organization: user.organization,
-        onBehalfOf: user.onBehalfOf,
-        updatedAt: user.updatedAt
-      }
+
+        activeRole:
+          user.activeRole,
+
+        receiverType:
+          user.receiverType,
+
+        location:
+          user.location,
+
+        organization:
+          user.organization,
+
+        onBehalfOf:
+          user.onBehalfOf,
+
+        volunteerDetails:
+          user.volunteerDetails,
+
+        updatedAt:
+          user.updatedAt,
+      },
     });
   } catch (error) {
     next(error);
@@ -294,14 +564,17 @@ const switchRole = async (req, res, next) => {
 };
 
 /**
- * @desc    Get profile of the logged-in user
+ * @desc    Get profile of logged-in user
  * @route   GET /api/auth/profile
- * @access  Private (Requires JWT)
+ * @access  Private
  */
-const getProfile = async (req, res) => {
+const getProfile = async (
+  req,
+  res
+) => {
   return res.status(200).json({
     success: true,
-    user: req.user
+    user: req.user,
   });
 };
 
@@ -310,5 +583,5 @@ module.exports = {
   login,
   switchRole,
   getProfile,
-  getMe: getProfile
+  getMe: getProfile,
 };

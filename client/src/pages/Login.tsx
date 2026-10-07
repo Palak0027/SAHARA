@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../components/image/image.png';
 import { loginTranslations, type Language, type LoginErrorKey } from './translations';
-import { loginUser } from '../services/api/auth';
+import { useAuth, type UserRole } from '../context/AuthContext';
 import '../styles/Login.css';
 
 /* ---------- Config ---------- */
 
-// Change these paths to match the routes declared in App.tsx
-const ROLE_ROUTES: Record<string, string> = {
-  donor: '/dashboard',
+const ROLE_ROUTES: Record<UserRole, string> = {
+  donor: '/donator-dashboard',
   receiver: '/receiver-dashboard',
-  volunteer: '/',
-  admin: '/'
+  volunteer: '/volunteer-dashboard',
+  admin: '/admin-dashboard'
 };
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
@@ -112,11 +111,11 @@ const Field: React.FC<FieldProps> = ({
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login, loading } = useAuth();
 
   const [language, setLanguage] = useState<Language>('en');
   const [form, setForm] = useState<LoginForm>({ phone: '', password: '' });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
   const t = loginTranslations[language];
@@ -152,19 +151,13 @@ const Login: React.FC = () => {
     }
 
     try {
-      setLoading(true);
       setServerError('');
 
-      const { token, user } = await loginUser(form);
-
-      localStorage.setItem('sahara_token', token);
-      localStorage.setItem('sahara_user', JSON.stringify(user));
-
-      navigate(ROLE_ROUTES[user.role] ?? '/', { replace: true });
+      const user = await login(form.phone, form.password);
+      const role = user.activeRole || user.role || 'donor';
+      navigate(ROLE_ROUTES[role], { replace: true });
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
