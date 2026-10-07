@@ -1,7 +1,7 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
-// Load .env from backend directory
+// Load .env from the backend root directory
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const express = require('express');
@@ -10,22 +10,37 @@ const helmet = require('helmet');
 const connectDB = require('./config/database');
 const errorHandler = require('./middlewares/error.middleware');
 
-// Route Imports
+// Route imports
 const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security & Parsing Middlewares
+// Security & parsing middlewares
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true
-}));
+const allowedOrigins = [
+  process.env.CORS_ORIGIN || 'http://localhost:5173',
+  ...(process.env.NODE_ENV === 'production'
+    ? []
+    : ['http://localhost:5173', 'http://localhost:5174'])
+];
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      const error = new Error(`Origin ${origin} is not allowed by CORS`);
+      error.statusCode = 403;
+      return callback(error);
+    },
+    credentials: true
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root Health Check
+// Health check
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -34,23 +49,28 @@ app.get('/', (req, res) => {
   });
 });
 
-// Mount Routes
+// Routes
 app.use('/api/auth', authRoutes);
 
-// Centralized Error Handling Middleware (must be after all routes)
+// Unknown routes
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: `Route not found: ${req.originalUrl}` });
+});
+
+// Centralized error handler (must stay after all routes)
 app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    // Connect Database
     await connectDB();
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📡 Auth API available at http://localhost:${PORT}/api/auth`);
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Auth API available at http://localhost:${PORT}/api/auth`);
     });
   } catch (error) {
     console.error('Failed to start server:', error.message);
+    process.exit(1);
   }
 };
 
