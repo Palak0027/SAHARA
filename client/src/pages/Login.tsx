@@ -15,6 +15,7 @@ const ROLE_ROUTES: Record<UserRole, string> = {
 };
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /* ---------- Types ---------- */
 
@@ -31,8 +32,14 @@ type FormErrors = Partial<Record<FieldName, LoginErrorKey>>;
 const validateField = (name: FieldName, value: string): LoginErrorKey | undefined => {
   if (name === 'phone') {
     if (!value) return 'phoneRequired';
-    if (!PHONE_REGEX.test(value)) return 'phoneInvalid';
+
+    const trimmed = value.trim();
+    const isPhone = PHONE_REGEX.test(trimmed);
+    const isEmail = EMAIL_REGEX.test(trimmed);
+
+    if (!isPhone && !isEmail) return 'phoneInvalid';
   }
+
   if (name === 'password' && !value) return 'passwordRequired';
   return undefined;
 };
@@ -127,8 +134,7 @@ const Login: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name as FieldName;
-    // Phone accepts digits only
-    const value = name === 'phone' ? e.target.value.replace(/\D/g, '') : e.target.value;
+    const value = e.target.value;
 
     setForm(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
@@ -222,12 +228,11 @@ const Login: React.FC = () => {
               icon="📱"
               label={t.labels.phone}
               name="phone"
-              type="tel"
-              inputMode="numeric"
+              type="text"
+              inputMode="email"
               value={form.phone}
               placeholder={t.placeholders.phone}
-              maxLength={10}
-              autoComplete="tel"
+              autoComplete="username"
               error={errorText('phone')}
               onChange={handleChange}
             />

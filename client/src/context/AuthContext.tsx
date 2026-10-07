@@ -29,13 +29,22 @@ export interface User {
   location?: {
     city?: string;
     address?: string;
+    pincode?: string;
   };
 
   organization?: {
     orgName?: string;
+    regNumber?: string;
+    description?: string;
   };
 
-  onBehalfOf?: string;
+  onBehalfOf?: {
+    isOnBehalf: boolean;
+    beneficiaryName?: string;
+    beneficiaryAge?: number;
+    relationship?: string;
+    beneficiaryLocation?: string;
+  };
 
   createdAt?: string;
   updatedAt?: string;
@@ -53,14 +62,23 @@ export interface RegisterData {
   location: {
     city: string;
     address: string;
+    pincode?: string;
   };
 
   receiverType?: string;
 
-  onBehalfOf?: string;
+  onBehalfOf?: {
+    isOnBehalf: boolean;
+    beneficiaryName?: string;
+    beneficiaryAge?: number;
+    relationship?: string;
+    beneficiaryLocation?: string;
+  };
 
   organization?: {
     orgName?: string;
+    regNumber?: string;
+    description?: string;
   };
 }
 
@@ -204,11 +222,6 @@ export function AuthProvider({
           "/api/auth/register",
           data
         );
-
-      saveAuth(
-        response.token,
-        response.user
-      );
 
       return response.user;
     } finally {

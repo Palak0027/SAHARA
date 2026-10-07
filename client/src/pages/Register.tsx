@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../components/image/image.png';
 import { translations, type ErrorKey, type Language } from './translations';
-import { useAuth, type RegisterData, type UserRole } from '../context/AuthContext';
+import { useAuth, type RegisterData } from '../context/AuthContext';
 import '../styles/Register.css';
 
 /* ---------- Types ---------- */
@@ -298,15 +298,8 @@ const Register: React.FC = () => {
 
     try {
       setServerError('');
-      const user = await register(buildPayload(form, intent));
-      const role: UserRole = user.activeRole || user.role || intent;
-      const destination: Record<UserRole, string> = {
-        donor: '/donator-dashboard',
-        receiver: '/receiver-dashboard',
-        volunteer: '/volunteer-dashboard',
-        admin: '/admin-dashboard'
-      };
-      navigate(destination[role], { replace: true });
+      await register(buildPayload(form, intent));
+      navigate('/login', { replace: true });
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     }
@@ -581,7 +574,7 @@ const Register: React.FC = () => {
           <div className="card__foot">
             <p className="card__secure">🔒 {t.secureNote}</p>
             <p className="card__login">
-              {t.alreadyAccount} <a href="/login">{t.login} →</a>
+              {t.alreadyAccount} <Link to="/login">{t.login} →</Link>
             </p>
           </div>
         </section>
