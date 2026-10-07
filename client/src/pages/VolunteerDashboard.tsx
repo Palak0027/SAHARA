@@ -204,7 +204,7 @@ export default function VolunteerDashboard() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-72 flex-col border-r border-[#DDE6DF] bg-white transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(18rem,85vw)] flex-col border-r border-[#DDE6DF] bg-white transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full"
@@ -296,10 +296,10 @@ export default function VolunteerDashboard() {
       </aside>
 
       {/* Main */}
-      <div className="lg:pl-72">
+      <div className="min-w-0 lg:pl-72">
 
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#DDE6DF] bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 flex min-w-0 h-20 items-center justify-between border-b border-[#DDE6DF] bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
 
           <div className="flex items-center gap-3">
 
