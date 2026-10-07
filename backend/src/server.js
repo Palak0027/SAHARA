@@ -12,6 +12,10 @@ const errorHandler = require('./middlewares/error.middleware');
 
 // Route imports
 const authRoutes = require('./routes/auth.routes');
+const categoryRoutes = require('./routes/category.routes');
+const donationRoutes = require('./routes/donation.routes');
+const needRoutes = require('./routes/need.routes');
+const impactRoutes = require('./routes/impact.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +55,10 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/donations', donationRoutes);
+app.use('/api/needs', needRoutes);
+app.use('/api/impact', impactRoutes);
 
 // Unknown routes
 app.use((req, res) => {
