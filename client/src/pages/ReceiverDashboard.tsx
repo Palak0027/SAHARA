@@ -227,7 +227,7 @@ export default function ReceiverDashboard() {
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-[#DDE5DF] bg-[#FAF8F3] transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(16rem,85vw)] flex-col border-r border-[#DDE5DF] bg-[#FAF8F3] transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -341,10 +341,10 @@ export default function ReceiverDashboard() {
       </aside>
 
       {/* MAIN */}
-      <div className="lg:pl-64">
+      <div className="min-w-0 lg:pl-64">
 
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E7E2] bg-[#F7F8F5]/90 px-5 backdrop-blur-xl sm:px-8">
+        <header className="sticky top-0 z-30 flex min-w-0 h-20 items-center justify-between border-b border-[#E1E7E2] bg-[#F7F8F5]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -403,7 +403,7 @@ export default function ReceiverDashboard() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+        <main className="mx-auto w-full max-w-7xl min-w-0 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 
           {/* ================= OVERVIEW ================= */}
           {activeTab === "Overview" && (
