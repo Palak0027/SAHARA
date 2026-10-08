@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const userRepository = require('../repository/user.repository');
 
 /**
  * Protect routes by verifying JWT in Authorization Bearer header
@@ -26,7 +26,7 @@ const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, secret);
 
     // Fetch user and check if still active
-    const user = await User.findById(decoded.id).select('-passwordHash');
+    const user = await userRepository.findById(decoded.id, '-passwordHash');
 
     if (!user) {
       return res.status(401).json({

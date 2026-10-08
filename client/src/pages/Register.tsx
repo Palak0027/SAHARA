@@ -1,291 +1,591 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import logoImg from '../components/image/image.png';
+import { translations, type ErrorKey, type Language } from './translations';
+import { useAuth, type RegisterData } from '../context/AuthContext';
+import '../styles/Register.css';
 
-export default function Register() {
+/* ---------- Types ---------- */
+
+type Intent = 'donor' | 'receiver' | 'volunteer';
+type ReceiverType = 'individual' | 'family' | 'community' | 'organization';
+
+interface FormData {
+  name: string;
+  phone: string;
+  email: string;
+  city: string;
+  pincode: string;
+  address: string;
+  password: string;
+  confirmPassword: string;
+  receiverType: ReceiverType;
+  orgName: string;
+  regNumber: string;
+  description: string;
+  isOnBehalf: boolean;
+  beneficiaryName: string;
+  beneficiaryAge: string;
+  relationship: string;
+  beneficiaryLocation: string;
+}
+
+type FieldName = keyof FormData;
+type FormErrors = Partial<Record<FieldName, ErrorKey>>;
+
+const INITIAL_FORM: FormData = {
+  name: '',
+  phone: '',
+  email: '',
+  city: '',
+  pincode: '',
+  address: '',
+  password: '',
+  confirmPassword: '',
+  receiverType: 'individual',
+  orgName: '',
+  regNumber: '',
+  description: '',
+  isOnBehalf: false,
+  beneficiaryName: '',
+  beneficiaryAge: '',
+  relationship: '',
+  beneficiaryLocation: ''
+};
+
+const PHONE_REGEX = /^[6-9]\d{9}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PINCODE_REGEX = /^\d{6}$/;
+
+/* ---------- Validation ---------- */
+
+const validateField = (
+  name: FieldName,
+  value: string,
+  form: FormData,
+  intent: Intent
+): ErrorKey | undefined => {
+  const text = value.trim();
+  const isReceiver = intent === 'receiver';
+
+  switch (name) {
+    case 'name':
+      if (!text) return 'nameRequired';
+      if (text.length < 2) return 'nameShort';
+      break;
+    case 'phone':
+      if (!value) return 'phoneRequired';
+      if (!PHONE_REGEX.test(value)) return 'phoneInvalid';
+      break;
+    case 'email':
+      if (value && !EMAIL_REGEX.test(value)) return 'emailInvalid';
+      break;
+    case 'city':
+      if (!text) return 'cityRequired';
+      break;
+    case 'pincode':
+      if (value && !PINCODE_REGEX.test(value)) return 'pincodeInvalid';
+      break;
+    case 'address':
+      if (!text) return 'addressRequired';
+      break;
+    case 'password':
+      if (!value) return 'passwordRequired';
+      if (value.length < 6) return 'passwordShort';
+      break;
+    case 'confirmPassword':
+      if (!value) return 'confirmRequired';
+      if (value !== form.password) return 'passwordMismatch';
+      break;
+    case 'orgName':
+      if (isReceiver && form.receiverType === 'organization' && !text) return 'orgNameRequired';
+      break;
+    case 'beneficiaryName':
+      if (isReceiver && form.isOnBehalf && !text) return 'beneficiaryRequired';
+      break;
+    case 'relationship':
+      if (isReceiver && form.isOnBehalf && !text) return 'relationshipRequired';
+      break;
+  }
+  return undefined;
+};
+
+const getFieldsToValidate = (form: FormData, intent: Intent): FieldName[] => {
+  const fields: FieldName[] = [
+    'name', 'phone', 'email', 'city', 'pincode', 'address', 'password', 'confirmPassword'
+  ];
+
+  if (intent === 'receiver') {
+    if (form.receiverType === 'organization') {
+      fields.push('orgName');
+    } else if (form.isOnBehalf) {
+      fields.push('beneficiaryName', 'relationship');
+    }
+  }
+  return fields;
+};
+
+/* ---------- Payload ---------- */
+
+const buildPayload = (form: FormData, intent: Intent): RegisterData => {
+  const payload: RegisterData = {
+    intent,
+    name: form.name,
+    phone: form.phone,
+    email: form.email,
+    password: form.password,
+    location: {
+      address: form.address,
+      city: form.city,
+      pincode: form.pincode
+    }
+  };
+
+  if (intent !== 'receiver') return payload;
+
+  payload.receiverType = form.receiverType;
+
+  if (form.receiverType === 'organization') {
+    payload.organization = {
+      orgName: form.orgName,
+      regNumber: form.regNumber,
+      description: form.description
+    };
+  } else if (form.isOnBehalf) {
+    payload.onBehalfOf = {
+      isOnBehalf: true,
+      beneficiaryName: form.beneficiaryName,
+      beneficiaryAge: form.beneficiaryAge ? Number(form.beneficiaryAge) : undefined,
+      relationship: form.relationship,
+      beneficiaryLocation: form.beneficiaryLocation
+    };
+  } else {
+    payload.onBehalfOf = { isOnBehalf: false };
+  }
+
+  return payload;
+};
+
+/* ---------- Reusable field ---------- */
+
+interface FieldProps {
+  label: string;
+  name: FieldName;
+  value: string;
+  error?: string;
+  type?: string;
+  placeholder?: string;
+  maxLength?: number;
+  autoComplete?: string;
+  wide?: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const Field: React.FC<FieldProps> = ({
+  label,
+  name,
+  value,
+  error,
+  type = 'text',
+  placeholder,
+  maxLength,
+  autoComplete,
+  wide,
+  onChange
+}) => {
+  const [visible, setVisible] = useState(false);
+  const isPassword = type === 'password';
+
+  return (
+    <div className={`field${wide ? ' field--wide' : ''}${error ? ' field--error' : ''}`}>
+      <label htmlFor={name}>{label}</label>
+
+      <div className="field__control">
+        <input
+          id={name}
+          name={name}
+          type={isPassword && visible ? 'text' : type}
+          value={value}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          autoComplete={autoComplete}
+          onChange={onChange}
+        />
+
+        {isPassword && (
+          <button
+            type="button"
+            className="field__toggle"
+            onClick={() => setVisible(prev => !prev)}
+            aria-label={visible ? 'Hide password' : 'Show password'}
+          >
+            {visible ? '🙈' : '👁'}
+          </button>
+        )}
+      </div>
+
+      {error && <span className="field__error">{error}</span>}
+    </div>
+  );
+};
+
+/* ---------- Page ---------- */
+
+const Register: React.FC = () => {
   const navigate = useNavigate();
   const { register, loading } = useAuth();
+  const [language, setLanguage] = useState<Language>('en');
+  const [intent, setIntent] = useState<Intent>('donor');
+  const [form, setForm] = useState<FormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [serverError, setServerError] = useState('');
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    password: "",
-    intent:
-      "donor" as
-        | "donor"
-        | "receiver"
-        | "volunteer",
-    city: "",
-    address: "",
-  });
+  const t = translations[language];
+  const isReceiver = intent === 'receiver';
+  const isOrganization = isReceiver && form.receiverType === 'organization';
+  const showOnBehalf = isReceiver && form.receiverType !== 'organization';
 
-  const [error, setError] = useState("");
+  const errorText = (name: FieldName) => {
+    const key = errors[name];
+    return key ? t.errors[key] : undefined;
+  };
+
+  const handleIntentChange = (next: Intent) => {
+    setIntent(next);
+    setErrors({});
+  };
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm({
-      ...form,
-      [e.target.name]:
-        e.target.value,
+    const { name, value, type } = e.target;
+    const field = name as FieldName;
+    const fieldValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+
+    const nextForm = { ...form, [field]: fieldValue } as FormData;
+    setForm(nextForm);
+
+    setErrors(prev => {
+      const next: FormErrors = {
+        ...prev,
+        [field]: validateField(field, String(fieldValue), nextForm, intent)
+      };
+
+      // Keep the confirm-password error in sync when password changes
+      if (field === 'password' && nextForm.confirmPassword) {
+        next.confirmPassword = validateField(
+          'confirmPassword', nextForm.confirmPassword, nextForm, intent
+        );
+      }
+      return next;
     });
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
 
-    setError("");
+    const nextErrors: FormErrors = {};
+    getFieldsToValidate(form, intent).forEach(field => {
+      const error = validateField(field, String(form[field]), form, intent);
+      if (error) nextErrors[field] = error;
+    });
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
 
     try {
-      const user = await register({
-        name: form.name,
-        phone: form.phone,
-
-        email:
-          form.email || undefined,
-
-        password: form.password,
-
-        intent: form.intent,
-
-        location: {
-          city: form.city,
-          address: form.address,
-        },
-      });
-
-      // --------------------------------
-      // Redirect according to role
-      // --------------------------------
-
-      if (
-        user.activeRole ===
-        "receiver"
-      ) {
-        navigate(
-          "/receiver-dashboard"
-        );
-      } else if (
-        user.activeRole ===
-        "volunteer"
-      ) {
-        navigate(
-          "/volunteer-dashboard"
-        );
-      } else {
-        navigate(
-          "/donator-dashboard"
-        );
-      }
-    } catch (err: any) {
-      setError(
-        err?.message ||
-          "Registration failed. Please try again."
-      );
+      setServerError('');
+      await register(buildPayload(form, intent));
+      navigate('/login', { replace: true });
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f5ed] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-lg">
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link
-            to="/"
-            className="text-3xl font-bold text-green-700"
-          >
-            SAHARA
-          </Link>
-
-          <h1 className="text-2xl font-bold text-gray-800 mt-6">
-            Create Your Account
-          </h1>
-
-          <p className="text-gray-500 mt-2">
-            Join your local community through SAHARA
-          </p>
+    <div className="register">
+      {/* Top bar */}
+      <header className="register__top">
+        <div className="brand">
+          <img src={logoImg} alt="SAHARA logo" className="brand__logo" />
+          <div>
+            <h1 className="brand__name">{t.brand}</h1>
+            <p className="brand__tagline">{t.tagline}</p>
+          </div>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
-
-          {/* Error */}
-          {error && (
-            <div className="mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-5"
-          >
-
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-
-              <input
-                name="name"
-                type="text"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 placeholder:text-[#9AA8A1] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              />
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
-
-              <input
-                name="phone"
-                type="tel"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="10-digit phone number"
-                maxLength={10}
-                required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email{" "}
-                <span className="text-gray-400">
-                  (optional)
-                </span>
-              </label>
-
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-
-              <input
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Minimum 6 characters"
-                minLength={6}
-                required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              />
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                I want to
-              </label>
-
-              <select
-                name="intent"
-                value={form.intent}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              >
-                <option value="donor">
-                  Donate to people in need
-                </option>
-
-                <option value="receiver">
-                  Receive donations
-                </option>
-
-                <option value="volunteer">
-                  Volunteer with SAHARA
-                </option>
-              </select>
-            </div>
-
-            {/* City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City
-              </label>
-
-              <input
-                name="city"
-                type="text"
-                value={form.city}
-                onChange={handleChange}
-                placeholder="Enter your city"
-                required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              />
-            </div>
-
-            {/* Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
-
-              <input
-                name="address"
-                type="text"
-                value={form.address}
-                onChange={handleChange}
-                placeholder="Enter your address"
-                required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              />
-            </div>
-
-            {/* Register */}
+        <div className="lang">
+          <span className="lang__label">{t.languageLabel}</span>
+          {(['en', 'hi'] as Language[]).map(code => (
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-green-700 py-3 font-semibold text-white transition hover:bg-green-800 disabled:opacity-60"
+              key={code}
+              type="button"
+              className={`lang__btn${language === code ? ' is-active' : ''}`}
+              onClick={() => setLanguage(code)}
             >
-              {loading
-                ? "Creating Account..."
-                : "Create Account"}
+              {code === 'en' ? 'EN' : 'हिंदी'}
             </button>
-
-          </form>
-
-          {/* Login */}
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{" "}
-
-            <Link
-              to="/login"
-              className="font-semibold text-green-700 hover:underline"
-            >
-              Login
-            </Link>
-          </p>
-
+          ))}
         </div>
-      </div>
+      </header>
+
+      <main className="register__main">
+        {/* Left: welcome */}
+        <section className="intro">
+          <h2 className="intro__title">{t.welcome}</h2>
+          <p className="intro__text">{t.welcomeText}</p>
+
+          <ul className="intro__features">
+            {['♡', '♧', '🌿', '✓'].map((icon, index) => (
+              <li key={icon}>
+                <span className="intro__icon">{icon}</span>
+                {t.features[index]}
+              </li>
+            ))}
+          </ul>
+
+          <div className="intro__hero">
+            <img src={logoImg} alt="Helping the community" />
+          </div>
+
+          <p className="intro__quote">“{t.quote}”</p>
+        </section>
+
+        {/* Right: form */}
+        <section className="card">
+          <div className="card__head">
+            <div>
+              <h2 className="card__title">{t.title}</h2>
+              <p className="card__subtitle">{t.subtitle}</p>
+            </div>
+            <span className="card__badge">{t.badge}</span>
+          </div>
+
+          <div className="tabs">
+            <button
+              type="button"
+              className={`tabs__btn${intent === 'donor' ? ' is-active' : ''}`}
+              onClick={() => handleIntentChange('donor')}
+            >
+              {t.donorTab}
+            </button>
+            <button
+              type="button"
+              className={`tabs__btn${isReceiver ? ' is-active' : ''}`}
+              onClick={() => handleIntentChange('receiver')}
+            >
+              {t.receiverTab}
+            </button>
+            <button
+              type="button"
+              className={`tabs__btn${intent === 'volunteer' ? ' is-active' : ''}`}
+              onClick={() => handleIntentChange('volunteer')}
+            >
+              Volunteer
+            </button>
+          </div>
+
+          <div className="card__body">
+            <form className="form" onSubmit={handleSubmit} noValidate>
+                {isReceiver && (
+                  <div className="field field--wide">
+                    <label htmlFor="receiverType">{t.labels.receiverType}</label>
+                    <select
+                      id="receiverType"
+                      name="receiverType"
+                      value={form.receiverType}
+                      onChange={handleChange}
+                    >
+                      {(Object.keys(t.receiverTypes) as ReceiverType[]).map(type => (
+                        <option key={type} value={type}>
+                          {t.receiverTypes[type]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <Field
+                  label={t.labels.name}
+                  name="name"
+                  value={form.name}
+                  placeholder={t.placeholders.name}
+                  autoComplete="name"
+                  error={errorText('name')}
+                  onChange={handleChange}
+                />
+                <Field
+                  label={t.labels.phone}
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  placeholder={t.placeholders.phone}
+                  maxLength={10}
+                  autoComplete="tel"
+                  error={errorText('phone')}
+                  onChange={handleChange}
+                />
+                <Field
+                  label={t.labels.email}
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  placeholder={t.placeholders.email}
+                  autoComplete="email"
+                  error={errorText('email')}
+                  onChange={handleChange}
+                />
+                <Field
+                  label={t.labels.pincode}
+                  name="pincode"
+                  value={form.pincode}
+                  placeholder={t.placeholders.pincode}
+                  maxLength={6}
+                  autoComplete="postal-code"
+                  error={errorText('pincode')}
+                  onChange={handleChange}
+                />
+                <Field
+                  label={t.labels.city}
+                  name="city"
+                  value={form.city}
+                  placeholder={t.placeholders.city}
+                  autoComplete="address-level2"
+                  error={errorText('city')}
+                  onChange={handleChange}
+                />
+                <Field
+                  label={t.labels.address}
+                  name="address"
+                  value={form.address}
+                  placeholder={t.placeholders.address}
+                  autoComplete="street-address"
+                  error={errorText('address')}
+                  onChange={handleChange}
+                />
+
+                {isOrganization && (
+                  <div className="box">
+                    <Field
+                      label={t.labels.orgName}
+                      name="orgName"
+                      value={form.orgName}
+                      error={errorText('orgName')}
+                      onChange={handleChange}
+                    />
+                    <Field
+                      label={t.labels.regNumber}
+                      name="regNumber"
+                      value={form.regNumber}
+                      onChange={handleChange}
+                    />
+                    <Field
+                      wide
+                      label={t.labels.description}
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                    />
+                  </div>
+                )}
+
+                {showOnBehalf && (
+                  <div className="box">
+                    <label className="box__check">
+                      <input
+                        type="checkbox"
+                        name="isOnBehalf"
+                        checked={form.isOnBehalf}
+                        onChange={handleChange}
+                      />
+                      <span>{t.onBehalfCheck}</span>
+                    </label>
+
+                    {form.isOnBehalf && (
+                      <>
+                        <Field
+                          label={t.labels.beneficiaryName}
+                          name="beneficiaryName"
+                          value={form.beneficiaryName}
+                          error={errorText('beneficiaryName')}
+                          onChange={handleChange}
+                        />
+                        <Field
+                          label={t.labels.beneficiaryAge}
+                          name="beneficiaryAge"
+                          type="number"
+                          value={form.beneficiaryAge}
+                          onChange={handleChange}
+                        />
+                        <Field
+                          label={t.labels.relationship}
+                          name="relationship"
+                          value={form.relationship}
+                          error={errorText('relationship')}
+                          onChange={handleChange}
+                        />
+                        <Field
+                          label={t.labels.beneficiaryLocation}
+                          name="beneficiaryLocation"
+                          value={form.beneficiaryLocation}
+                          onChange={handleChange}
+                        />
+                      </>
+                    )}
+                  </div>
+                )}
+
+                <Field
+                  label={t.labels.password}
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  placeholder={t.placeholders.password}
+                  autoComplete="new-password"
+                  error={errorText('password')}
+                  onChange={handleChange}
+                />
+                <Field
+                  label={t.labels.confirmPassword}
+                  name="confirmPassword"
+                  type="password"
+                  value={form.confirmPassword}
+                  placeholder={t.placeholders.confirmPassword}
+                  autoComplete="new-password"
+                  error={errorText('confirmPassword')}
+                  onChange={handleChange}
+                />
+
+                {serverError && (
+                  <p className="form__error" role="alert">
+                    {serverError}
+                  </p>
+                )}
+
+                <button type="submit" className="submit" disabled={loading}>
+                  {loading ? t.creating : <>{t.createAccount} <span aria-hidden="true">→</span></>}
+                </button>
+            </form>
+          </div>
+
+          <div className="card__foot">
+            <p className="card__secure">🔒 {t.secureNote}</p>
+            <p className="card__login">
+              {t.alreadyAccount} <Link to="/login">{t.login} →</Link>
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer className="register__footer">
+        © 2026 SAHARA &nbsp;•&nbsp; Give &nbsp;•&nbsp; Help &nbsp;•&nbsp; Build Communities
+        &nbsp;•&nbsp; Together
+      </footer>
     </div>
   );
-}
+};
+
+export default Register;
