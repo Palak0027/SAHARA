@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../components/image/image.png';
+import Navbar from '../components/Navbar';
 import { loginTranslations, type Language, type LoginErrorKey } from './translations';
 import { useAuth, type UserRole } from '../context/AuthContext';
 import '../styles/Login.css';
@@ -104,7 +105,7 @@ const Field: React.FC<FieldProps> = ({
             onClick={() => setVisible(prev => !prev)}
             aria-label={visible ? 'Hide password' : 'Show password'}
           >
-            {visible ? '🙈' : '👁'}
+            {visible ? 'Hide' : 'Show'}
           </button>
         )}
       </div>
@@ -169,29 +170,10 @@ const Login: React.FC = () => {
 
   return (
     <div className="login">
-      <header className="login__top">
-        <div className="lg-brand">
-          <img src={logoImg} alt="SAHARA logo" className="lg-brand__logo" />
-          <div>
-            <h1 className="lg-brand__name">{t.brand}</h1>
-            <p className="lg-brand__tagline">{t.tagline}</p>
-          </div>
-        </div>
-
-        <div className="lg-lang">
-          <span className="lg-lang__label">{t.languageLabel}</span>
-          {(['en', 'hi'] as Language[]).map(code => (
-            <button
-              key={code}
-              type="button"
-              className={`lg-lang__btn${language === code ? ' is-active' : ''}`}
-              onClick={() => setLanguage(code)}
-            >
-              {code === 'en' ? 'EN' : 'हिंदी'}
-            </button>
-          ))}
-        </div>
-      </header>
+      <Navbar
+        language={language}
+        toggleLanguage={() => setLanguage(current => current === 'en' ? 'hi' : 'en')}
+      />
 
       <main className="login__main">
         <section className="lg-intro">

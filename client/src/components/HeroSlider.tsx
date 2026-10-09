@@ -52,19 +52,14 @@ export default function HeroSlider({
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-xl">
-
-      {/* Soft glow */}
-      <div className="absolute -inset-4 rounded-[3rem] bg-[#DDE9DF] opacity-60 blur-2xl" />
-
-      {/* Main image container */}
-      <div className="relative overflow-hidden rounded-[2.5rem] border-[10px] border-white bg-[#DCE9DF] shadow-2xl">
+    <div className="relative mx-auto w-full max-w-lg">
+      <div className="relative overflow-hidden rounded-3xl border border-[#D5DFDC] bg-white shadow-lg shadow-[#17383D]/10">
 
         {/* Image */}
         <img
           src={images[current].src}
           alt={images[current].alt}
-          className="h-[500px] w-full object-cover transition-opacity duration-500"
+          className="h-[280px] w-full object-cover transition-opacity duration-500 sm:h-[340px] lg:h-[390px]"
         />
 
         {/* Dark subtle overlay */}
@@ -74,7 +69,7 @@ export default function HeroSlider({
         <button
           onClick={previousSlide}
           aria-label="Previous image"
-          className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#2F5547] shadow-lg backdrop-blur transition hover:bg-white"
+          className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-[#07545A] shadow-sm transition-colors hover:bg-white"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -83,27 +78,27 @@ export default function HeroSlider({
         <button
           onClick={nextSlide}
           aria-label="Next image"
-          className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#2F5547] shadow-lg backdrop-blur transition hover:bg-white"
+          className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-[#07545A] shadow-sm transition-colors hover:bg-white"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
 
         {/* Bottom Message Card */}
-        <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/50 bg-white/90 p-5 shadow-xl backdrop-blur-md">
+        <div className="absolute inset-x-3 bottom-3 rounded-xl border border-white/60 bg-white/95 p-3 shadow-md backdrop-blur-sm sm:inset-x-4 sm:bottom-4 sm:p-4">
           <div className="flex items-start gap-3">
 
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EDF5EF] text-[#4F7C68]">
-              <Heart className="h-5 w-5 fill-current" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E7F4E8] text-[#176C62]">
+              <Heart className="h-4 w-4 fill-current" />
             </div>
 
             <div>
-              <p className="font-heading text-base font-semibold text-[#2F5547]">
+              <p className="font-heading text-sm font-semibold text-[#07545A]">
                 {language === "en"
                   ? "Kind people. Stronger communities."
                   : "दयालु लोग। मजबूत समुदाय।"}
               </p>
 
-              <p className="mt-1 text-sm text-[#71817A]">
+              <p className="mt-1 text-xs text-[#6D7D80]">
                 {language === "en"
                   ? "Every contribution makes a difference."
                   : "हर योगदान बदलाव लाता है।"}
@@ -113,7 +108,7 @@ export default function HeroSlider({
         </div>
 
         {/* Dots */}
-        <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5">
+        <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 gap-1.5">
           {images.map((_, index) => (
             <button
               key={index}
@@ -121,7 +116,7 @@ export default function HeroSlider({
               aria-label={`Go to slide ${index + 1}`}
               className={`h-1.5 rounded-full transition-all ${
                 current === index
-                  ? "w-6 bg-[#2F5547]"
+                  ? "w-6 bg-[#07545A]"
                   : "w-1.5 bg-white/80"
               }`}
             />

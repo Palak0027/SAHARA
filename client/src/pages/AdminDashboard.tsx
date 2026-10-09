@@ -493,8 +493,8 @@ export default function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="rounded-xl bg-[#FFF7E8] p-3">
-                    <p className="text-sm text-[#715E3E]">
+                  <div className="rounded-xl bg-[#E7F4E8] p-3">
+                    <p className="text-sm text-[#176C62]">
                       {availableDonations} donations are currently
                       available.
                     </p>
@@ -1134,7 +1134,7 @@ function StatusBadge({ status }: { status: string }) {
           ? "bg-[#E7F3EA] text-[#3E6856]"
           : negative
           ? "bg-red-50 text-red-600"
-          : "bg-[#FFF5DE] text-[#8A6B2F]"
+          : "bg-[#E7F4E8] text-[#176C62]"
       }`}
     >
       {status}

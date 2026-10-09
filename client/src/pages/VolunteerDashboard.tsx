@@ -382,8 +382,8 @@ export default function VolunteerDashboard() {
                     </button>
                   </div>
 
-                  <div className="rounded-xl bg-[#FFF7E8] p-3">
-                    <p className="text-sm text-[#715E3E]">
+                  <div className="rounded-xl bg-[#E7F4E8] p-3">
+                    <p className="text-sm text-[#176C62]">
                       {activeTasks.length} active task
                       {activeTasks.length !== 1
                         ? "s"
@@ -1030,7 +1030,7 @@ function TaskStatusBadge({
     Available:
       "bg-[#EEF4F0] text-[#4F7C68]",
     "In Progress":
-      "bg-[#FFF5DE] text-[#8A6B2F]",
+      "bg-[#E7F4E8] text-[#176C62]",
     Completed:
       "bg-[#E7F3EA] text-[#3E6856]",
   };
