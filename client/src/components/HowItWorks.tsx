@@ -63,48 +63,48 @@ export default function HowItWorks({
   ];
 
   return (
-    <section id="how-it-works" className="bg-white py-20">
+    <section id="how-it-works" className="bg-[#F5FAF7] py-14 sm:py-16">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
 
         {/* Heading */}
-        <div className="mx-auto mb-14 max-w-2xl text-center">
+        <div className="mx-auto mb-9 max-w-2xl text-center">
 
-          <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#4F7C68]">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#176C62]">
             {t.how.label}
           </p>
 
-          <h2 className="font-heading text-3xl font-bold text-[#26332F] sm:text-4xl">
+          <h2 className="font-heading text-2xl font-bold text-[#17383D] sm:text-3xl">
             {t.how.title}
           </h2>
 
-          <p className="mt-4 text-[#71817A]">
+          <p className="mt-4 text-[#6D7D80]">
             {t.how.description}
           </p>
 
         </div>
 
         {/* Steps */}
-        <div className="grid gap-10 md:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
           {steps.map((step) => (
             <div
               key={step.number}
-              className="relative text-center"
+              className="rounded-xl border border-[#D5DFDC] bg-white px-4 py-5 text-center transition-colors hover:border-[#B5CFC4]"
             >
 
-              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#EDF5EF] text-[#4F7C68] shadow-sm [&>svg]:h-6 [&>svg]:w-6">
+              <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#E7F4E8] text-[#176C62] [&>svg]:h-5 [&>svg]:w-5">
                 {step.icon}
               </div>
 
-              <span className="text-xs font-bold tracking-widest text-[#9BAAA1]">
+              <span className="text-xs font-bold tracking-widest text-[#879496]">
                 {step.number}
               </span>
 
-              <h3 className="mt-2 font-heading text-lg font-bold text-[#26332F]">
+              <h3 className="mt-2 font-heading text-lg font-bold text-[#17383D]">
                 {step.title}
               </h3>
 
-              <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-[#71817A]">
+              <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-[#6D7D80]">
                 {step.description}
               </p>
 

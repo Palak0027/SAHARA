@@ -6,6 +6,7 @@ import {
   Shirt,
   Utensils,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type DonationCategoriesProps = {
   t: {
@@ -64,23 +65,23 @@ export default function DonationCategories({
   ];
 
   return (
-    <section id="donations" className="bg-white py-20">
+    <section id="donations" className="bg-white py-14 sm:py-16">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
 
         {/* Heading */}
-        <div className="mb-10 flex items-end justify-between">
+        <div className="mb-7 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
 
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#4F7C68]">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#176C62]">
               {t.categories.label}
             </p>
 
-            <h2 className="font-heading text-3xl font-bold text-[#26332F] sm:text-4xl">
+            <h2 className="font-heading text-2xl font-bold tracking-tight text-[#17383D] sm:text-3xl">
               {t.categories.title}
             </h2>
           </div>
 
-          <button className="hidden items-center gap-1 text-sm font-semibold text-[#4F7C68] sm:flex">
+          <button className="hidden items-center gap-1 text-sm font-semibold text-[#176C62] sm:flex">
             {t.categories.explore}
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -88,55 +89,58 @@ export default function DonationCategories({
         </div>
 
         {/* Cards */}
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
 
           {categories.map((category) => (
             <div
               key={category.title}
-              className={`category-card ${category.className} ${
+              className={`category-card group ${category.className} ${
                 category.disabled ? "opacity-80" : ""
               }`}
             >
               <div className="flex items-start justify-between">
 
-                <div className="category-icon">
+                <div className="category-icon transition-transform duration-300 group-hover:-translate-y-1">
                   {category.icon}
                 </div>
 
                 {category.disabled && (
-                  <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-[#71817A]">
+                  <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-[#6D7D80]">
                     {t.categories.medicine.tag}
                   </span>
                 )}
 
               </div>
 
-              <div className="mt-6">
+              <div className="mt-4">
 
-                <h3 className="font-heading text-2xl font-bold text-[#26332F]">
+                <h3 className="font-heading text-xl font-bold text-[#17383D]">
                   {category.title}
                 </h3>
 
-                <p className="mt-2 max-w-sm text-sm leading-6 text-[#66756D]">
+                <p className="mt-2 max-w-sm text-sm leading-6 text-[#6D7D80]">
                   {category.description}
                 </p>
 
               </div>
 
+              {category.disabled ? (
               <button
-                disabled={category.disabled}
-                className={`mt-7 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
-                  category.disabled
-                    ? "cursor-not-allowed bg-white/60 text-[#8B968F]"
-                    : "bg-white text-[#3E6856] shadow-sm hover:-translate-y-0.5"
-                }`}
+                type="button"
+                disabled
+                className="mt-5 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-white/60 px-4 py-2 text-sm font-semibold text-[#8B968F]"
               >
                 {category.button}
-
-                {!category.disabled && (
-                  <ArrowRight className="h-4 w-4" />
-                )}
               </button>
+              ) : (
+              <Link
+                to="/register"
+                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#176C62] shadow-sm transition-colors hover:bg-[#F5FAF7]"
+              >
+                {category.button}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              )}
 
             </div>
           ))}

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import CTA from "./components/CTA";
 import DonationCategories from "./components/DonationCategories";
@@ -182,10 +183,24 @@ const homepageContent = {
 
 export default function App() {
   const [language, setLanguage] = useState<"en" | "hi">("en");
+  const { pathname, hash } = useLocation();
   const t = homepageContent[language];
 
+  useEffect(() => {
+    if (pathname !== "/" || !hash) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname, hash]);
+
   return (
-    <>
+    <div className="home-page">
       <Navbar
         language={language}
         toggleLanguage={() =>
@@ -201,6 +216,6 @@ export default function App() {
         <CTA t={t} />
       </main>
       <Footer t={t} />
-    </>
+    </div>
   );
 }

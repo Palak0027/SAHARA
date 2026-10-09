@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../components/image/image.png';
+import Navbar from '../components/Navbar';
 import { translations, type ErrorKey, type Language } from './translations';
 import { useAuth, type RegisterData } from '../context/AuthContext';
 import '../styles/Register.css';
@@ -219,7 +220,7 @@ const Field: React.FC<FieldProps> = ({
             onClick={() => setVisible(prev => !prev)}
             aria-label={visible ? 'Hide password' : 'Show password'}
           >
-            {visible ? '🙈' : '👁'}
+            {visible ? 'Hide' : 'Show'}
           </button>
         )}
       </div>
@@ -307,30 +308,10 @@ const Register: React.FC = () => {
 
   return (
     <div className="register">
-      {/* Top bar */}
-      <header className="register__top">
-        <div className="brand">
-          <img src={logoImg} alt="SAHARA logo" className="brand__logo" />
-          <div>
-            <h1 className="brand__name">{t.brand}</h1>
-            <p className="brand__tagline">{t.tagline}</p>
-          </div>
-        </div>
-
-        <div className="lang">
-          <span className="lang__label">{t.languageLabel}</span>
-          {(['en', 'hi'] as Language[]).map(code => (
-            <button
-              key={code}
-              type="button"
-              className={`lang__btn${language === code ? ' is-active' : ''}`}
-              onClick={() => setLanguage(code)}
-            >
-              {code === 'en' ? 'EN' : 'हिंदी'}
-            </button>
-          ))}
-        </div>
-      </header>
+      <Navbar
+        language={language}
+        toggleLanguage={() => setLanguage(current => current === 'en' ? 'hi' : 'en')}
+      />
 
       <main className="register__main">
         {/* Left: welcome */}
@@ -355,13 +336,12 @@ const Register: React.FC = () => {
         </section>
 
         {/* Right: form */}
-        <section className="card">
+        <section className={`card${isReceiver ? ' card--receiver' : ''}`}>
           <div className="card__head">
             <div>
               <h2 className="card__title">{t.title}</h2>
               <p className="card__subtitle">{t.subtitle}</p>
             </div>
-            <span className="card__badge">{t.badge}</span>
           </div>
 
           <div className="tabs">
@@ -378,13 +358,6 @@ const Register: React.FC = () => {
               onClick={() => handleIntentChange('receiver')}
             >
               {t.receiverTab}
-            </button>
-            <button
-              type="button"
-              className={`tabs__btn${intent === 'volunteer' ? ' is-active' : ''}`}
-              onClick={() => handleIntentChange('volunteer')}
-            >
-              Volunteer
             </button>
           </div>
 

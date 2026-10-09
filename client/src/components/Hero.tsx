@@ -7,6 +7,7 @@ import {
   Search,
   Users,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import HeroSlider from "./HeroSlider";
 
 type HeroProps = {
@@ -58,76 +59,76 @@ export default function Hero({
   ];
 
   return (
-    <section className="relative overflow-hidden">
+    <section id="home" className="relative isolate overflow-hidden bg-[#F5FAF7]">
 
       {/* Decorative Background */}
-      <div className="absolute -left-32 top-20 h-72 w-72 rounded-full bg-[#DCE9DF] opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute -left-32 top-20 h-72 w-72 rounded-full bg-[#E7F4E8] opacity-70 blur-3xl" />
 
-      <div className="absolute -right-32 top-0 h-96 w-96 rounded-full bg-[#F5DDD2] opacity-50 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 top-0 h-96 w-96 rounded-full bg-[#E7F4E8] opacity-60 blur-3xl" />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 pb-16 pt-16 lg:grid-cols-2 lg:px-8 lg:pb-24 lg:pt-24">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-5 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-14 sm:pt-12 lg:grid-cols-2 lg:px-8 lg:pb-16 lg:pt-14">
 
         {/* LEFT SIDE */}
         <div className="max-w-xl">
 
           {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#D9E5DC] bg-[#EDF5EF] px-4 py-2 text-sm font-medium text-[#3E6B57]">
-            <Heart className="h-4 w-4 fill-current" />
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#D5DFDC] bg-[#E7F4E8] px-3 py-1.5 text-xs font-semibold tracking-wide text-[#176C62]">
+            <Heart className="h-3.5 w-3.5 fill-current" />
             {t.hero.badge}
           </div>
 
           {/* Heading */}
-          <h2 className="font-heading text-5xl font-bold leading-[1.05] tracking-tight text-[#26332F] sm:text-6xl lg:text-7xl">
+          <h2 className="font-heading text-3xl font-bold leading-[1.1] tracking-tight text-[#17383D] sm:text-5xl lg:text-6xl">
             {t.hero.title1}
 
             <br />
 
             {t.hero.title2}{" "}
 
-            <span className="italic text-[#4F7C68]">
+            <span className="italic text-[#176C62]">
               {t.hero.nearby}
             </span>
           </h2>
 
           {/* Description */}
-          <p className="mt-7 max-w-lg text-lg leading-8 text-[#71817A]">
+          <p className="mt-4 max-w-lg text-sm leading-6 text-[#6D7D80] sm:text-base sm:leading-7">
             {t.hero.description}
           </p>
 
           {/* Buttons */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
 
-            <button className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#4F7C68] px-7 py-3.5 font-semibold text-white shadow-lg shadow-[#4F7C68]/20 transition hover:-translate-y-0.5 hover:bg-[#3E6856]">
+            <Link to="/register" className="home-action group inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors">
               {t.hero.donate}
 
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-            </button>
+            </Link>
 
-            <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#9AB3A4] bg-white px-7 py-3.5 font-semibold text-[#3E6856] transition hover:bg-[#F1F6F2]">
+            <a href="#donations" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B5CFC4] bg-white px-5 py-2.5 text-sm font-semibold text-[#176C62] transition-colors hover:bg-[#E7F4E8]">
               <Search className="h-4 w-4" />
               {t.hero.find}
-            </button>
+            </a>
 
           </div>
 
           {/* Statistics */}
-          <div className="mt-12 grid grid-cols-2 gap-6 border-t border-[#DDE4DE] pt-7 sm:grid-cols-4">
+          <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-[#D5DFDC] pt-5 sm:grid-cols-4">
 
             {stats.map((stat) => (
               <div
                 key={stat.label}
                 className="flex items-center gap-2"
               >
-                <div className="text-[#4F7C68] [&>svg]:h-5 [&>svg]:w-5">
+                <div className="text-[#176C62] [&>svg]:h-4 [&>svg]:w-4">
                   {stat.icon}
                 </div>
 
                 <div>
-                  <p className="font-heading text-lg font-bold text-[#26332F]">
+                  <p className="font-heading text-base font-bold text-[#17383D]">
                     {stat.value}
                   </p>
 
-                  <p className="text-[11px] text-[#7B8981]">
+                  <p className="text-[11px] text-[#6D7D80]">
                     {stat.label}
                   </p>
                 </div>

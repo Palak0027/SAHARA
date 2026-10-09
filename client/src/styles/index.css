@@ -1,3 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Outfit", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+.home-page a {
+  color: #000;
+  text-decoration: none;
+}
+
+.site-navbar a {
+  text-decoration: none;
+}
+
+.site-navbar a,
+.site-navbar a:visited,
+.site-navbar a:hover,
+.site-navbar a:focus,
+.site-navbar a:active {
+  text-decoration: none;
+}
+
+.site-navbar .nav-link,
+.site-navbar .nav-link:visited,
+.site-navbar .nav-link:hover,
+.site-navbar .nav-link:focus,
+.site-navbar .nav-link:active {
+  color: #07545a;
+}
+
+.site-navbar .home-action,
+.site-navbar .home-action:visited,
+.site-navbar .home-action:hover,
+.site-navbar .home-action:focus,
+.site-navbar .home-action:active,
+.site-navbar a:not(.nav-link):not(.home-action),
+.site-navbar a:not(.nav-link):not(.home-action):visited,
+.site-navbar a:not(.nav-link):not(.home-action):hover,
+.site-navbar a:not(.nav-link):not(.home-action):focus,
+.site-navbar a:not(.nav-link):not(.home-action):active {
+  color: #07545a;
+}
+
+.home-page .site-navbar a,
+.home-page .site-navbar a:visited,
+.home-page .site-navbar a:hover,
+.home-page .site-navbar a:focus,
+.home-page .site-navbar a:active {
+  color: #000;
+}
+
+.home-page section[id] {
+  scroll-margin-top: 4rem;
+}
+
+.home-action {
+  border: 1px solid #b5cfc4;
+  background: #e7f4e8;
+  color: #07545a;
+}
+
+.home-action:hover {
+  background: #dce9df;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+
+    font-family: var(--font-body);
+
+    background: #f5faf7;
+    color: #17383d;
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .nav-link {
+    position: relative;
+    color: #6d7d80;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: #176c62;
+  }
+
+  .nav-link.active {
+    color: #176c62;
+    font-weight: 600;
+  }
+
+    .category-card {
+    position: relative;
+    min-height: 250px;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+
+    border: 1px solid rgba(255, 255, 255, 0.75);
+
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(23, 108, 98, 0.08);
+  }
+
+  .food-card {
+    background: linear-gradient(
+      135deg,
+      #f5faf7 0%,
+      #e7f4e8 100%
+    );
+  }
+
+  .clothes-card {
+    background: linear-gradient(
+      135deg,
+      #f5faf7 0%,
+      #e7f4e8 100%
+    );
+  }
+
+  .medicine-card {
+    background: linear-gradient(
+      135deg,
+      #fbfdfc 0%,
+      #e7f4e8 100%
+    );
+  }
+
+  .category-icon {
+    display: flex;
+    height: 3.25rem;
+    width: 3.25rem;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.75);
+
+    color: #176c62;
+
+    box-shadow: 0 4px 12px rgba(23, 108, 98, 0.08);
+  }
+
+  .category-icon svg {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+}
+
+/* Custom scrollbar */
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f4f1;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbdcd4;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4f9f70;
+}
+
+::selection {
+  background: #cfe1d4;
+  color: #26332f;
+}
 /* =========================================================
    SAHARA GLOBAL RESPONSIVE FIX
    ========================================================= */

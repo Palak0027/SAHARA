@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { HeartHandshake, Languages, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Languages, Leaf, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 type NavbarProps = {
   language: "en" | "hi";
   toggleLanguage: () => void;
-  t: {
+  t?: {
     nav: {
       home: string;
       about: string;
@@ -17,179 +17,127 @@ type NavbarProps = {
   };
 };
 
-export default function Navbar({
-  language,
-  toggleLanguage,
-  t,
-}: NavbarProps) {
+export default function Navbar({ language, toggleLanguage, t }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+  const nav = t?.nav ?? (language === "en"
+    ? {
+        home: "Home",
+        about: "About",
+        how: "How it works",
+        explore: "Explore donations",
+        login: "Login",
+        signup: "Register",
+      }
+    : {
+        home: "होम",
+        about: "हमारे बारे में",
+        how: "कैसे काम करता है",
+        explore: "दान देखें",
+        login: "लॉगिन",
+        signup: "रजिस्टर",
+      });
+  const sections = [
+    { label: nav.home, to: "/" },
+    { label: nav.about, to: "/#about" },
+    { label: nav.how, to: "/#how-it-works" },
+    { label: nav.explore, to: "/#donations" },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#E4E9E4]/80 bg-[#FAF8F3]/90 backdrop-blur-xl">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2F5547] text-white shadow-sm">
-            <HeartHandshake className="h-5 w-5" />
+    <header className="site-navbar sticky top-0 z-50 border-b border-[#D5DFDC] bg-[#F5FAF7]/95 shadow-[0_2px_10px_rgba(18,62,69,0.04)] backdrop-blur-lg">
+      <nav className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto] items-center gap-4 px-4 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
+        <Link to="/" className="flex w-fit items-center gap-2.5" aria-label="SAHARA home">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E7F4E8] text-[#176C62]">
+            <Leaf className="h-5 w-5" />
           </div>
-
           <div>
-            <h1 className="font-heading text-xl font-bold tracking-tight text-[#2F5547]">
+            <span className="block font-heading text-lg font-bold leading-5 tracking-tight text-[#07545A]">
               SAHARA
-            </h1>
-
-            <p className="hidden text-[10px] font-medium uppercase tracking-[0.18em] text-[#71817A] sm:block">
-              Community Care
-            </p>
+            </span>
+            <span className="hidden text-[10px] leading-4 text-[#6D7D80] lg:block">
+              Give what you can, help someone nearby.
+            </span>
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-8 md:flex">
-
-          <Link
-            to="/"
-            className="nav-link active"
-          >
-            {t.nav.home}
-          </Link>
-
-          <a
-            href="#about"
-            className="nav-link"
-          >
-            {t.nav.about}
-          </a>
-
-          <a
-            href="#how-it-works"
-            className="nav-link"
-          >
-            {t.nav.how}
-          </a>
-
-          <a
-            href="#donations"
-            className="nav-link"
-          >
-            {t.nav.explore}
-          </a>
-
+        <div className="hidden items-center gap-6 md:flex lg:gap-8">
+          {sections.map((item, index) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`nav-link${index === 0 && pathname === "/" ? " active" : ""}`}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2">
-
-          {/* Language */}
+        <div className="flex items-center justify-self-end gap-2">
           <button
+            type="button"
             onClick={toggleLanguage}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#D8E0DA] bg-white px-2.5 text-xs font-semibold text-[#2F5547] transition hover:bg-[#F1F6F2] sm:h-10 sm:rounded-xl sm:px-3 sm:text-sm"
-            title={
-              language === "en"
-                ? "हिंदी में बदलें"
-                : "Switch to English"
-            }
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#D5DFDC] bg-white px-2.5 text-xs font-semibold text-[#07545A] transition-colors hover:bg-[#E7F4E8]"
+            title={language === "en" ? "हिंदी में बदलें" : "Switch to English"}
           >
-            <Languages className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-
-            {language === "en"
-              ? "हिंदी"
-              : "English"}
+            <Languages className="h-3.5 w-3.5" />
+            {language === "en" ? "हिंदी" : "English"}
           </button>
 
-          {/* Login */}
           <Link
             to="/login"
-            className="hidden rounded-xl border border-[#D8E0DA] px-4 py-2 text-sm font-medium text-[#2F5547] transition hover:bg-white sm:block"
+            className="hidden h-9 items-center rounded-lg border border-[#D5DFDC] bg-white px-3 text-sm font-semibold text-[#07545A] transition-colors hover:bg-[#E7F4E8] sm:inline-flex"
           >
-            {t.nav.login}
+            {nav.login}
           </Link>
 
-          {/* Sign Up */}
           <Link
             to="/register"
-            className="hidden rounded-xl bg-[#2F5547] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#234438] sm:block"
+            className="home-action hidden h-9 items-center rounded-lg px-3 text-sm font-semibold transition-colors sm:inline-flex"
           >
-            {t.nav.signup}
+            {nav.signup}
           </Link>
 
-          {/* Mobile Menu */}
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#D8E0DA] bg-white text-[#2F5547] md:hidden"
-            aria-label="Open menu"
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#D5DFDC] bg-white text-[#07545A] transition-colors hover:bg-[#E7F4E8] md:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
           >
-            {menuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <span className="text-lg leading-none">
-                ☰
-              </span>
-            )}
+            {menuOpen ? <X className="h-5 w-5" /> : <span aria-hidden="true">☰</span>}
           </button>
-
         </div>
       </nav>
 
-      {/* Mobile Navigation */}
       {menuOpen && (
-        <div className="border-t border-[#E4E9E4] bg-[#FAF8F3] px-5 py-4 md:hidden">
-
-          <div className="flex flex-col gap-4">
-
-            <Link
-              to="/"
-              onClick={() => setMenuOpen(false)}
-              className="nav-link"
-            >
-              {t.nav.home}
-            </Link>
-
-            <a
-              href="#about"
-              onClick={() => setMenuOpen(false)}
-              className="nav-link"
-            >
-              {t.nav.about}
-            </a>
-
-            <a
-              href="#how-it-works"
-              onClick={() => setMenuOpen(false)}
-              className="nav-link"
-            >
-              {t.nav.how}
-            </a>
-
-            <a
-              href="#donations"
-              onClick={() => setMenuOpen(false)}
-              className="nav-link"
-            >
-              {t.nav.explore}
-            </a>
-
-            <div className="flex gap-2 pt-2">
-
-              {/* Mobile Login */}
+        <div className="border-t border-[#D5DFDC] bg-[#F5FAF7] px-4 py-3 md:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col gap-1">
+            {sections.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#07545A] transition-colors hover:bg-[#E7F4E8]"
+              >
+                {item.label}
+              </Link>
+            ))}
+            <div className="flex gap-2 border-t border-[#D5DFDC] pt-3">
               <Link
                 to="/login"
                 onClick={() => setMenuOpen(false)}
-                className="flex-1 rounded-xl border border-[#D8E0DA] px-4 py-2 text-center text-sm font-medium text-[#2F5547]"
+                className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[#D5DFDC] bg-white px-3 text-sm font-semibold text-[#07545A] transition-colors hover:bg-[#E7F4E8]"
               >
-                {t.nav.login}
+                {nav.login}
               </Link>
-
-              {/* Mobile Sign Up */}
               <Link
                 to="/register"
                 onClick={() => setMenuOpen(false)}
-                className="flex-1 rounded-xl bg-[#2F5547] px-4 py-2 text-center text-sm font-semibold text-white"
+                className="home-action flex h-10 flex-1 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors"
               >
-                {t.nav.signup}
+                {nav.signup}
               </Link>
-
             </div>
           </div>
         </div>
