@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
-
 @import "tailwindcss";
 
 @theme {
@@ -7,12 +6,9 @@
   --font-body: "Inter", sans-serif;
 }
 
+/* Homepage link styling */
 .home-page a {
   color: #000;
-  text-decoration: none;
-}
-
-.site-navbar a {
   text-decoration: none;
 }
 
@@ -67,27 +63,39 @@
   background: #dce9df;
 }
 
+/* Global base styles */
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 
   html {
+    width: 100%;
+    min-height: 100%;
     scroll-behavior: smooth;
   }
 
   body {
-    margin: 0;
+    width: 100%;
     min-width: 320px;
     min-height: 100vh;
-
+    margin: 0;
+    padding: 0;
     font-family: var(--font-body);
-
-    background: #f5faf7;
-    color: #17383d;
-
+    background: #faf8f3;
+    color: #26332f;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
   }
 
   h1,
@@ -100,99 +108,140 @@
   }
 
   button,
-  a {
+  a,
+  input,
+  select,
+  textarea {
     -webkit-tap-highlight-color: transparent;
   }
 
   button {
     cursor: pointer;
   }
+
+  img,
+  video,
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Don't force Lucide SVG icons to auto height; Tailwind sets their dimensions. */
+  svg {
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    max-width: 100%;
+  }
 }
 
+/* Navigation */
 @layer components {
   .nav-link {
     position: relative;
-    color: #6d7d80;
+    color: #607068;
     font-size: 0.875rem;
     font-weight: 500;
     transition: color 0.2s ease;
   }
 
-  .nav-link:hover {
-    color: #176c62;
+  .nav-link:hover,
+  .nav-link.active {
+    color: #2f5547;
   }
 
   .nav-link.active {
-    color: #176c62;
     font-weight: 600;
   }
 
-    .category-card {
+  .nav-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -8px;
+    height: 2px;
+    border-radius: 999px;
+    background: #4f7c68;
+  }
+
+  /* Donation category cards */
+  .category-card {
     position: relative;
-    min-height: 250px;
+    min-height: 290px;
     overflow: hidden;
-    border-radius: 1.25rem;
-    padding: 1.5rem;
-
+    border-radius: 1.5rem;
+    padding: 1.75rem;
     border: 1px solid rgba(255, 255, 255, 0.75);
-
-    transition:
-      transform 0.25s ease,
-      box-shadow 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
 
   .category-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(23, 108, 98, 0.08);
+    transform: translateY(-5px);
+    box-shadow: 0 18px 40px rgba(47, 85, 71, 0.1);
   }
 
   .food-card {
-    background: linear-gradient(
-      135deg,
-      #f5faf7 0%,
-      #e7f4e8 100%
-    );
+    background: linear-gradient(135deg, #fff4ee 0%, #fbe4d8 100%);
   }
 
   .clothes-card {
-    background: linear-gradient(
-      135deg,
-      #f5faf7 0%,
-      #e7f4e8 100%
-    );
+    background: linear-gradient(135deg, #edf4ef 0%, #dce9df 100%);
   }
 
   .medicine-card {
-    background: linear-gradient(
-      135deg,
-      #fbfdfc 0%,
-      #e7f4e8 100%
-    );
+    background: linear-gradient(135deg, #f1f1eb 0%, #e6e8df 100%);
   }
 
   .category-icon {
     display: flex;
-    height: 3.25rem;
-    width: 3.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
     align-items: center;
     justify-content: center;
-
     border-radius: 1rem;
     background: rgba(255, 255, 255, 0.75);
-
-    color: #176c62;
-
-    box-shadow: 0 4px 12px rgba(23, 108, 98, 0.08);
+    color: #4f7c68;
+    box-shadow: 0 4px 12px rgba(47, 85, 71, 0.08);
   }
 
   .category-icon svg {
-    height: 1.5rem;
     width: 1.5rem;
+    height: 1.5rem;
   }
 }
 
-/* Custom scrollbar */
+/* Prevent accidental horizontal page overflow */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
 
+body {
+  overflow-x: hidden;
+}
+
+p,
+span,
+a,
+button,
+input,
+textarea,
+select {
+  overflow-wrap: anywhere;
+}
+
+table {
+  max-width: 100%;
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 9px;
 }
@@ -203,58 +252,69 @@
 
 ::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: #cbdcd4;
+  background: #a5b8aa;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4f9f70;
+  background: #6f8f78;
 }
 
+/* Text selection */
 ::selection {
   background: #cfe1d4;
   color: #26332f;
 }
-/* =========================================================
-   SAHARA GLOBAL RESPONSIVE FIX
-   ========================================================= */
 
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
+/* Tablet */
+@media (max-width: 768px) {
+  body {
+    min-width: 320px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    max-width: 100%;
+  }
+
+  .category-card {
+    min-height: 150px;
+    padding: 1.0rem;
+  }
 }
 
-body {
-  overflow-x: hidden;
+/* Mobile */
+@media (max-width: 480px) {
+  .category-card {
+    min-height: auto;
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .category-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.875rem;
+  }
+
+  .category-icon svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
-
-/* Prevent long text/content from forcing horizontal overflow */
-img,
-svg,
-video,
-canvas {
-  max-width: 100%;
-}
-
-button,
-input,
-select,
-textarea {
-  max-width: 100%;
-}
-
-/* Better mobile tap behaviour */
-button,
-a,
-input,
-select,
-textarea {
-  -webkit-tap-highlight-color: transparent;
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

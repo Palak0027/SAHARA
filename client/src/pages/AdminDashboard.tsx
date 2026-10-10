@@ -3,7 +3,6 @@ import {
   Bell,
   BarChart3,
   CheckCircle,
-  ChevronRight,
   ClipboardList,
   HeartHandshake,
   LayoutDashboard,
@@ -11,7 +10,6 @@ import {
   Menu,
   Package,
   Search,
-  Settings,
   ShieldCheck,
   UserCheck,
   UserCog,
@@ -31,8 +29,7 @@ type Tab =
   | "Requests"
   | "Volunteers"
   | "Reports"
-  | "Profile"
-  | "Settings";
+  | "Account";
 
 type UserStatus = "Active" | "Blocked";
 
@@ -71,8 +68,7 @@ const nav: { label: Tab; icon: LucideIcon }[] = [
   { label: "Requests", icon: ClipboardList },
   { label: "Volunteers", icon: UserCheck },
   { label: "Reports", icon: BarChart3 },
-  { label: "Profile", icon: UserCog },
-  { label: "Settings", icon: Settings },
+  { label: "Account", icon: UserCog },
 ];
 
 const initialUsers: UserItem[] = [
@@ -348,16 +344,16 @@ export default function AdminDashboard() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[min(18rem,85vw)] flex-col border-r border-[#DDE6DF] bg-white transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-64 shrink-0 flex-col border-r border-[#DDE6DF] bg-white transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-20 items-center justify-between border-b border-[#E6ECE8] px-6">
+        <div className="flex h-18 items-center justify-between border-b border-[#E6ECE8] px-3">
           <div>
             <h1 className="text-2xl font-bold text-[#2F5547]">
               SAHARA
             </h1>
-            <p className="mt-0.5 text-xs text-[#8A9891]">
+            <p className="mt-0.3 text-xs text-[#8A9891]">
               Admin Panel
             </p>
           </div>
@@ -366,14 +362,14 @@ export default function AdminDashboard() {
             onClick={() => setSidebarOpen(false)}
             className="rounded-lg p-2 text-[#71817A] hover:bg-[#F3F6F3] lg:hidden"
           >
-            <X className="h-5 w-5" />
+            <X className="h-2 w-3" />
           </button>
         </div>
 
-        <div className="border-b border-[#E6ECE8] px-5 py-5">
-          <div className="flex items-center gap-3 rounded-xl bg-[#F3F7F4] p-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#DDEBE2] text-[#3E6856]">
-              <ShieldCheck className="h-5 w-5" />
+        <div className="shrink-0 border-b border-[#E6ECE8] px-3 py-3">
+          <div className="flex items-center gap-3 rounded-xl bg-[#F3F7F4] p-2.5">
+            <div className="flex h-9 w-11 items-center justify-center rounded-full bg-[#DDEBE2] text-[#3E6856]">
+              <ShieldCheck className="h-3 w-5" />
             </div>
 
             <div className="min-w-0">
@@ -387,7 +383,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-5">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
           {nav.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.label;
@@ -396,18 +392,18 @@ export default function AdminDashboard() {
               <button
                 key={item.label}
                 onClick={() => navigateTab(item.label)}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
                   active
                     ? "bg-[#E7F0E9] text-[#3E6856]"
                     : "text-[#65756D] hover:bg-[#F4F7F5] hover:text-[#3E6856]"
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-3 w-5" />
                 <span>{item.label}</span>
 
                 {item.label === "Requests" &&
                   pendingRequests > 0 && (
-                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#4F7C68] px-1.5 text-[10px] font-bold text-white">
+                    <span className="ml-auto flex h-3 min-w-5 items-center justify-center rounded-full bg-[#4F7C68] px-1.5 text-[10px] font-bold text-white">
                       {pendingRequests}
                     </span>
                   )}
@@ -416,7 +412,7 @@ export default function AdminDashboard() {
           })}
         </nav>
 
-        <div className="border-t border-[#E6ECE8] p-4">
+        <div className="border-t border-[#E6ECE8] p-2">
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#A05B5B] transition hover:bg-red-50"
@@ -430,7 +426,7 @@ export default function AdminDashboard() {
       {/* Main */}
       <div className="min-w-0 lg:pl-64">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex min-w-0 h-20 items-center justify-between border-b border-[#DDE6DF] bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
+        <header className="relative z-30 flex min-h-[76px] w-full items-center justify-between gap-3 border-b border-[#DDE6DF] bg-white px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -440,10 +436,10 @@ export default function AdminDashboard() {
             </button>
 
             <div>
-              <p className="text-xs font-medium text-[#8A9891]">
+              <p className="m-0 text-xs font-medium leading-4 text-[#8A9891]">
                 Admin Dashboard
               </p>
-              <h2 className="text-lg font-bold text-[#26332F]">
+              <h2 className="m-0 text-lg font-bold leading-6 text-[#26332F]">
                 {activeTab}
               </h2>
             </div>
@@ -493,7 +489,7 @@ export default function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="rounded-xl bg-[#E7F4E8] p-3">
+                  <div className="rounded-xl bg-[#E7F4E8] p-2">
                     <p className="text-sm text-[#176C62]">
                       {availableDonations} donations are currently
                       available.
@@ -505,24 +501,24 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="px-3 py-3 sm:px-4 sm:py-3 lg:px-5 lg:py-4">
           {/* OVERVIEW */}
           {activeTab === "Overview" && (
-            <div className="space-y-8">
+            <div className="space-y-2.5">
               <div>
                 <p className="text-sm font-medium text-[#4F7C68]">
                   Welcome back 👋
                 </p>
-                <h1 className="mt-1 text-2xl font-bold text-[#26332F] sm:text-3xl">
+                <h1 className="mt-1 text-xl font-bold leading-tight text-[#26332F] sm:text-2xl">
                   SAHARA Administration
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm text-[#71817A]">
+                <p className="mt-1 max-w-2xl text-sm text-[#71817A]">
                   Monitor users, donations, requests and volunteer
                   activity from one place.
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <AdminStat
                   icon={Users}
                   value={activeUsers}
@@ -548,9 +544,9 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              <div className="grid gap-6 xl:grid-cols-2">
-                <div className="rounded-2xl border border-[#DDE6DF] bg-white p-6">
-                  <div className="mb-5 flex items-center justify-between">
+              <div className="grid items-start gap-3 xl:grid-cols-2">
+                <div className="rounded-xl border border-[#DDE6DF] bg-white p-4">
+                  <div className="mb-3 flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-[#26332F]">
                         Recent Requests
@@ -568,11 +564,11 @@ export default function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {requests.slice(0, 4).map((request) => (
                       <div
                         key={request.id}
-                        className="flex items-center justify-between rounded-xl border border-[#E6ECE8] p-4"
+                        className="flex items-center justify-between rounded-lg border border-[#E6ECE8] px-3 py-2.5"
                       >
                         <div>
                           <p className="text-sm font-semibold text-[#34453E]">
@@ -589,8 +585,8 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-[#DDE6DF] bg-white p-6">
-                  <div className="mb-5 flex items-center justify-between">
+                <div className="rounded-xl border border-[#DDE6DF] bg-white p-4">
+                  <div className="mb-3 flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-[#26332F]">
                         Platform Summary
@@ -603,7 +599,7 @@ export default function AdminDashboard() {
                     <HeartHandshake className="h-5 w-5 text-[#4F7C68]" />
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2.5">
                     <SummaryRow
                       label="Total users"
                       value={users.length}
@@ -632,7 +628,7 @@ export default function AdminDashboard() {
 
           {/* USERS */}
           {activeTab === "Users" && (
-            <section className="space-y-6">
+            <section className="space-y-2.5">
               <SectionHeading
                 title="Manage Users"
                 description="View and manage registered SAHARA users."
@@ -644,7 +640,7 @@ export default function AdminDashboard() {
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Search by name, phone or role..."
-                  className="w-full rounded-xl border border-[#D9E1DB] bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#4F7C68] focus:ring-2 focus:ring-[#E5F0E8]"
+                  className="w-full rounded-lg border border-[#D9E1DB] bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#4F7C68] focus:ring-2 focus:ring-[#E5F0E8]"
                 />
               </div>
 
@@ -653,19 +649,19 @@ export default function AdminDashboard() {
                   <table className="w-full min-w-[700px]">
                     <thead className="bg-[#F5F8F5]">
                       <tr>
-                        <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
                           User
                         </th>
-                        <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
                           Phone
                         </th>
-                        <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
                           Role
                         </th>
-                        <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#71817A]">
                           Status
                         </th>
-                        <th className="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wide text-[#71817A]">
+                        <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[#71817A]">
                           Action
                         </th>
                       </tr>
@@ -674,27 +670,27 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-[#E6ECE8]">
                       {filteredUsers.map((item) => (
                         <tr key={item.id}>
-                          <td className="px-5 py-4">
+                          <td className="px-4 py-3">
                             <p className="text-sm font-semibold text-[#34453E]">
                               {item.name}
                             </p>
                           </td>
 
-                          <td className="px-5 py-4 text-sm text-[#71817A]">
+                          <td className="px-4 py-3 text-sm text-[#71817A]">
                             {item.phone}
                           </td>
 
-                          <td className="px-5 py-4">
+                          <td className="px-4 py-3">
                             <span className="rounded-full bg-[#EEF4F0] px-3 py-1 text-xs font-medium text-[#4F7C68]">
                               {item.role}
                             </span>
                           </td>
 
-                          <td className="px-5 py-4">
+                          <td className="px-4 py-3">
                             <StatusBadge status={item.status} />
                           </td>
 
-                          <td className="px-5 py-4 text-right">
+                          <td className="px-4 py-3 text-right">
                             {item.role !== "Admin" && (
                               <button
                                 onClick={() =>
@@ -723,7 +719,7 @@ export default function AdminDashboard() {
 
           {/* DONATIONS */}
           {activeTab === "Donations" && (
-            <section className="space-y-6">
+            <section className="space-y-2.5">
               <SectionHeading
                 title="Manage Donations"
                 description="Monitor donations posted by community members."
@@ -737,33 +733,33 @@ export default function AdminDashboard() {
                     setDonationSearch(e.target.value)
                   }
                   placeholder="Search donations..."
-                  className="w-full rounded-xl border border-[#D9E1DB] bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#4F7C68] focus:ring-2 focus:ring-[#E5F0E8]"
+                  className="w-full rounded-lg border border-[#D9E1DB] bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#4F7C68] focus:ring-2 focus:ring-[#E5F0E8]"
                 />
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {filteredDonations.map((donation) => (
                   <div
                     key={donation.id}
-                    className="rounded-2xl border border-[#DDE6DF] bg-white p-5"
+                    className="rounded-xl border border-[#DDE6DF] bg-white p-3.5"
                   >
-                    <div className="mb-4 flex items-start justify-between">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8F1EA] text-[#4F7C68]">
-                        <Package className="h-5 w-5" />
+                    <div className="mb-2.5 flex items-start justify-between">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E8F1EA] text-[#4F7C68]">
+                        <Package className="h-4 w-4" />
                       </div>
 
                       <StatusBadge status={donation.status} />
                     </div>
 
-                    <h3 className="font-bold text-[#26332F]">
+                    <h3 className="text-base font-bold leading-5 text-[#26332F]">
                       {donation.title}
                     </h3>
 
-                    <p className="mt-1 text-sm text-[#71817A]">
+                    <p className="mt-1 text-xs text-[#71817A]">
                       {donation.category} · {donation.location}
                     </p>
 
-                    <p className="mt-3 text-xs text-[#8A9891]">
+                    <p className="mt-2 text-xs text-[#8A9891]">
                       Donated by {donation.donor}
                     </p>
 
@@ -775,7 +771,7 @@ export default function AdminDashboard() {
                           e.target.value as DonationStatus
                         )
                       }
-                      className="mt-4 w-full rounded-lg border border-[#D9E1DB] bg-white px-3 py-2 text-sm outline-none focus:border-[#4F7C68]"
+                      className="mt-3 w-full rounded-lg border border-[#D9E1DB] bg-white px-3 py-1.5 text-sm outline-none focus:border-[#4F7C68]"
                     >
                       <option value="Available">Available</option>
                       <option value="Requested">Requested</option>
@@ -789,28 +785,28 @@ export default function AdminDashboard() {
 
           {/* REQUESTS */}
           {activeTab === "Requests" && (
-            <section className="space-y-6">
+            <section className="space-y-2.5">
               <SectionHeading
                 title="Manage Requests"
                 description="Review and manage donation requests."
               />
 
-              <div className="max-h-[520px] space-y-3 overflow-y-auto pr-1">
+              <div className="max-h-[520px] space-y-2.5 overflow-y-auto pr-1">
                 {requests.map((request) => (
                   <div
                     key={request.id}
-                    className="flex flex-col gap-4 rounded-2xl border border-[#DDE6DF] bg-white p-5 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-xl border border-[#DDE6DF] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div>
                       <p className="font-semibold text-[#34453E]">
                         {request.name}
                       </p>
-                      <p className="mt-1 text-sm text-[#8A9891]">
+                      <p className="mt-0.5 text-xs text-[#8A9891]">
                         {request.role}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       <StatusBadge status={request.status} />
 
                       {request.status === "Pending" && (
@@ -845,17 +841,17 @@ export default function AdminDashboard() {
 
           {/* VOLUNTEERS */}
           {activeTab === "Volunteers" && (
-            <section className="space-y-6">
+            <section className="space-y-2.5">
               <SectionHeading
                 title="Manage Volunteers"
                 description="Monitor volunteer availability and roles."
               />
 
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {volunteers.map((volunteer) => (
                   <div
                     key={volunteer.id}
-                    className="rounded-2xl border border-[#DDE6DF] bg-white p-5"
+                    className="rounded-xl border border-[#DDE6DF] bg-white p-3.5"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E7F0E9] text-[#4F7C68]">
@@ -865,7 +861,7 @@ export default function AdminDashboard() {
                       <StatusBadge status={volunteer.status} />
                     </div>
 
-                    <h3 className="mt-4 font-bold text-[#26332F]">
+                    <h3 className="mt-2.5 font-bold text-[#26332F]">
                       {volunteer.name}
                     </h3>
 
@@ -877,7 +873,7 @@ export default function AdminDashboard() {
                       onClick={() =>
                         toggleVolunteerStatus(volunteer.id)
                       }
-                      className={`mt-5 w-full rounded-xl py-2.5 text-sm font-semibold ${
+                      className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold ${
                         volunteer.status === "Active"
                           ? "bg-red-50 text-red-600 hover:bg-red-100"
                           : "bg-[#E7F3EA] text-[#3E6856] hover:bg-[#DCECDF]"
@@ -895,13 +891,13 @@ export default function AdminDashboard() {
 
           {/* REPORTS */}
           {activeTab === "Reports" && (
-            <section className="space-y-6">
+            <section className="space-y-2.5">
               <SectionHeading
                 title="Reports & Impact"
                 description="A frontend overview of SAHARA's current activity."
               />
 
-              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <ReportCard
                   icon={Users}
                   label="Registered Users"
@@ -927,8 +923,8 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              <div className="rounded-2xl border border-[#DDE6DF] bg-white p-6">
-                <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-xl border border-[#DDE6DF] bg-white p-4">
+                <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F0E9] text-[#4F7C68]">
                     <BarChart3 className="h-5 w-5" />
                   </div>
@@ -966,96 +962,65 @@ export default function AdminDashboard() {
             </section>
           )}
 
-          {/* PROFILE */}
-          {activeTab === "Profile" && (
-            <section className="max-w-2xl space-y-6">
+          {/* ACCOUNT: Profile and preferences combined */}
+          {activeTab === "Account" && (
+            <section className="max-w-2xl space-y-2">
               <SectionHeading
-                title="Admin Profile"
-                description="View your administrator account information."
+                title="Account"
+                description="View administrator details and manage dashboard preferences."
               />
 
-              <div className="rounded-2xl border border-[#DDE6DF] bg-white p-6 sm:p-8">
-                <div className="mb-7 flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#DDEBE2] text-[#3E6856]">
-                    <ShieldCheck className="h-7 w-7" />
+              <div className="grid items-start gap-4 xl:grid-cols-0">
+                <div className="rounded-xl border border-[#DDE6DF] bg-white p-4">
+                  <div className="mb-4 flex items-center gap-1">
+                    <div className="flex h-15 w-11 items-center justify-center rounded-full bg-[#DDEBE2] text-[#3E6856]">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate font-bold text-[#26332F]">
+                        {user?.name || "SAHARA Admin"}
+                      </h3>
+                      <p className="text-sm text-[#71817A]">Administrator</p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-bold text-[#26332F]">
-                      {user?.name || "SAHARA Admin"}
-                    </h3>
-
-                    <p className="text-sm text-[#71817A]">
-                      Administrator
-                    </p>
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    <ProfileField label="Name" value={user?.name || "SAHARA Admin"} />
+                    <ProfileField label="Phone" value={user?.phone || "Not available"} />
+                    <ProfileField label="Email" value={user?.email || "Not available"} />
+                    <ProfileField label="Role" value="Administrator" />
                   </div>
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <ProfileField
-                    label="Name"
-                    value={user?.name || "SAHARA Admin"}
+                <div className="space-y-1.0">
+                  <h2 className="text-base font-bold text-[#26332F]">Preferences</h2>
+                  <SettingRow
+                    title="Email Notifications"
+                    description="Receive important platform activity updates."
                   />
-
-                  <ProfileField
-                    label="Phone"
-                    value={user?.phone || "Not available"}
+                  <SettingRow
+                    title="Request Alerts"
+                    description="Get notified when requests need review."
                   />
-
-                  <ProfileField
-                    label="Email"
-                    value={user?.email || "Not available"}
+                  <SettingRow
+                    title="Volunteer Updates"
+                    description="Receive volunteer availability updates."
                   />
-
-                  <ProfileField
-                    label="Role"
-                    value="Administrator"
-                  />
+                  <div className="flex items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-red-700">Sign out</h3>
+                      <p className="mt-0.5 text-xs text-red-600/80">
+                        End your administrator session.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="shrink-0 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </section>
-          )}
-
-          {/* SETTINGS */}
-          {activeTab === "Settings" && (
-            <section className="max-w-2xl space-y-6">
-              <SectionHeading
-                title="Settings"
-                description="Manage your admin dashboard preferences."
-              />
-
-              <div className="space-y-4">
-                <SettingRow
-                  title="Email Notifications"
-                  description="Receive notifications about important platform activity."
-                />
-
-                <SettingRow
-                  title="Request Alerts"
-                  description="Get notified when a new donation request requires review."
-                />
-
-                <SettingRow
-                  title="Volunteer Updates"
-                  description="Receive updates about volunteer availability and activity."
-                />
-              </div>
-
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
-                <h3 className="font-semibold text-red-700">
-                  Account Actions
-                </h3>
-
-                <p className="mt-1 text-sm text-red-600/80">
-                  Sign out of your current administrator session.
-                </p>
-
-                <button
-                  onClick={handleLogout}
-                  className="mt-4 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
-                >
-                  Logout
-                </button>
               </div>
             </section>
           )}
@@ -1079,18 +1044,18 @@ function AdminStat({
   label: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[#DDE6DF] bg-white p-5">
+    <div className="min-h-0 rounded-xl border border-[#DDE6DF] bg-white p-3.5">
       <div className="flex items-start justify-between">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E7F0E9] text-[#4F7C68]">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E7F0E9] text-[#4F7C68]">
           <Icon className="h-5 w-5" />
         </div>
       </div>
 
-      <p className="mt-5 text-2xl font-bold text-[#26332F]">
+      <p className="mt-2.5 text-xl font-bold leading-6 text-[#26332F]">
         {value}
       </p>
 
-      <p className="mt-1 text-sm text-[#71817A]">{label}</p>
+      <p className="mt-1 text-sm leading-5 text-[#71817A]">{label}</p>
     </div>
   );
 }
@@ -1104,11 +1069,11 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#26332F] sm:text-3xl">
+      <h1 className="text-xl font-bold leading-tight text-[#26332F] sm:text-2xl">
         {title}
       </h1>
 
-      <p className="mt-2 text-sm text-[#71817A]">
+      <p className="mt-1 text-sm text-[#71817A]">
         {description}
       </p>
     </div>
@@ -1150,7 +1115,7 @@ function SummaryRow({
   value: number;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#EDF1EE] pb-3 last:border-0 last:pb-0">
+    <div className="flex items-center justify-between border-b border-[#EDF1EE] pb-2 last:border-0 last:pb-0">
       <span className="text-sm text-[#71817A]">{label}</span>
       <span className="text-sm font-bold text-[#34453E]">
         {value}
@@ -1169,16 +1134,16 @@ function ReportCard({
   value: number;
 }) {
   return (
-    <div className="rounded-2xl border border-[#DDE6DF] bg-white p-5">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F0E9] text-[#4F7C68]">
+    <div className="min-h-0 rounded-xl border border-[#DDE6DF] bg-white p-3.5">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E7F0E9] text-[#4F7C68]">
         <Icon className="h-5 w-5" />
       </div>
 
-      <p className="mt-5 text-2xl font-bold text-[#26332F]">
+      <p className="mt-2 text-xl font-bold leading-6 text-[#26332F]">
         {value}
       </p>
 
-      <p className="mt-1 text-sm text-[#71817A]">{label}</p>
+      <p className="mt-1 text-sm leading-5 text-[#71817A]">{label}</p>
     </div>
   );
 }
@@ -1249,13 +1214,13 @@ function SettingRow({
   const [enabled, setEnabled] = useState(true);
 
   return (
-    <div className="flex items-center justify-between gap-5 rounded-2xl border border-[#DDE6DF] bg-white p-5">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#DDE6DF] bg-white p-5">
       <div>
         <h3 className="font-semibold text-[#34453E]">
           {title}
         </h3>
 
-        <p className="mt-1 text-sm text-[#8A9891]">
+        <p className="mt-0.5 text-xs text-[#8A9891]">
           {description}
         </p>
       </div>
