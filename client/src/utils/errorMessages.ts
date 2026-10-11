@@ -85,6 +85,16 @@ export function getFriendlyErrorMessage(
     return fallback || 'An unexpected error occurred. Please try again.';
   }
 
+  // Preserve clear, human-readable specific backend validation messages
+  if (
+    rawMessage.startsWith('A user with this') ||
+    rawMessage.startsWith('Please provide') ||
+    rawMessage.startsWith('Full name') ||
+    rawMessage.startsWith('Password must')
+  ) {
+    return rawMessage;
+  }
+
   for (const entry of ERROR_MAP) {
     if (entry.patterns.some((pattern) => pattern.test(rawMessage))) {
       return entry.message;
