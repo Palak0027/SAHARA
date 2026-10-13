@@ -100,7 +100,7 @@ export default function DonatorDashboard() {
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-[#DDE5DF] bg-[#FAF8F3] transition-transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-20 items-center justify-between border-b border-[#E3E9E4] px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2F5547] text-white"> 
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2F5547] text-white">
               <img
             src={logoImg}
             alt=""

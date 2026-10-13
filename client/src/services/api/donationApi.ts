@@ -1,7 +1,7 @@
- 
+
 
 const BASE_URL: string = (import.meta as any).env?.VITE_API_URL || "/api";
- 
+
 const getToken = () => localStorage.getItem("token");
 
 async function request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
@@ -19,13 +19,13 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
   try {
     json = await res.json();
   } catch {
-    
+
   }
 
   if (!res.ok) {
     throw new Error(json?.message || json?.error || `Request failed (${res.status})`);
   }
-  
+
   return (json?.data ?? json) as T;
 }
 

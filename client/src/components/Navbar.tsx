@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Languages, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import logoImg from "./image/sahara-logo.jpeg";  
+import logoImg from "./image/sahara-logo.jpeg";
 
- 
+
 type NavbarProps = {
   language: "en" | "hi";
   toggleLanguage: () => void;
@@ -48,7 +48,7 @@ export default function Navbar({ language, toggleLanguage, t }: NavbarProps) {
     { label: nav.explore, to: "/#donations", hash: "#donations" },
   ];
 
-   
+
   useEffect(() => {
     if (pathname !== "/") return;
 
@@ -58,7 +58,7 @@ export default function Navbar({ language, toggleLanguage, t }: NavbarProps) {
     }
 
     const id = hash.slice(1);
-     
+
     const timer = window.setTimeout(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);

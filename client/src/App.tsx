@@ -6,7 +6,7 @@ import DonationCategories from "./components/DonationCategories";
 import Footer from "./components/Footer";
 import Hero from "./components/Hero";
 import HowItWorks from "./components/HowItWorks";
- 
+
 import Navbar from "./components/Navbar";
 
 const homepageContent = {
@@ -212,7 +212,7 @@ export default function App() {
         <Hero language={language} t={t} />
         <DonationCategories t={t} />
         <HowItWorks t={t} />
-       
+
         <CTA t={t} />
       </main>
       <Footer t={t} />
