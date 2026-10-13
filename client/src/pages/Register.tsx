@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImg from '../components/image/image.png';
+import logoImg from '../components/image/sahara-logo.jpeg';
 import Navbar from '../components/Navbar';
 import { translations, type ErrorKey, type Language } from './translations';
 import { useAuth, type RegisterData } from '../context/AuthContext';
@@ -57,6 +57,10 @@ const INITIAL_FORM: FormData = {
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PINCODE_REGEX = /^\d{6}$/;
+
+/* Decorative, language-neutral icons (food, clothes, books, blankets) */
+const FEATURE_ICONS = ['💚', '🤝', '🌿', '✓'];
+const CATEGORY_CHIPS = ['🍞', '👕', '📚', '🧣'];
 
 /* ---------- Validation ---------- */
 
@@ -210,6 +214,7 @@ const Field: React.FC<FieldProps> = ({
           placeholder={placeholder}
           maxLength={maxLength}
           autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
           onChange={onChange}
         />
 
@@ -310,27 +315,38 @@ const Register: React.FC = () => {
     <div className="register">
       <Navbar
         language={language}
-        toggleLanguage={() => setLanguage(current => current === 'en' ? 'hi' : 'en')}
+        toggleLanguage={() => setLanguage(current => (current === 'en' ? 'hi' : 'en'))}
       />
 
       <main className="register__main">
-        {/* Left: welcome */}
+        {/* Left: welcome + logo card */}
         <section className="intro">
           <h2 className="intro__title">{t.welcome}</h2>
           <p className="intro__text">{t.welcomeText}</p>
 
+          <div className="intro__hero">
+            <div className="logo-card">
+              <span className="logo-card__ring" aria-hidden="true" />
+              <div className="logo-card__disc">
+                <img src={logoImg} alt="SAHARA – Give what you can, get what you need" />
+              </div>
+
+              {CATEGORY_CHIPS.map((emoji, index) => (
+                <span key={emoji} className={`chip chip--${index + 1}`} aria-hidden="true">
+                  {emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+
           <ul className="intro__features">
-            {['♡', '♧', '🌿', '✓'].map((icon, index) => (
+            {FEATURE_ICONS.map((icon, index) => (
               <li key={icon}>
-                <span className="intro__icon">{icon}</span>
-                {t.features[index]}
+                <span className="intro__icon" aria-hidden="true">{icon}</span>
+                <span>{t.features[index]}</span>
               </li>
             ))}
           </ul>
-
-          <div className="intro__hero">
-            <img src={logoImg} alt="Helping the community" />
-          </div>
 
           <p className="intro__quote">“{t.quote}”</p>
         </section>
@@ -338,34 +354,37 @@ const Register: React.FC = () => {
         {/* Right: form */}
         <section className={`card${isReceiver ? ' card--receiver' : ''}`}>
           <div className="card__head">
-            <div>
-              <h2 className="card__title">{t.title}</h2>
-              <p className="card__subtitle">{t.subtitle}</p>
-            </div>
+            <h2 className="card__title">{t.title}</h2>
+            <p className="card__subtitle">{t.subtitle}</p>
           </div>
 
-          <div className="tabs">
+          <div className="tabs" role="tablist">
             <button
               type="button"
+              role="tab"
+              aria-selected={intent === 'donor'}
               className={`tabs__btn${intent === 'donor' ? ' is-active' : ''}`}
               onClick={() => handleIntentChange('donor')}
             >
-              {t.donorTab}
+              <span aria-hidden="true">🎁</span> {t.donorTab}
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={isReceiver}
               className={`tabs__btn${isReceiver ? ' is-active' : ''}`}
               onClick={() => handleIntentChange('receiver')}
             >
-              {t.receiverTab}
+              <span aria-hidden="true">🤲</span> {t.receiverTab}
             </button>
           </div>
 
           <div className="card__body">
             <form className="form" onSubmit={handleSubmit} noValidate>
-                {isReceiver && (
-                  <div className="field field--wide">
-                    <label htmlFor="receiverType">{t.labels.receiverType}</label>
+              {isReceiver && (
+                <div className="field field--wide">
+                  <label htmlFor="receiverType">{t.labels.receiverType}</label>
+                  <div className="field__control">
                     <select
                       id="receiverType"
                       name="receiverType"
@@ -379,168 +398,169 @@ const Register: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                )}
+                </div>
+              )}
 
-                <Field
-                  label={t.labels.name}
-                  name="name"
-                  value={form.name}
-                  placeholder={t.placeholders.name}
-                  autoComplete="name"
-                  error={errorText('name')}
-                  onChange={handleChange}
-                />
-                <Field
-                  label={t.labels.phone}
-                  name="phone"
-                  type="tel"
-                  value={form.phone}
-                  placeholder={t.placeholders.phone}
-                  maxLength={10}
-                  autoComplete="tel"
-                  error={errorText('phone')}
-                  onChange={handleChange}
-                />
-                <Field
-                  label={t.labels.email}
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  placeholder={t.placeholders.email}
-                  autoComplete="email"
-                  error={errorText('email')}
-                  onChange={handleChange}
-                />
-                <Field
-                  label={t.labels.pincode}
-                  name="pincode"
-                  value={form.pincode}
-                  placeholder={t.placeholders.pincode}
-                  maxLength={6}
-                  autoComplete="postal-code"
-                  error={errorText('pincode')}
-                  onChange={handleChange}
-                />
-                <Field
-                  label={t.labels.city}
-                  name="city"
-                  value={form.city}
-                  placeholder={t.placeholders.city}
-                  autoComplete="address-level2"
-                  error={errorText('city')}
-                  onChange={handleChange}
-                />
-                <Field
-                  label={t.labels.address}
-                  name="address"
-                  value={form.address}
-                  placeholder={t.placeholders.address}
-                  autoComplete="street-address"
-                  error={errorText('address')}
-                  onChange={handleChange}
-                />
+              <Field
+                label={t.labels.name}
+                name="name"
+                value={form.name}
+                placeholder={t.placeholders.name}
+                autoComplete="name"
+                error={errorText('name')}
+                onChange={handleChange}
+              />
+              <Field
+                label={t.labels.phone}
+                name="phone"
+                type="tel"
+                value={form.phone}
+                placeholder={t.placeholders.phone}
+                maxLength={10}
+                autoComplete="tel"
+                error={errorText('phone')}
+                onChange={handleChange}
+              />
+              <Field
+                label={t.labels.email}
+                name="email"
+                type="email"
+                value={form.email}
+                placeholder={t.placeholders.email}
+                autoComplete="email"
+                error={errorText('email')}
+                onChange={handleChange}
+              />
+              <Field
+                label={t.labels.pincode}
+                name="pincode"
+                value={form.pincode}
+                placeholder={t.placeholders.pincode}
+                maxLength={6}
+                autoComplete="postal-code"
+                error={errorText('pincode')}
+                onChange={handleChange}
+              />
+              <Field
+                label={t.labels.city}
+                name="city"
+                value={form.city}
+                placeholder={t.placeholders.city}
+                autoComplete="address-level2"
+                error={errorText('city')}
+                onChange={handleChange}
+              />
+              <Field
+                label={t.labels.address}
+                name="address"
+                value={form.address}
+                placeholder={t.placeholders.address}
+                autoComplete="street-address"
+                error={errorText('address')}
+                onChange={handleChange}
+              />
 
-                {isOrganization && (
-                  <div className="box">
-                    <Field
-                      label={t.labels.orgName}
-                      name="orgName"
-                      value={form.orgName}
-                      error={errorText('orgName')}
+              {isOrganization && (
+                <div className="box">
+                  <Field
+                    label={t.labels.orgName}
+                    name="orgName"
+                    value={form.orgName}
+                    error={errorText('orgName')}
+                    onChange={handleChange}
+                  />
+                  <Field
+                    label={t.labels.regNumber}
+                    name="regNumber"
+                    value={form.regNumber}
+                    onChange={handleChange}
+                  />
+                  <Field
+                    wide
+                    label={t.labels.description}
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                  />
+                </div>
+              )}
+
+              {showOnBehalf && (
+                <div className="box">
+                  <label className="box__check">
+                    <input
+                      type="checkbox"
+                      name="isOnBehalf"
+                      checked={form.isOnBehalf}
                       onChange={handleChange}
                     />
-                    <Field
-                      label={t.labels.regNumber}
-                      name="regNumber"
-                      value={form.regNumber}
-                      onChange={handleChange}
-                    />
-                    <Field
-                      wide
-                      label={t.labels.description}
-                      name="description"
-                      value={form.description}
-                      onChange={handleChange}
-                    />
-                  </div>
-                )}
+                    <span>{t.onBehalfCheck}</span>
+                  </label>
 
-                {showOnBehalf && (
-                  <div className="box">
-                    <label className="box__check">
-                      <input
-                        type="checkbox"
-                        name="isOnBehalf"
-                        checked={form.isOnBehalf}
+                  {form.isOnBehalf && (
+                    <>
+                      <Field
+                        label={t.labels.beneficiaryName}
+                        name="beneficiaryName"
+                        value={form.beneficiaryName}
+                        error={errorText('beneficiaryName')}
                         onChange={handleChange}
                       />
-                      <span>{t.onBehalfCheck}</span>
-                    </label>
+                      <Field
+                        label={t.labels.beneficiaryAge}
+                        name="beneficiaryAge"
+                        type="number"
+                        value={form.beneficiaryAge}
+                        onChange={handleChange}
+                      />
+                      <Field
+                        label={t.labels.relationship}
+                        name="relationship"
+                        value={form.relationship}
+                        error={errorText('relationship')}
+                        onChange={handleChange}
+                      />
+                      <Field
+                        label={t.labels.beneficiaryLocation}
+                        name="beneficiaryLocation"
+                        value={form.beneficiaryLocation}
+                        onChange={handleChange}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
 
-                    {form.isOnBehalf && (
-                      <>
-                        <Field
-                          label={t.labels.beneficiaryName}
-                          name="beneficiaryName"
-                          value={form.beneficiaryName}
-                          error={errorText('beneficiaryName')}
-                          onChange={handleChange}
-                        />
-                        <Field
-                          label={t.labels.beneficiaryAge}
-                          name="beneficiaryAge"
-                          type="number"
-                          value={form.beneficiaryAge}
-                          onChange={handleChange}
-                        />
-                        <Field
-                          label={t.labels.relationship}
-                          name="relationship"
-                          value={form.relationship}
-                          error={errorText('relationship')}
-                          onChange={handleChange}
-                        />
-                        <Field
-                          label={t.labels.beneficiaryLocation}
-                          name="beneficiaryLocation"
-                          value={form.beneficiaryLocation}
-                          onChange={handleChange}
-                        />
-                      </>
-                    )}
-                  </div>
-                )}
+              <Field
+                label={t.labels.password}
+                name="password"
+                type="password"
+                value={form.password}
+                placeholder={t.placeholders.password}
+                autoComplete="new-password"
+                error={errorText('password')}
+                onChange={handleChange}
+              />
+              <Field
+                label={t.labels.confirmPassword}
+                name="confirmPassword"
+                type="password"
+                value={form.confirmPassword}
+                placeholder={t.placeholders.confirmPassword}
+                autoComplete="new-password"
+                error={errorText('confirmPassword')}
+                onChange={handleChange}
+              />
 
-                <Field
-                  label={t.labels.password}
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  placeholder={t.placeholders.password}
-                  autoComplete="new-password"
-                  error={errorText('password')}
-                  onChange={handleChange}
-                />
-                <Field
-                  label={t.labels.confirmPassword}
-                  name="confirmPassword"
-                  type="password"
-                  value={form.confirmPassword}
-                  placeholder={t.placeholders.confirmPassword}
-                  autoComplete="new-password"
-                  error={errorText('confirmPassword')}
-                  onChange={handleChange}
-                />
+              {serverError && (
+                <p className="form__error" role="alert">
+                  {serverError}
+                </p>
+              )}
 
-                {serverError && (
-                  <p className="form__error" role="alert">
-                    {serverError}
-                  </p>
-                )}
-
-                <button type="submit" className="submit" disabled={loading}>
-                  {loading ? t.creating : <>{t.createAccount} <span aria-hidden="true">→</span></>}
-                </button>
+              <button type="submit" className="submit" disabled={loading}>
+                {loading ? t.creating : <>{t.createAccount} <span aria-hidden="true">→</span></>}
+              </button>
             </form>
           </div>
 
