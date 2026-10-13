@@ -565,7 +565,9 @@ const Register: React.FC = () => {
           </div>
 
           <div className="card__foot">
-            <p className="card__secure">🔒 {t.secureNote}</p>
+            <p className="card__secure"><span className="material-symbols-outlined">
+shield_lock
+</span>  {t.secureNote}</p>
             <p className="card__login">
               {t.alreadyAccount} <Link to="/login">{t.login} →</Link>
             </p>
