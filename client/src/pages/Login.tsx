@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImg from '../components/image/image.png';
+import logoImg from '../components/image/sahara-logo.jpeg';
 import Navbar from '../components/Navbar';
 import { loginTranslations, type Language, type LoginErrorKey } from './translations';
 import { useAuth, type UserRole } from '../context/AuthContext';
@@ -17,6 +17,10 @@ const ROLE_ROUTES: Record<UserRole, string> = {
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* Decorative, language-neutral icons (food, clothes, books, blankets) */
+const FEATURE_ICONS = ['💚', '🤝', '🌿', '✓'];
+const CATEGORY_CHIPS = ['🍞', '👕', '📚', '🧣'];
 
 /* ---------- Types ---------- */
 
@@ -95,6 +99,7 @@ const Field: React.FC<FieldProps> = ({
           maxLength={maxLength}
           autoComplete={autoComplete}
           inputMode={inputMode}
+          aria-invalid={error ? true : undefined}
           onChange={onChange}
         />
 
@@ -172,30 +177,43 @@ const Login: React.FC = () => {
     <div className="login">
       <Navbar
         language={language}
-        toggleLanguage={() => setLanguage(current => current === 'en' ? 'hi' : 'en')}
+        toggleLanguage={() => setLanguage(current => (current === 'en' ? 'hi' : 'en'))}
       />
 
       <main className="login__main">
+        {/* Left: welcome + logo card */}
         <section className="lg-intro">
           <h2 className="lg-intro__title">{t.welcome}</h2>
           <p className="lg-intro__text">{t.welcomeText}</p>
 
+          <div className="lg-intro__hero">
+            <div className="lg-logo">
+              <span className="lg-logo__ring" aria-hidden="true" />
+              <div className="lg-logo__disc">
+                <img src={logoImg} alt="SAHARA – Give what you can, get what you need" />
+              </div>
+
+              {CATEGORY_CHIPS.map((emoji, index) => (
+                <span key={emoji} className={`lg-chip lg-chip--${index + 1}`} aria-hidden="true">
+                  {emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+
           <ul className="lg-intro__features">
-            {['♡', '♧', '🌿', '✓'].map((icon, index) => (
+            {FEATURE_ICONS.map((icon, index) => (
               <li key={icon}>
-                <span className="lg-intro__icon">{icon}</span>
-                {t.features[index]}
+                <span className="lg-intro__icon" aria-hidden="true">{icon}</span>
+                <span>{t.features[index]}</span>
               </li>
             ))}
           </ul>
 
-          <div className="lg-intro__hero">
-            <img src={logoImg} alt="Helping the community" />
-          </div>
-
           <p className="lg-intro__quote">“{t.quote}”</p>
         </section>
 
+        {/* Right: login form */}
         <section className="lg-card">
           <div className="lg-card__head">
             <div>
@@ -250,8 +268,9 @@ const Login: React.FC = () => {
 
           <div className="lg-card__foot">
             <p className="lg-card__secure">🔒 {t.secureNote}</p>
-             <p className="lg-card__register">
-              {t.forgotaccount} <Link to="/register">{t.Password1} →</Link>
+            <p className="lg-card__register">
+              {/* TODO: point this to your real forgot-password route */}
+              {t.forgotaccount} <Link to="/forgot-password">{t.Password1} →</Link>
             </p>
             <p className="lg-card__register">
               {t.noAccount} <Link to="/register">{t.register} →</Link>
