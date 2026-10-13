@@ -55,7 +55,7 @@ class AuthService {
     // 2. Check for duplicate phone
     const existingPhone = await userRepository.findByPhone(cleanPhone);
     if (existingPhone) {
-      throw new AppError('A user with this phone number is already registered.', 409);
+      throw new AppError('Already registered ', 409);
     }
 
     // 3. Check for duplicate email (if provided)

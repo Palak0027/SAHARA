@@ -1,4 +1,4 @@
-
+ import logoImg from '../components/image/sahara-logo.jpeg';
 import { useState } from "react";
 import {
   Bell, ChevronDown, Heart, HeartHandshake, Home, Package, Plus,
@@ -100,7 +100,13 @@ export default function DonatorDashboard() {
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-[#DDE5DF] bg-[#FAF8F3] transition-transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-20 items-center justify-between border-b border-[#E3E9E4] px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2F5547] text-white"><HeartHandshake size={19} /></div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2F5547] text-white"> 
+              <img
+            src={logoImg}
+            alt=""
+            className="h-11 w-11 shrink-0 rounded-full bg-white object-contain ring-1 ring-[#DCE6E1]"
+          />
+            </div>
             <div><h1 className="text-xl font-bold text-[#2F5547]">SAHARA</h1><p className="text-[10px] text-[#71817A]">Community Care</p></div>
           </div>
           <button className="lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close menu"><X size={19} /></button>
