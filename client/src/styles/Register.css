@@ -249,9 +249,6 @@
   font-size: 0.98rem;
 }
 
-
-
-
 /* Tabs */
 
 .tabs {
@@ -262,12 +259,9 @@
   padding: 12px 10px;
   font-size: 0.92rem;
   gap:8px;
-
-  /* grid-template-columns: 1fr 1fr; */
-  /* gap: 6px; */
   margin: 22px 36px 6px;
   padding: 6px;
-  /* background: var(--green-soft); */
+  background: var(--green-soft);
   background: #f0f4f3;
   /* border-radius: 18px; */
   border-radius: 16px;
@@ -312,9 +306,6 @@
   fill: #ffffff !important;
 }
 
-
-
-
 .tabs__btn:hover:not(.is-active) {
   background: rgba(255, 255, 255, 0.7);
 }
@@ -342,7 +333,7 @@
 .form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 18px;
+  gap: 5px 18px;
 }
 
 .field {
@@ -625,6 +616,7 @@
   .form,
   .box {
     grid-template-columns: minmax(0, 1fr);
+    gap:10;
   }
 }
 
@@ -696,5 +688,35 @@
   color: var(--muted);
   }
 }
+
+
+/* Keep form fields stable when validation errors appear */
+.field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.field__error {
+  display: block;
+  min-height: 0;
+  height: 18px;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #dc2626;
+  overflow-wrap: anywhere;
+}
+
+.field__error:empty {
+  visibility: hidden;
+}
+
+/* Prevent error messages from changing grid alignment */
+.form,
+.box {
+  align-items: start;
+}
+
 
 

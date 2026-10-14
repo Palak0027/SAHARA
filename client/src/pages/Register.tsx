@@ -230,7 +230,9 @@ const Field: React.FC<FieldProps> = ({
         )}
       </div>
 
-      {error && <span className="field__error">{error}</span>}
+    <span className="field__error">
+  {error || '\u00A0'}
+</span>
     </div>
   );
 };
