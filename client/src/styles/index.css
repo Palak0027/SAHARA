@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-heading: "Outfit", sans-serif;
-  --font-body: "Inter", sans-serif;
+  --font-heading: "Outfit", "Noto Sans Devanagari", sans-serif;
+  --font-body: "Inter", "Noto Sans Devanagari", sans-serif;
 }
 
 /* Homepage link styling */
@@ -89,6 +89,21 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+  }
+
+  .home-page,
+  .home-page * {
+    font-family: var(--font-body);
+  }
+
+  .home-page h1,
+  .home-page h2,
+  .home-page h3,
+  .home-page h4,
+  .home-page h5,
+  .home-page h6,
+  .home-page .font-heading {
+    font-family: var(--font-heading);
   }
 
   #root {
