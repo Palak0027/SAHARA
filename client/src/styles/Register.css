@@ -38,33 +38,55 @@
 /* ---------- Layout ---------- */
 
 .register__main {
-  flex: 1;
+  /* flex: 1; */
+  align-items:start;
   width: 100%;
-  max-width: 1280px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 40px 32px 48px;
+  padding: 40px 44px 48px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 660px);
-  gap: 56px;
-  align-items: center;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+  gap: 44px;
+  
+}
+.register__main > .intro {
+  flex-direction: column;
+  display: flex;
+  align-self: start;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 0;
+  /* padding-top:60px; */
+  border:1px solid;
+    margin-top: 0;
+}
+
+
+.register__main > .card {
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
 }
 
 /* ---------- Intro (left) ---------- */
 
 .intro__title {
-  margin: 0 0 14px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(2.2rem, 4.2vw, 3.5rem);
-  line-height: 1.1;
+  font-size: clamp(2.5rem, 3.5vw, 3.7rem);
+  line-height: 1.12;
   letter-spacing: -0.02em;
   color: var(--teal-dark);
+  max-width: 620px;
+  margin-top: 0;
+  margin-bottom: 18px;
 }
 
 .intro__text {
-  margin: 0;
-  max-width: 46ch;
-  font-size: 1.05rem;
+   max-width: 540px;
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 16px;
   line-height: 1.65;
   color: var(--muted);
 }
@@ -73,14 +95,21 @@
 
 .intro__hero {
   display: flex;
-  justify-content: flex-start;
-  padding: 36px 0 36px 28px;
+  justify-content:center;
+  padding: 32px 0;
+  margin-top: 0px;
+    transform: scale(0.88);
+  transform-origin: top center;
 }
 
 .logo-card {
+  width: clamp(210px, 19vw, 280px);
+  height: auto;
+  aspect-ratio: 1;
+  flex-shrink: 0;
   position: relative;
-  width: 260px;
-  height: 260px;
+ 
+  
 }
 
 .logo-card__disc {
@@ -137,6 +166,7 @@
 
 .intro__features {
   list-style: none;
+  width:100%;
   margin: 0 0 28px;
   padding: 0;
   display: grid;
@@ -172,7 +202,7 @@
 
 .intro__quote {
   margin: 0;
-  max-width: 46ch;
+  max-width:560px;
   padding-left: 16px;
   font-family: var(--font-display);
   font-size: 1.1rem;
@@ -220,30 +250,71 @@
   font-size: 0.98rem;
 }
 
+
+
+
 /* Tabs */
 
 .tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  display: flex;
+    min-height: 64px;
+  align-items: stretch;
+  min-width: 0;
+  padding: 12px 10px;
+  font-size: 0.92rem;
+  gap:8px;
+
+  /* grid-template-columns: 1fr 1fr; */
+  /* gap: 6px; */
   margin: 22px 36px 6px;
-  padding: 5px;
-  background: var(--green-soft);
-  border-radius: 18px;
+  padding: 6px;
+  /* background: var(--green-soft); */
+  background: #f0f4f3;
+  /* border-radius: 18px; */
+  border-radius: 16px;
 }
 
 .tabs__btn {
-  padding: 13px 10px;
+  flex: 1;
+  min-width:0;
+   padding: 10px 6px;
+    font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap:6px;
   font: inherit;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--teal-dark);
+  font-weight: 600;
+  font-size: .82rem;
+ color: var(--teal-dark, #0A5C5A);
   background: transparent;
   border: 0;
-  border-radius: 14px;
+  /* border-radius: 14px; */
+  border-radius: 12px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
+
+.tabs__btn.is-active {
+  color: #ffffff !important;
+  background: var(--teal-dark, #0A5C5A);
+  box-shadow: 0 4px 12px rgba(10, 92, 90, 0.2);
+}
+
+.tabs__btn svg {
+  flex-shrink: 0;
+  width: 18px;
+ fill: var(--teal-dark, #0A5C5A);
+ transition: fill 0.2s;
+  height: 18px;
+ padding-left:5px;
+}
+.tabs__btn.is-active svg {
+  fill: #ffffff !important;
+}
+
+
+
 
 .tabs__btn:hover:not(.is-active) {
   background: rgba(255, 255, 255, 0.7);
@@ -457,7 +528,12 @@
   background: linear-gradient(180deg, transparent, rgba(232, 245, 233, 0.55));
   border-top: 1px solid var(--border);
 }
-
+.card__secure {
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    gap: 8px; 
+}
 .card__secure,
 .card__login {
   margin: 0;
@@ -496,10 +572,12 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 40px;
     max-width: 720px;
+     padding: 24px 0 0;
   }
 
   .intro__hero {
     padding: 28px 0 28px 22px;
+    transform: none;
   }
 }
 
@@ -563,3 +641,61 @@
     transition: none;
   }
 }
+
+
+/* Reserve the same space in the Donor form */
+.field--spacer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+
+
+/* FIX: Keep the left intro section stable when switching tabs */
+
+.register__main {
+  align-items: start;
+}
+
+.register__main > .intro {
+  align-self: start;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 10px;
+  height: auto;
+  /* padding: clamp(60px, 9vw, 140px) 0 24px; */
+}
+
+/* Prevent the logo and its decorative icons from shifting */
+.register__main > .intro .intro__title,
+.register__main > .intro .intro__text,
+.register__main > .intro .intro__hero,
+.register__main > .intro .intro__features,
+.register__main > .intro .intro__quote {
+  flex-shrink: 0;
+}
+
+/* Keep the form card independent of the intro section */
+.register__main > .card {
+  align-self: start;
+  min-width: 0;
+  height: auto;
+}
+
+/* Tablet and mobile layout */
+@media (max-width: 1100px) {
+  .register__main > .intro {
+    padding: 24px 0 0;
+  }
+}
+
+@media (max-width: 386px) {
+  .card__secure {
+   display: flex;
+   justify-content: center;
+   align-items: start;
+  color: var(--muted);
+  }
+}
+
+
