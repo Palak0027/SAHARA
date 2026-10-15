@@ -148,7 +148,7 @@ export default function ReceiverDashboard() {
           <div className="rd-header-left">
             <button onClick={() => setSidebarOpen(true)} className="rd-icon-btn rd-menu-btn" aria-label="Open menu"><Menu size={19} /></button>
             <div>
-              <p className="rd-header-kicker">Receiver Dashboard</p>
+              
               <h2 className="rd-header-title">{activeTab}</h2>
             </div>
           </div>
@@ -169,6 +169,9 @@ export default function ReceiverDashboard() {
                 </>
               )}
             </div>
+
+
+            
 
             <div className="rd-notif-wrap">
               <button onClick={() => { setShowAccountMenu((v) => !v); setShowNotifications(false); }} aria-label="Account menu" aria-expanded={showAccountMenu} className="rd-icon-btn"><UserRound size={18} /></button>
@@ -191,7 +194,7 @@ export default function ReceiverDashboard() {
             <>
               <section className="rd-hero">
                 <div className="rd-hero-copy">
-                  <h1 className="rd-hero-title">Namaste, {firstName}. Find help nearby.</h1>
+                  <h1 className="rd-hero-title"> {firstName} Find help nearby.</h1>
                   <p className="rd-hero-text">
                     {availableDonations > 0
                       ? `${availableDonations} donation${availableDonations !== 1 ? "s are" : " is"} available from people in your community right now.`

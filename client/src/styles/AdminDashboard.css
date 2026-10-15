@@ -123,17 +123,74 @@
 .ad-icon-btn.is-spinning svg { animation: ad-spin 0.9s linear infinite; }
 
 /* ---------- Buttons ---------- */
-.ad-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border: 1px solid transparent; border-radius: var(--r-md); font-size: 14px; font-weight: 600; transition: transform 0.15s, background 0.18s, border-color 0.18s; }
-.ad-btn:active { transform: translateY(1px); }
-.ad-btn-primary { background: linear-gradient(135deg, #0e8791 0%, #0a5668 100%); color: #fff; box-shadow: 0 8px 18px -10px rgba(10, 86, 104, 0.95); }
-.ad-btn-primary:hover { background: linear-gradient(135deg, #0b7680 0%, #08495a 100%); }
-.ad-btn-success { background: var(--green); color: #fff; }
-.ad-btn-success:hover { background: #3f9a43; }
-.ad-btn-outline { background: var(--card); color: var(--ink); border-color: var(--line); }
-.ad-btn-outline:hover { border-color: var(--leaf); color: var(--forest); }
-.ad-btn-danger { background: var(--card); color: var(--red); border-color: #efc2c2; }
-.ad-btn-danger:hover { background: var(--red-soft); }
-.ad-btn-sm { padding: 6px 12px; font-size: 13px; border-radius: var(--r-sm); }
+ 
+
+.ad-btn { 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+  padding: 10px 18px; 
+  border: 1px solid transparent; 
+  border-radius: var(--r-md); 
+  font-size: 14px; 
+  font-weight: 600; 
+  transition: transform 0.15s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  cursor: pointer;
+}
+
+.ad-btn:active { 
+  transform: translateY(1px); 
+}
+
+ 
+.ad-btn-primary { 
+  background: linear-gradient(135deg, #0e8791 0%, #0a5668 100%); 
+  color: #ffffff !important; 
+  box-shadow: 0 8px 18px -10px rgba(10, 86, 104, 0.95); 
+}
+
+.ad-btn-primary:hover { 
+  background: linear-gradient(135deg, #0b7680 0%, #08495a 100%); 
+  color: #ffffff !important;
+}
+ 
+.ad-btn-success { 
+  background: var(--green); 
+  color: #ffffff !important; 
+}
+
+.ad-btn-success:hover { 
+  background: #3f9a43; 
+  color: #ffffff !important;
+}
+
+.ad-btn-outline { 
+  background: var(--card); 
+  color: var(--ink); 
+  border-color: var(--line); 
+}
+
+.ad-btn-outline:hover { 
+  border-color: var(--leaf); 
+  color: var(--forest); 
+}
+
+.ad-btn-danger { 
+  background: var(--card); 
+  color: var(--red); 
+  border-color: #efc2c2; 
+}
+
+.ad-btn-danger:hover { 
+  background: var(--red-soft); 
+}
+
+.ad-btn-sm { 
+  padding: 6px 12px; 
+  font-size: 13px; 
+  border-radius: var(--r-sm); 
+}
 
 /* ---------- Hero ---------- */
 .ad-hero {
