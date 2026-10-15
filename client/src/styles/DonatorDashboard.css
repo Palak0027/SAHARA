@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap");
-
 /* ============ Tokens ============ */
 .sd {
   --forest: #0a4b57;
@@ -39,7 +37,7 @@
   background: linear-gradient(180deg, #e9f5f0 0%, #f5faf8 45%, #edf5f2 100%);
   background-attachment: fixed;
   color: var(--ink);
-  font-family: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 15px;
   line-height: 1.5;
 }
@@ -82,7 +80,7 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
 }
 .sd-brand-name {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -191,7 +189,7 @@
 }
 .sd-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .sd-header-kicker { font-size: 12.5px; color: var(--muted); }
-.sd-header-title { font-family: "Fraunces", Georgia, serif; font-size: 20px; font-weight: 600; }
+.sd-header-title { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 20px; font-weight: 600; }
 .sd-icon-btn {
   position: relative;
   display: inline-grid; place-items: center;
@@ -257,7 +255,7 @@
   pointer-events: none;
 }
 .sd-hero-copy { position: relative; z-index: 1; max-width: 520px; }
-.sd-hero-title { font-family: "Fraunces", Georgia, serif; font-size: clamp(26px, 5vw, 36px); font-weight: 700; line-height: 1.15; }
+.sd-hero-title { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: clamp(26px, 5vw, 36px); font-weight: 700; line-height: 1.15; }
 .sd-hero-text { margin-top: 10px; color: #c2e6e4; max-width: 46ch; }
 .sd-hero-actions { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
 .sd-hero-stat {
@@ -270,7 +268,7 @@
   backdrop-filter: blur(6px);
   width: fit-content;
 }
-.sd-hero-num { font-family: "Fraunces", Georgia, serif; font-size: 56px; font-weight: 700; line-height: 1; }
+.sd-hero-num { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 56px; font-weight: 700; line-height: 1; }
 .sd-hero-label { font-size: 14px; color: #c2e6e4; max-width: 14ch; line-height: 1.3; }
 
 /* ============ Buttons ============ */
@@ -316,7 +314,7 @@
   background: var(--accent-soft, var(--leaf-soft));
   color: var(--accent, var(--leaf));
 }
-.sd-stat-value { font-family: "Fraunces", Georgia, serif; font-size: 30px; font-weight: 700; line-height: 1; }
+.sd-stat-value { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
 .sd-stat-label { margin-top: 6px; font-size: 13px; color: var(--muted); }
 .sd-stat--people { --accent: var(--cloth); --accent-soft: var(--cloth-soft); }
 .sd-stat--done { --accent: var(--approved); --accent-soft: var(--approved-soft); }
@@ -324,7 +322,7 @@
 
 /* ============ Section titles ============ */
 .sd-section-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
-.sd-section-title { font-family: "Fraunces", Georgia, serif; font-size: 22px; font-weight: 600; }
+.sd-section-title { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 22px; font-weight: 600; }
 .sd-section-sub { margin-top: 2px; font-size: 13.5px; color: var(--muted); }
 .sd-link-btn {
   display: inline-flex; align-items: center; gap: 4px;
@@ -461,7 +459,7 @@ textarea.sd-input { resize: vertical; min-height: 92px; }
 .sd-modal-backdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: rgba(6, 36, 44, 0.55); backdrop-filter: blur(3px); animation: sd-fade 0.18s ease; }
 .sd-modal { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 16px; padding: 22px; border-radius: var(--r-lg); background: var(--card); box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.4); animation: sd-pop 0.22s ease; }
 .sd-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.sd-modal-title { font-family: "Fraunces", Georgia, serif; font-size: 21px; font-weight: 600; }
+.sd-modal-title { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 21px; font-weight: 600; }
 .sd-modal-close { display: inline-flex; padding: 6px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--muted); }
 .sd-modal-close:hover { background: var(--paper); }
 .sd-modal-text { color: var(--muted); font-size: 14.5px; }

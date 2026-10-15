@@ -1,11 +1,11 @@
-
 import { useMemo, useState } from "react";
 import {
-  Bell, HeartHandshake, Home, Search, Package,
-  Settings, Menu, X, LogOut, MapPin, Clock, CheckCircle2,
-  Eye, Send, Utensils, Shirt, UserRound,
+  Bell, Gift, Home, Search, Package, Settings, Menu, X, LogOut, MapPin, Clock,
+  CheckCircle2, Eye, Send, Utensils, Shirt, UserRound, Inbox, Plus,
 } from "lucide-react";
+import logoImg from "../components/image/sahara-logo.jpeg";
 import { useAuth } from "../context/AuthContext";
+import "../styles/ReceiverDashboard.css";
 
 type Tab = "Overview" | "Find Donations" | "My Requests" | "Account";
 type DonationStatus = "Available" | "Requested";
@@ -13,7 +13,7 @@ type RequestStatus = "Pending" | "Approved" | "Completed";
 
 type Donation = {
   id: number;
-  type: "Food" | "Clothes";
+  type: string; // Food, Clothes ya donor ka banaya hua koi bhi type
   title: string;
   description: string;
   quantity: string;
@@ -30,11 +30,18 @@ type DonationRequest = {
   date: string;
 };
 
+const typeMeta = (type: string) => {
+  if (type === "Food") return { Icon: Utensils, tone: "" };
+  if (type === "Clothes") return { Icon: Shirt, tone: "rd-donation--clothes" };
+  return { Icon: Gift, tone: "rd-donation--other" };
+};
+
 export default function ReceiverDashboard() {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
@@ -54,23 +61,31 @@ export default function ReceiverDashboard() {
   ]);
 
   const userName = user?.name || "User";
+  const firstName = userName.split(" ")[0];
   const pendingRequests = requests.filter((r) => r.status === "Pending").length;
   const approvedRequests = requests.filter((r) => r.status === "Approved").length;
   const availableDonations = donations.filter((d) => d.status === "Available").length;
 
+  const typeOptions = useMemo(() => ["All", ...Array.from(new Set(donations.map((d) => d.type)))], [donations]);
+
   const filteredDonations = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return donations;
-    return donations.filter((d) => `${d.title} ${d.type} ${d.location} ${d.description}`.toLowerCase().includes(q));
-  }, [donations, search]);
+    return donations.filter((d) => {
+      const matchesType = typeFilter === "All" || d.type === typeFilter;
+      const matchesText = !q || `${d.title} ${d.type} ${d.location} ${d.description}`.toLowerCase().includes(q);
+      return matchesType && matchesText;
+    });
+  }, [donations, search, typeFilter]);
 
   const navigateTab = (tab: Tab) => {
     setActiveTab(tab);
     setSidebarOpen(false);
+    setShowNotifications(false);
+    setShowAccountMenu(false);
   };
 
   const requestDonation = (donation: Donation) => {
-    setDonations((prev) => prev.map((d) => d.id === donation.id ? { ...d, status: "Requested" } : d));
+    setDonations((prev) => prev.map((d) => (d.id === donation.id ? { ...d, status: "Requested" } : d)));
     if (!requests.some((r) => r.item === donation.title)) {
       setRequests((prev) => [{ id: Date.now(), item: donation.title, donor: "Community Donor", status: "Pending", date: "Just now" }, ...prev]);
     }
@@ -85,146 +100,345 @@ export default function ReceiverDashboard() {
     { name: "Account", icon: <Settings size={18} /> },
   ];
 
-  const inputClass = "w-full rounded-[6px] border border-[#D9E1DB] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#4F7C68] focus:ring-2 focus:ring-[#E5F0E8]";
-  const cardClass = "rounded-[14px] border border-[#E0E7E1] bg-white p-[18px] shadow-[0_2px_8px_rgba(38,51,47,0.035)]";
+  const stats = [
+    { label: "Available donations", value: availableDonations, icon: <Search size={19} />, tone: "" },
+    { label: "My requests", value: requests.length, icon: <Package size={19} />, tone: "rd-stat--people" },
+    { label: "Pending requests", value: pendingRequests, icon: <Clock size={19} />, tone: "rd-stat--pending" },
+    { label: "Approved requests", value: approvedRequests, icon: <CheckCircle2 size={19} />, tone: "rd-stat--done" },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#F5F7F4] text-[#26332F]">
-      {sidebarOpen && <button aria-label="Close menu overlay" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-black/30 lg:hidden" />}
+    <div className="rd">
+      {sidebarOpen && <button aria-label="Close menu overlay" onClick={() => setSidebarOpen(false)} className="rd-overlay" />}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-[#DDE5DF] bg-[#FBFAF7] shadow-[2px_0_12px_rgba(38,51,47,0.02)] transition-transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex h-20 items-center justify-between border-b border-[#E3E9E4] px-4">
-          <div className="flex items-center gap-2"><div className="flex h-[34px] w-[34px] items-center justify-center rounded-[6px] bg-[#2F5547] text-white"><HeartHandshake size={19} /></div><div><h1 className="text-xl font-bold text-[#2F5547]">SAHARA</h1><p className="text-[10px] text-[#71817A]">Community Care</p></div></div>
-          <button className="lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close menu"><X size={19} /></button>
+      <aside className={`rd-sidebar ${sidebarOpen ? "is-open" : ""}`}>
+        <div className="rd-brand">
+          <div className="rd-brand-main">
+            <img src={logoImg} alt="SAHARA logo" className="rd-logo" />
+            <div>
+              <h1 className="rd-brand-name">SAHARA</h1>
+              <p className="rd-brand-tag">Community Care</p>
+            </div>
+          </div>
+          <button className="rd-close-btn" onClick={() => setSidebarOpen(false)} aria-label="Close menu"><X size={20} /></button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          <p className="px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-widest text-[#9AA8A0]">Dashboard</p>
-          {navigation.map((item) => <button key={item.name} onClick={() => navigateTab(item.name)} className={`flex w-full items-center gap-[10px] rounded-[6px] px-3 py-2.5 text-sm font-medium transition ${activeTab === item.name ? "bg-[#E5F0E8] text-[#2F5547]" : "text-[#71817A] hover:bg-white hover:text-[#2F5547]"}`}>{item.icon}{item.name}</button>)}
+        <nav className="rd-nav" aria-label="Dashboard">
+          {navigation.map((item) => (
+            <button key={item.name} onClick={() => navigateTab(item.name)} className={`rd-nav-btn ${activeTab === item.name ? "is-active" : ""}`}>
+              {item.icon}
+              {item.name}
+              {item.name === "My Requests" && pendingRequests > 0 && <span className="rd-nav-badge">{pendingRequests}</span>}
+            </button>
+          ))}
         </nav>
 
+        <div className="rd-user">
+          <div className="rd-avatar">{userName.charAt(0).toUpperCase()}</div>
+          <div className="rd-user-info">
+            <p className="rd-user-name">{userName}</p>
+            <p className="rd-user-role">Receiver</p>
+          </div>
+          <button onClick={logout} className="rd-icon-btn-dark" title="Log out" aria-label="Log out"><LogOut size={17} /></button>
+        </div>
       </aside>
 
-      <div className="min-w-0 lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E7E2] bg-white/90 px-4 shadow-[0_1px_0_rgba(38,51,47,0.03)] backdrop-blur-xl sm:px-8">
-          <div className="flex items-center gap-[10px]"><button onClick={() => setSidebarOpen(true)} className="rounded-[6px] border border-[#D9E1DB] bg-white p-2.5 shadow-sm lg:hidden" aria-label="Open menu"><Menu size={19} /></button><div><p className="text-[11px] text-[#8A9890]">Receiver Dashboard</p><h2 className="text-base font-bold sm:text-lg">Welcome back, {userName.split(" ")[0]} 👋</h2></div></div>
-          <div className="flex items-center gap-2">
-            <div className="relative"><button onClick={() => { setShowNotifications((v) => !v); setShowAccountMenu(false); }} aria-label="Notifications" className="relative inline-flex items-center justify-center rounded-[6px] border border-[#D9E1DB] bg-white p-2.5 text-[#607068] shadow-sm transition hover:bg-[#EDF5EF] hover:text-[#2F5547]"><Bell size={18} />{pendingRequests > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#4F7C68]" />}</button>{showNotifications && <div className="absolute right-0 top-11 z-50 w-64 rounded-[6px] border border-[#DDE6DF] bg-white p-3 shadow-lg"><p className="text-sm font-semibold">Notifications</p><p className="mt-1 text-xs text-[#71817A]">You have {pendingRequests} pending request{pendingRequests !== 1 ? "s" : ""}.</p></div>}</div>
-            <div className="relative">
-              <button onClick={() => { setShowAccountMenu((v) => !v); setShowNotifications(false); }} aria-label="Account menu" aria-expanded={showAccountMenu} className="inline-flex items-center justify-center rounded-[6px] border border-[#D9E1DB] bg-white p-2.5 text-[#607068] shadow-sm transition hover:bg-[#EDF5EF] hover:text-[#2F5547]"><UserRound size={18} /></button>
-              {showAccountMenu && <div className="absolute right-0 top-11 z-50 w-52 rounded-[6px] border border-[#DDE6DF] bg-white p-1.5 shadow-lg">
-                <button onClick={() => { navigateTab("Account"); setShowAccountMenu(false); }} className="w-full rounded-[6px] px-3 py-2 text-left text-sm text-[#26332F] hover:bg-[#F2F6F2]">My Account &amp; Settings</button>
-                <button onClick={() => { navigateTab("My Requests"); setShowAccountMenu(false); }} className="w-full rounded-[6px] px-3 py-2 text-left text-sm text-[#26332F] hover:bg-[#F2F6F2]">My Requests</button>
-                <button onClick={() => { setShowAccountMenu(false); logout(); }} className="w-full rounded-[6px] px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50">Log out</button>
-              </div>}
+      <div className="rd-shell">
+        <header className="rd-header">
+          <div className="rd-header-left">
+            <button onClick={() => setSidebarOpen(true)} className="rd-icon-btn rd-menu-btn" aria-label="Open menu"><Menu size={19} /></button>
+            <div>
+              <p className="rd-header-kicker">Receiver Dashboard</p>
+              <h2 className="rd-header-title">{activeTab}</h2>
+            </div>
+          </div>
+
+          <div className="rd-header-actions">
+            <div className="rd-notif-wrap">
+              <button onClick={() => { setShowNotifications((v) => !v); setShowAccountMenu(false); }} aria-label="Notifications" className="rd-icon-btn">
+                <Bell size={18} />
+                {pendingRequests > 0 && <span className="rd-dot" />}
+              </button>
+              {showNotifications && (
+                <>
+                  <button className="rd-notif-backdrop" aria-label="Close notifications" onClick={() => setShowNotifications(false)} />
+                  <div className="rd-notif">
+                    <strong>Notifications</strong>
+                    <p>You have {pendingRequests} pending request{pendingRequests !== 1 ? "s" : ""}.</p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="rd-notif-wrap">
+              <button onClick={() => { setShowAccountMenu((v) => !v); setShowNotifications(false); }} aria-label="Account menu" aria-expanded={showAccountMenu} className="rd-icon-btn"><UserRound size={18} /></button>
+              {showAccountMenu && (
+                <>
+                  <button className="rd-notif-backdrop" aria-label="Close account menu" onClick={() => setShowAccountMenu(false)} />
+                  <div className="rd-menu">
+                    <button onClick={() => navigateTab("Account")}>My Account &amp; Settings</button>
+                    <button onClick={() => navigateTab("My Requests")}>My Requests</button>
+                    <button className="is-danger" onClick={() => { setShowAccountMenu(false); logout(); }}>Log out</button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>
 
-        <main className="mx-auto max-w-[1440px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-          {activeTab === "Overview" && <>
-            <section><h1 className="text-2xl font-bold">Find Help Nearby</h1><p className="mt-1 text-sm text-[#71817A]">Find useful donations from people in your community.</p></section>
+        <main className="rd-main">
+          {activeTab === "Overview" && (
+            <>
+              <section className="rd-hero">
+                <div className="rd-hero-copy">
+                  <h1 className="rd-hero-title">Namaste, {firstName}. Find help nearby.</h1>
+                  <p className="rd-hero-text">
+                    {availableDonations > 0
+                      ? `${availableDonations} donation${availableDonations !== 1 ? "s are" : " is"} available from people in your community right now.`
+                      : "No donations are available at the moment. Please check again soon."}
+                  </p>
+                  <div className="rd-hero-actions">
+                    <button onClick={() => navigateTab("Find Donations")} className="rd-btn rd-btn-ghost"><Search size={16} />Find donations</button>
+                    <button onClick={() => navigateTab("My Requests")} className="rd-btn rd-btn-ghost">My requests</button>
+                  </div>
+                </div>
+                <div className="rd-hero-stat">
+                  <span className="rd-hero-num">{availableDonations}</span>
+                  <span className="rd-hero-label">donations ready for you</span>
+                </div>
+              </section>
 
-            <section className="grid gap-[10px] sm:grid-cols-2 xl:grid-cols-4">
-              {[
-                { label: "Available donations", value: availableDonations, icon: <Search size={19} /> },
-                { label: "My requests", value: requests.length, icon: <Package size={19} /> },
-                { label: "Pending requests", value: pendingRequests, icon: <Clock size={19} /> },
-                { label: "Approved requests", value: approvedRequests, icon: <CheckCircle2 size={19} /> },
-              ].map((stat) => <div key={stat.label} className={cardClass}><div className="mb-[10px] flex h-[34px] w-[34px] items-center justify-center rounded-[6px] bg-[#EDF5EF] text-[#4F7C68]">{stat.icon}</div><p className="text-2xl font-bold">{stat.value}</p><p className="mt-1 text-xs text-[#71817A]">{stat.label}</p></div>)}
+              <section className="rd-stats">
+                {stats.map((s) => (
+                  <div key={s.label} className={`rd-stat ${s.tone}`}>
+                    <div className="rd-stat-icon">{s.icon}</div>
+                    <p className="rd-stat-value">{s.value}</p>
+                    <p className="rd-stat-label">{s.label}</p>
+                  </div>
+                ))}
+              </section>
+
+              <section>
+                <SectionTitle title="Available donations" subtitle="Explore items near you" action="View all" onAction={() => navigateTab("Find Donations")} />
+                <DonationGrid donations={donations.filter((d) => d.status === "Available").slice(0, 3)} onView={setSelectedDonation} onRequest={requestDonation} />
+              </section>
+            </>
+          )}
+
+          {activeTab === "Find Donations" && (
+            <section>
+              <SectionTitle title="Find donations" subtitle="Search available items by name, type, or location." />
+              <div className="rd-search">
+                <Search size={17} />
+                <input className="rd-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search food, clothes, location..." />
+              </div>
+              <div className="rd-chips">
+                {typeOptions.map((t) => (
+                  <button key={t} onClick={() => setTypeFilter(t)} className={`rd-chip ${typeFilter === t ? "is-active" : ""}`}>{t}</button>
+                ))}
+              </div>
+              <DonationGrid donations={filteredDonations} onView={setSelectedDonation} onRequest={requestDonation} />
             </section>
+          )}
 
-            <section className="flex flex-wrap items-center justify-between gap-[10px] rounded-[14px] bg-[#2F5547] p-[14px] text-white"><div className="flex items-center gap-[10px]"><HeartHandshake size={23} /><div><h3 className="font-semibold">Looking for something?</h3><p className="text-xs text-[#C8D9CE]">Explore food and clothes available nearby.</p></div></div><button onClick={() => navigateTab("Find Donations")} className="rounded-[6px] bg-white px-3 py-2 text-sm font-semibold text-[#2F5547]"><Search size={15} className="mr-1 inline" />Find Donations</button></section>
+          {activeTab === "My Requests" && (
+            <section>
+              <SectionTitle title="My requests" subtitle="Track the status of your donation requests." />
+              {requests.length === 0 ? (
+                <div className="rd-empty">
+                  <span className="rd-empty-icon"><Inbox size={22} /></span>
+                  <p>You have not requested any donations yet.</p>
+                  <button onClick={() => navigateTab("Find Donations")} className="rd-btn rd-btn-primary rd-btn-sm"><Plus size={15} />Find donations</button>
+                </div>
+              ) : (
+                <div className="rd-list">
+                  {requests.map((r) => (
+                    <div key={r.id} className="rd-row">
+                      <div className="rd-row-main">
+                        <span className="rd-row-avatar"><Package size={18} /></span>
+                        <div style={{ minWidth: 0 }}>
+                          <p className="rd-row-title">{r.item}</p>
+                          <p className="rd-row-sub">{r.donor}, {r.date}</p>
+                        </div>
+                      </div>
+                      <StatusPill status={r.status} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
-            <section><SectionTitle title="Available Donations" subtitle="Explore items near you" action="View all" onAction={() => navigateTab("Find Donations")} /><DonationGrid donations={donations.filter((d) => d.status === "Available").slice(0, 3)} onView={setSelectedDonation} onRequest={requestDonation} /></section>
-          </>}
-
-          {activeTab === "Find Donations" && <section><SectionTitle title="Find Donations" subtitle="Search available items by name, type, or location." /><div className="relative mb-4 max-w-xl"><Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8A9890]" /><input className={`${inputClass} pl-9`} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search food, clothes, location..." /></div><DonationGrid donations={filteredDonations} onView={setSelectedDonation} onRequest={requestDonation} /></section>}
-
-          {activeTab === "My Requests" && <section><SectionTitle title="My Requests" subtitle="Track the status of your donation requests." /><div className="max-h-[390px] overflow-y-auto rounded-[14px] border border-[#E0E7E1] bg-white shadow-[0_2px_8px_rgba(38,51,47,0.035)]">{requests.length === 0 ? <p className="p-[14px] text-sm text-[#71817A]">You have not requested any donations yet.</p> : requests.map((r, i) => <div key={r.id} className={`flex min-h-[68px] flex-wrap items-center justify-between gap-[10px] px-3 py-2.5 ${i ? "border-t border-[#E8EDE9]" : ""}`}><div className="flex items-center gap-2.5"><span className="rounded-[6px] bg-[#EDF5EF] p-2 text-[#4F7C68]"><Package size={17} /></span><div><p className="text-sm font-semibold">{r.item}</p><p className="text-xs text-[#71817A]">{r.donor} · {r.date}</p></div></div><span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${r.status === "Approved" ? "bg-[#E5F3E8] text-[#397151]" : r.status === "Completed" ? "bg-gray-100 text-gray-600" : "bg-[#FFF1E8] text-[#B56C43]"}`}>{r.status}</span></div>)}</div></section>}
-
-          {activeTab === "Account" && <section className="mx-auto max-w-2xl space-y-4">
-            <SectionTitle title="Account" subtitle="Your profile and preferences in one place." />
-            <div className={cardClass}><div className="flex items-center gap-[10px] border-b border-[#E8EDE9] pb-[10px]"><div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#DDE9DF] font-bold text-[#2F5547]">{userName.charAt(0).toUpperCase()}</div><div><h3 className="font-semibold">{userName}</h3><p className="text-xs text-[#71817A]">Receiver account</p></div></div><div className="grid gap-[10px] py-3 sm:grid-cols-2"><ProfileField label="Name" value={user?.name || "Not available"} /><ProfileField label="Phone" value={user?.phone || "Not available"} /><ProfileField label="Email" value={user?.email || "Not available"} /><ProfileField label="City" value={user?.location?.city || "Not available"} /></div></div>
-            <div className={`${cardClass} space-y-1`}><h3 className="mb-2 text-sm font-semibold">Notification preferences</h3><ToggleRow title="Email notifications" description="Receive updates by email." checked={emailNotifications} onChange={setEmailNotifications} /><ToggleRow title="In-app notifications" description="Show updates in SAHARA." checked={appNotifications} onChange={setAppNotifications} /></div>
-            <button onClick={logout} className="flex w-full items-center gap-2 rounded-[6px] border border-red-200 bg-white px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"><LogOut size={16} />Log out</button>
-            <p className="text-xs text-[#8A9890]">Notification preferences currently apply to this page only and are not saved to the server.</p>
-          </section>}
+          {activeTab === "Account" && (
+            <section className="rd-narrow rd-stack">
+              <SectionTitle title="Account" subtitle="Your profile and preferences." />
+              <div className="rd-card">
+                <div className="rd-profile-head">
+                  <div className="rd-avatar">{userName.charAt(0).toUpperCase()}</div>
+                  <div>
+                    <h3 className="rd-profile-name">{userName}</h3>
+                    <p className="rd-profile-role">Receiver account</p>
+                  </div>
+                </div>
+                <div className="rd-fields">
+                  <ProfileField label="Name" value={user?.name || "Not available"} />
+                  <ProfileField label="Phone" value={user?.phone || "Not available"} />
+                  <ProfileField label="Email" value={user?.email || "Not available"} />
+                  <ProfileField label="City" value={user?.location?.city || "Not available"} />
+                </div>
+              </div>
+              
+              <button onClick={logout} className="rd-btn rd-btn-outline rd-btn-block rd-logout"><LogOut size={16} />Log out</button>
+              <p className="rd-note">Notification preferences currently apply to this page only and are not saved to the server.</p>
+            </section>
+          )}
         </main>
       </div>
 
-      {selectedDonation && <Modal title="Donation details" onClose={() => setSelectedDonation(null)}>
-        <div className="flex flex-col gap-[14px] rounded-[10px] border border-[#E4EEE6] bg-gradient-to-br from-[#F0F7F1] to-[#F8FAF8] p-[14px] sm:flex-row sm:items-center sm:p-[18px]">
-          <div className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-[10px] bg-white text-[#3F725E] shadow-sm"><Package size={28} /></div>
-          <div className="min-w-0 flex-1">
-            <div className="mb-2 flex flex-wrap items-center gap-2"><span className="inline-flex items-center gap-1.5 rounded-md bg-[#DCEFE1] px-2.5 py-1 text-xs font-semibold text-[#35664F]">{selectedDonation.type}</span><span className="rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-[#35664F]">{selectedDonation.status}</span></div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#71877B]">Item name</p>
-            <h4 className="mt-0.5 text-xl font-bold tracking-tight text-[#26332F]">{selectedDonation.title}</h4>
-            <p className="mt-1 text-sm leading-6 text-[#71817A]">{selectedDonation.description}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-[10px]"><InfoBox label="Category" value={selectedDonation.type} /><InfoBox label="Total quantity" value={selectedDonation.quantity} /><InfoBox label="Pickup location" value={selectedDonation.location} /><InfoBox label="Distance from you" value={selectedDonation.distance} /><InfoBox label="Availability status" value={selectedDonation.status} /><InfoBox label="Requested by" value={requests.some((r) => r.item === selectedDonation.title) ? userName : "Not requested yet"} /></div>
-        <div className="grid gap-[10px] border-t border-[#E8EDE9] pt-4 sm:grid-cols-2">
-          <div className="flex items-center gap-[10px] rounded-[10px] bg-[#F8FAF8] p-3.5"><span className="flex h-[38px] w-[38px] items-center justify-center rounded-[6px] bg-white text-[#3F725E]"><UserRound size={19} /></span><div><p className="text-xs text-[#849189]">Donor information</p><p className="mt-1 text-sm font-semibold text-[#26332F]">Community Donor</p><p className="text-xs text-[#71817A]">SAHARA community</p></div></div>
-          <div className="flex items-center gap-[10px] rounded-[10px] bg-[#F8FAF8] p-3.5"><span className="flex h-[38px] w-[38px] items-center justify-center rounded-[6px] bg-white text-[#3F725E]"><MapPin size={19} /></span><div><p className="text-xs text-[#849189]">Pickup area</p><p className="mt-1 text-sm font-semibold text-[#26332F]">{selectedDonation.location}</p><p className="text-xs text-[#71817A]">Approximately {selectedDonation.distance} away</p></div></div>
-        </div>
-        <div className="flex flex-wrap justify-end gap-2"><button disabled={selectedDonation.status !== "Available"} onClick={() => requestDonation(selectedDonation)} className="rounded-[6px] bg-[#3F725E] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#315D4C] disabled:cursor-not-allowed disabled:opacity-50"><Send size={14} className="mr-1 inline" />{selectedDonation.status === "Available" ? "Request donation" : "Already requested"}</button><button onClick={() => setSelectedDonation(null)} className="rounded-[6px] border border-[#D9E1DB] px-4 py-2.5 text-sm font-semibold text-[#52645A] hover:bg-[#F7F8F5]">Close</button></div>
-      </Modal>}
+      {selectedDonation && (
+        <Modal title="Donation details" onClose={() => setSelectedDonation(null)}>
+          {(() => {
+            const { Icon, tone } = typeMeta(selectedDonation.type);
+            const alreadyRequested = requests.some((r) => r.item === selectedDonation.title);
+            return (
+              <>
+                <div className={`rd-detail ${tone}`}>
+                  <div className="rd-detail-icon"><Icon size={28} /></div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="rd-tags">
+                      <span className="rd-tag">{selectedDonation.type}</span>
+                      <StatusPill status={selectedDonation.status} />
+                    </div>
+                    <p className="rd-eyebrow">Item name</p>
+                    <h4 className="rd-detail-title">{selectedDonation.title}</h4>
+                    <p className="rd-detail-text">{selectedDonation.description}</p>
+                  </div>
+                </div>
+
+                <div className="rd-info-grid">
+                  <InfoBox label="Category" value={selectedDonation.type} />
+                  <InfoBox label="Total quantity" value={selectedDonation.quantity} />
+                  <InfoBox label="Pickup location" value={selectedDonation.location} />
+                  <InfoBox label="Distance from you" value={selectedDonation.distance} />
+                  <InfoBox label="Availability status" value={selectedDonation.status} />
+                  <InfoBox label="Requested by" value={alreadyRequested ? userName : "Not requested yet"} />
+                </div>
+
+                <div className="rd-two">
+                  <div className="rd-person">
+                    <span className="rd-person-icon"><UserRound size={19} /></span>
+                    <div><small>Donor information</small><strong>Community Donor</strong><span>SAHARA community</span></div>
+                  </div>
+                  <div className="rd-person">
+                    <span className="rd-person-icon"><MapPin size={19} /></span>
+                    <div><small>Pickup area</small><strong>{selectedDonation.location}</strong><span>Approximately {selectedDonation.distance} away</span></div>
+                  </div>
+                </div>
+
+                <div className="rd-modal-actions">
+                  <button disabled={selectedDonation.status !== "Available"} onClick={() => requestDonation(selectedDonation)} className="rd-btn rd-btn-primary">
+                    <Send size={15} />{selectedDonation.status === "Available" ? "Request donation" : "Already requested"}
+                  </button>
+                  <button onClick={() => setSelectedDonation(null)} className="rd-btn rd-btn-outline">Close</button>
+                </div>
+              </>
+            );
+          })()}
+        </Modal>
+      )}
     </div>
   );
 }
 
 function SectionTitle({ title, subtitle, action, onAction }: { title: string; subtitle?: string; action?: string; onAction?: () => void }) {
-  return <div className="mb-[10px] flex flex-wrap items-end justify-between gap-2"><div><h2 className="text-xl font-bold">{title}</h2>{subtitle && <p className="mt-1 text-xs text-[#71817A]">{subtitle}</p>}</div>{action && <button onClick={onAction} className="text-xs font-semibold text-[#4F7C68]">{action} →</button>}</div>;
+  return (
+    <div className="rd-section-head">
+      <div>
+        <h2 className="rd-section-title">{title}</h2>
+        {subtitle && <p className="rd-section-sub">{subtitle}</p>}
+      </div>
+      {action && <button onClick={onAction} className="rd-link-btn">{action}</button>}
+    </div>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  return <span className={`rd-pill rd-pill--${status}`}>{status}</span>;
 }
 
 function DonationGrid({ donations, onView, onRequest }: { donations: Donation[]; onView: (d: Donation) => void; onRequest: (d: Donation) => void }) {
-  if (!donations.length) return <div className="rounded-[10px] border bg-white p-[18px] text-sm text-[#71817A]">No donations found.</div>;
-  return <div className="max-h-[620px] overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable]"><div className="grid gap-[10px] md:grid-cols-2 xl:grid-cols-3">{donations.map((d) => <article key={d.id} className="rounded-[14px] border border-[#E0E7E1] bg-white p-[18px] shadow-[0_2px_8px_rgba(38,51,47,0.035)]"><div className="mb-[10px] flex items-center justify-between"><span className={`rounded-[6px] p-2 ${d.type === "Food" ? "bg-[#FFF2E9] text-[#C8794D]" : "bg-[#EDF5EF] text-[#4F7C68]"}`}>{d.type === "Food" ? <Utensils size={18} /> : <Shirt size={18} />}</span><span className="rounded-full bg-[#E5F3E8] px-2.5 py-1 text-[11px] font-medium text-[#397151]">{d.status}</span></div><h3 className="font-semibold">{d.title}</h3><p className="mt-1 text-xs text-[#71817A]">{d.type} · {d.quantity}</p><p className="mt-2 line-clamp-2 text-xs text-[#71817A]">{d.description}</p><p className="mt-2 flex items-center gap-1 text-xs text-[#71817A]"><MapPin size={13} />{d.location} · {d.distance}</p><div className="mt-[10px] flex gap-2 border-t border-[#E8EDE9] pt-[10px]"><button onClick={() => onView(d)} className="inline-flex items-center gap-1 rounded-[6px] border border-[#D9E1DB] px-3 py-2 text-xs font-semibold text-[#52645A] transition hover:bg-[#F2F6F2]"><Eye size={14} />Details</button><button disabled={d.status !== "Available"} onClick={() => onRequest(d)} className="rounded-[6px] bg-[#3F725E] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#315D4C] disabled:cursor-not-allowed disabled:opacity-50">{d.status === "Available" ? "Request" : "Requested"}</button></div></article>)}</div></div>;
+  if (!donations.length) {
+    return (
+      <div className="rd-empty">
+        <span className="rd-empty-icon"><Search size={22} /></span>
+        <p>No donations found.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="rd-grid">
+      {donations.map((d) => {
+        const { Icon, tone } = typeMeta(d.type);
+        return (
+          <article key={d.id} className={`rd-donation ${tone}`}>
+            <div className="rd-donation-top">
+              <span className="rd-type-icon"><Icon size={19} /></span>
+              <StatusPill status={d.status} />
+            </div>
+            <h3 className="rd-donation-title">{d.title}</h3>
+            <p className="rd-donation-meta">{d.type}, {d.quantity}</p>
+            <p className="rd-donation-desc">{d.description}</p>
+            <p className="rd-place"><MapPin size={14} />{d.location}, {d.distance}</p>
+            <div className="rd-card-actions">
+              <button onClick={() => onView(d)} className="rd-btn rd-btn-outline rd-btn-sm"><Eye size={14} />Details</button>
+              <button disabled={d.status !== "Available"} onClick={() => onRequest(d)} className="rd-btn rd-btn-primary rd-btn-sm">
+                {d.status === "Available" ? "Request" : "Requested"}
+              </button>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
 }
 
 function ToggleRow({ title, description, checked, onChange }: { title: string; description: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return <div className="flex items-center justify-between gap-[10px] border-t border-[#E8EDE9] py-2.5"><div><p className="text-sm font-medium">{title}</p><p className="mt-0.5 text-xs text-[#71817A]">{description}</p></div><button type="button" role="switch" aria-checked={checked} aria-label={title} onClick={() => onChange(!checked)} className={`relative h-5 w-9 shrink-0 rounded-full transition ${checked ? "bg-[#4F7C68]" : "bg-gray-300"}`}><span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${checked ? "left-[18px]" : "left-0.5"}`} /></button></div>;
+  return (
+    <div className="rd-toggle-row">
+      <div>
+        <p className="rd-toggle-title">{title}</p>
+        <p className="rd-toggle-desc">{description}</p>
+      </div>
+      <button type="button" role="switch" aria-checked={checked} aria-label={title} onClick={() => onChange(!checked)} className="rd-switch" />
+    </div>
+  );
 }
 
 function ProfileField({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[6px] bg-[#F7F8F5] px-3 py-2"><p className="text-[10px] text-[#8A9890]">{label}</p><p className="mt-0.5 break-words text-sm font-medium">{value}</p></div>;
+  return (
+    <div className="rd-field">
+      <p className="rd-field-label">{label}</p>
+      <p className="rd-field-value">{value}</p>
+    </div>
+  );
 }
 
 function InfoBox({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[10px] border border-[#E8EDE9] bg-[#F8FAF8] p-3.5 transition hover:border-[#D4E3D8]"><p className="text-xs font-medium text-[#849189]">{label}</p><p className="mt-1.5 break-words text-sm font-semibold text-[#26332F]">{value}</p></div>;
+  return <ProfileField label={label} value={value} />;
 }
 
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-[#18231F]/45 p-3 backdrop-blur-[3px] sm:p-6"
-      onMouseDown={onClose}
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className="my-auto flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-[14px] border border-white/70 bg-white shadow-[0_24px_80px_rgba(19,39,30,0.24)]"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <header className="flex shrink-0 items-center justify-between gap-[14px] border-b border-[#E8EDE9] px-[18px] py-4 sm:px-[26px]">
+    <div className="rd-modal-backdrop" onMouseDown={onClose}>
+      <section className="rd-modal rd-modal--wide" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => e.stopPropagation()}>
+        <div className="rd-modal-head">
           <div>
-            <h3 className="text-xl font-bold tracking-tight text-[#26332F] sm:text-2xl">{title}</h3>
-            <p className="mt-1 text-sm text-[#7B8982]">Here’s all the information about this donation.</p>
+            <h3 className="rd-modal-title">{title}</h3>
+            <p className="rd-modal-sub">Here is all the information about this donation.</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close dialog"
-            className="inline-flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[6px] border border-[#E3E9E4] bg-[#F8FAF8] text-[#52645A] transition hover:bg-[#EAF2EC]"
-          >
-            <X size={19} />
-          </button>
-        </header>
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-[18px] py-[18px] sm:px-[26px]">
-          {children}
+          <button onClick={onClose} aria-label="Close dialog" className="rd-modal-close"><X size={19} /></button>
         </div>
+        {children}
       </section>
     </div>
   );
