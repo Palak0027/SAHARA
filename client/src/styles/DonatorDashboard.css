@@ -272,28 +272,90 @@
 .sd-hero-label { font-size: 14px; color: #c2e6e4; max-width: 14ch; line-height: 1.3; }
 
 /* ============ Buttons ============ */
+ 
+
 .sd-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px;
   padding: 10px 18px;
   border: 1px solid transparent;
   border-radius: var(--r-md);
-  font-size: 14px; font-weight: 600;
-  transition: transform 0.15s, background 0.18s, border-color 0.18s, box-shadow 0.18s;
+  font-size: 14px; 
+  font-weight: 600;
+  transition: transform 0.15s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  cursor: pointer;
 }
-.sd-btn:active { transform: translateY(1px); }
-.sd-btn-primary { background: linear-gradient(135deg, #0e8791 0%, #0a5668 100%); color: #fff; box-shadow: 0 8px 18px -10px rgba(10, 86, 104, 0.95); }
-.sd-btn-primary:hover { background: linear-gradient(135deg, #0b7680 0%, #08495a 100%); }
-.sd-btn-light { background: #fff; color: var(--forest); }
-.sd-btn-light:hover { background: #e3f4f1; }
-.sd-btn-ghost { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.35); }
-.sd-btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
-.sd-btn-outline { background: var(--card); color: var(--ink); border-color: var(--line); }
-.sd-btn-outline:hover { border-color: var(--leaf); color: var(--forest); }
-.sd-btn-danger { background: var(--card); color: var(--rejected); border-color: #efc2c2; }
-.sd-btn-danger:hover { background: var(--rejected-soft); }
-.sd-btn-block { width: 100%; justify-content: flex-start; }
-.sd-btn-sm { padding: 6px 12px; font-size: 13px; border-radius: var(--r-sm); }
 
+.sd-btn:active { 
+  transform: translateY(1px); 
+}
+
+ 
+.sd-btn-primary { 
+  background: linear-gradient(135deg, #0e8791 0%, #0a5668 100%); 
+  color: #ffffff !important; 
+  box-shadow: 0 8px 18px -10px rgba(10, 86, 104, 0.95); 
+}
+
+.sd-btn-primary:hover { 
+  background: linear-gradient(135deg, #0b7680 0%, #08495a 100%); 
+  color: #ffffff !important;
+}
+
+.sd-btn-light { 
+  background: #fff; 
+  color: var(--forest); 
+}
+
+.sd-btn-light:hover { 
+  background: #e3f4f1; 
+}
+
+ 
+.sd-btn-ghost { 
+  background: transparent; 
+  color: #ffffff !important; 
+  border-color: rgba(255, 255, 255, 0.35); 
+}
+
+.sd-btn-ghost:hover { 
+  background: rgba(255, 255, 255, 0.12); 
+  color: #ffffff !important;
+}
+
+.sd-btn-outline { 
+  background: var(--card); 
+  color: var(--ink); 
+  border-color: var(--line); 
+}
+
+.sd-btn-outline:hover { 
+  border-color: var(--leaf); 
+  color: var(--forest); 
+}
+
+.sd-btn-danger { 
+  background: var(--card); 
+  color: var(--rejected); 
+  border-color: #efc2c2; 
+}
+
+.sd-btn-danger:hover { 
+  background: var(--rejected-soft); 
+}
+
+.sd-btn-block { 
+  width: 100%; 
+  justify-content: flex-start; 
+}
+
+.sd-btn-sm { 
+  padding: 6px 12px; 
+  font-size: 13px; 
+  border-radius: var(--r-sm); 
+}
 /* ============ Stats ============ */
 .sd-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .sd-stat {
