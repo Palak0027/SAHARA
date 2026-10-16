@@ -49,6 +49,15 @@ class UserRepository {
   }
 
   /**
+   * Find a user by ID including passwordHash field
+   * @param {string} id
+   * @returns {Promise<Document|null>}
+   */
+  async findByIdWithPassword(id) {
+    return await User.findById(id).select('+passwordHash');
+  }
+
+  /**
    * Create and persist a new user document
    * @param {object} userData
    * @returns {Promise<Document>}

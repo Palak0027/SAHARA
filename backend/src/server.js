@@ -17,6 +17,7 @@ const donationRoutes = require('./routes/donation.routes');
 const needRoutes = require('./routes/need.routes');
 const impactRoutes = require('./routes/impact.routes');
 const adminRoutes = require('./routes/admin.routes');
+const matchRoutes = require('./routes/match.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -61,6 +62,7 @@ app.use('/api/donations', donationRoutes);
 app.use('/api/needs', needRoutes);
 app.use('/api/impact', impactRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/matches', matchRoutes);
 
 // Unknown routes
 app.use((req, res) => {

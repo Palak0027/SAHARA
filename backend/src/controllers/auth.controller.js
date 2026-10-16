@@ -89,10 +89,25 @@ const getProfile = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Change password for authenticated user
+ * @route   PUT /api/auth/change-password
+ * @access  Private
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const result = await authService.changePassword(req.user._id, req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   switchRole,
   getProfile,
   getMe: getProfile,
+  changePassword,
 };

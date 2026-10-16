@@ -1,5 +1,6 @@
 import React from "react";
 import { ShieldCheck } from "lucide-react";
+import ChangePasswordCard from "../../common/ChangePasswordCard";
 
 interface AccountTabProps {
   user: any;
@@ -45,6 +46,9 @@ export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
           </button>
         </div>
       </div>
+
+      {/* Security & Password */}
+      <ChangePasswordCard title="Administrator Password" subtitle="Update your root administrator password." />
     </div>
   );
 };

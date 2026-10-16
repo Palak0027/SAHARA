@@ -244,6 +244,49 @@ class AuthService {
     }
     return user;
   }
+
+  /**
+   * Change user password securely
+   * @param {string} userId
+   * @param {object} payload
+   * @returns {Promise<{success: boolean, message: string}>}
+   */
+  async changePassword(userId, { currentPassword, newPassword, confirmPassword }) {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      throw new AppError('Current password, new password, and confirmation are all required.', 400);
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new AppError('New password and confirm password do not match.', 400);
+    }
+
+    if (newPassword.length < 6) {
+      throw new AppError('New password must be at least 6 characters long.', 400);
+    }
+
+    if (currentPassword === newPassword) {
+      throw new AppError('New password cannot be the same as your current password.', 400);
+    }
+
+    const user = await userRepository.findByIdWithPassword(userId);
+    if (!user) {
+      throw new AppError('User not found.', 404);
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      throw new AppError('Current password is incorrect. Please check and try again.', 400);
+    }
+
+    const saltRounds = 10;
+    user.passwordHash = await bcrypt.hash(newPassword, saltRounds);
+    await user.save();
+
+    return {
+      success: true,
+      message: 'Password changed successfully!'
+    };
+  }
 }
 
 module.exports = new AuthService();

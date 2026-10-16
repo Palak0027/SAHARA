@@ -108,6 +108,25 @@ const needSchema = new mongoose.Schema(
         message: '{VALUE} is not a valid need status'
       },
       default: 'open'
+    },
+    deliveryPreference: {
+      type: String,
+      enum: ['volunteer_delivery', 'donor_dropoff', 'receiver_pickup', 'any'],
+      default: 'any'
+    },
+    matchedWith: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Donation',
+      default: null
+    },
+    fulfillmentDetails: {
+      mode: {
+        type: String,
+        enum: ['volunteer_delivery', 'donor_dropoff', 'receiver_pickup', 'unspecified'],
+        default: 'unspecified'
+      },
+      matchedAt: { type: Date, default: null },
+      notes: { type: String, default: '' }
     }
   },
   {

@@ -27,3 +27,14 @@ export const loginUser = (credentials: { phone: string; password: string }) =>
     identifier: credentials.phone,
     password: credentials.password
   });
+
+import { http } from './http';
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export const changePassword = (payload: ChangePasswordPayload) =>
+  http.put<{ success: boolean; message: string }>('/api/auth/change-password', payload);
