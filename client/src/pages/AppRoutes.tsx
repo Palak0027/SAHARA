@@ -9,6 +9,7 @@ import DonatorDashboard from "../pages/DonatorDashboard";
 import ReceiverDashboard from "../pages/ReceiverDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
 import VolunteerDashboard from "../pages/VolunteerDashboard";
+import ChangePasswordPage from "../pages/ChangePasswordPage";
 
 import { useAuth, type UserRole } from "../context/AuthContext";
 
@@ -162,6 +163,19 @@ export default function AppRoutes() {
             <RoleRoute role="volunteer">
               <VolunteerDashboard />
             </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+
+
+      {/* =========================
+          CHANGE PASSWORD
+      ========================= */}
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute>
+            <ChangePasswordPage />
           </ProtectedRoute>
         }
       />

@@ -90,6 +90,7 @@ class DonationService {
       availableUntil: untilDate,
       foodDetails: formattedFoodDetails,
       images: Array.isArray(images) ? images : [],
+      deliveryPreference: payload.deliveryPreference || 'any',
       status: 'available'
     };
 
@@ -183,7 +184,8 @@ class DonationService {
       throw new AppError('Donation not found', 404);
     }
 
-    const isOwner = donation.donorId && donation.donorId._id.toString() === userId.toString();
+    const donorOwnerId = donation.donorId?._id ? donation.donorId._id.toString() : donation.donorId?.toString();
+    const isOwner = Boolean(donorOwnerId && donorOwnerId === userId.toString());
     const isAdmin = userRole === 'admin';
 
     if (!isOwner && !isAdmin) {
@@ -211,7 +213,8 @@ class DonationService {
       throw new AppError('Donation not found', 404);
     }
 
-    const isOwner = donation.donorId && donation.donorId._id.toString() === userId.toString();
+    const donorOwnerId = donation.donorId?._id ? donation.donorId._id.toString() : donation.donorId?.toString();
+    const isOwner = Boolean(donorOwnerId && donorOwnerId === userId.toString());
     const isAdmin = userRole === 'admin';
 
     if (!isOwner && !isAdmin) {

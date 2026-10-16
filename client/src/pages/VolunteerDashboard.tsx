@@ -8,6 +8,7 @@ import type { LucideIcon } from "lucide-react";
 
 import logoImg from "../components/image/sahara-logo.jpeg";
 import { useAuth } from "../context/AuthContext";
+import ChangePasswordCard from "../components/common/ChangePasswordCard";
 import "../styles/VolunreerDashboard.css";
 
 type Tab = "Overview" | "Available Tasks" | "My Tasks" | "Messages" | "Impact" | "Profile" | "Settings";
@@ -307,6 +308,10 @@ export default function VolunteerDashboard() {
                 <SettingRow title="Community messages" description="Receive updates and coordination messages." />
               </div>
               <p className="vd-note">Preferences currently apply to this page only and are not saved to the server.</p>
+
+              {/* Change Password Card */}
+              <ChangePasswordCard title="Volunteer Password & Security" subtitle="Update your password for your volunteer account." />
+
               <div className="vd-danger-card">
                 <h3>Account actions</h3>
                 <p>Sign out of your current volunteer session.</p>

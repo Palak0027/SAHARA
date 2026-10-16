@@ -77,6 +77,7 @@ class NeedService {
       },
       receiverType: effectiveReceiverType,
       onBehalfOf: formattedOnBehalfOf,
+      deliveryPreference: payload.deliveryPreference || 'any',
       status: 'open'
     };
 
@@ -230,7 +231,8 @@ class NeedService {
       throw new AppError('Need request not found', 404);
     }
 
-    const isOwner = need.receiverId && need.receiverId._id.toString() === userId.toString();
+    const receiverOwnerId = need.receiverId?._id ? need.receiverId._id.toString() : need.receiverId?.toString();
+    const isOwner = Boolean(receiverOwnerId && receiverOwnerId === userId.toString());
     const isAdmin = userRole === 'admin';
 
     if (!isOwner && !isAdmin) {
@@ -257,7 +259,8 @@ class NeedService {
       throw new AppError('Need request not found', 404);
     }
 
-    const isOwner = need.receiverId && need.receiverId._id.toString() === userId.toString();
+    const receiverOwnerId = need.receiverId?._id ? need.receiverId._id.toString() : need.receiverId?.toString();
+    const isOwner = Boolean(receiverOwnerId && receiverOwnerId === userId.toString());
     const isAdmin = userRole === 'admin';
 
     if (!isOwner && !isAdmin) {

@@ -6,12 +6,14 @@ const {
   register,
   login,
   switchRole,
-  getProfile
+  getProfile,
+  changePassword
 } = require('../controllers/auth.controller');
 
 const {
   validateRegister,
-  validateLogin
+  validateLogin,
+  validateChangePassword
 } = require('../middlewares/validators/auth.validator');
 
 const {
@@ -54,6 +56,20 @@ router.put(
   '/switch-role',
   protect,
   switchRole
+);
+
+router.put(
+  '/change-password',
+  protect,
+  validateChangePassword,
+  changePassword
+);
+
+router.post(
+  '/change-password',
+  protect,
+  validateChangePassword,
+  changePassword
 );
 
 module.exports = router;

@@ -106,7 +106,35 @@ const validateLogin = [
   validate,
 ];
 
+/**
+ * Validation rules for changing password
+ */
+const validateChangePassword = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+
+  body('newPassword')
+    .notEmpty()
+    .withMessage('New password is required')
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters long'),
+
+  body('confirmPassword')
+    .notEmpty()
+    .withMessage('Confirm password is required')
+    .custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error('New password and confirm password do not match');
+      }
+      return true;
+    }),
+
+  validate,
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
+  validateChangePassword,
 };

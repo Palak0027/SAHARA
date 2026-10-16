@@ -402,10 +402,14 @@
 /* ============ Status pills ============ */
 .rd-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 99px; font-size: 12px; font-weight: 600; background: var(--s-soft); color: var(--s); }
 .rd-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--s); }
-.rd-pill--Active, .rd-pill--Approved { --s: var(--approved); --s-soft: var(--approved-soft); }
-.rd-pill--Completed { --s: var(--completed); --s-soft: var(--completed-soft); }
-.rd-pill--Pending { --s: var(--pending); --s-soft: var(--pending-soft); }
-.rd-pill--Rejected { --s: var(--rejected); --s-soft: var(--rejected-soft); }
+.rd-pill--open, .rd-pill--available, .rd-pill--Active, .rd-pill--Approved { --s: var(--approved); --s-soft: var(--approved-soft); }
+.rd-pill--matched, .rd-pill--accepted, .rd-pill--Pending { --s: var(--pending); --s-soft: var(--pending-soft); }
+.rd-pill--in_transit { --s: var(--cloth); --s-soft: var(--cloth-soft); }
+.rd-pill--fulfilled, .rd-pill--completed, .rd-pill--Completed { --s: var(--completed); --s-soft: var(--completed-soft); }
+.rd-pill--cancelled, .rd-pill--Rejected { --s: var(--rejected); --s-soft: var(--rejected-soft); }
+
+@keyframes rd-spin-anim { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.rd-spin { animation: rd-spin-anim 0.8s linear infinite; }
 
 /* ============ Request list ============ */
 .rd-list { overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--card); box-shadow: var(--shadow); }
@@ -436,6 +440,14 @@
   font: inherit;
   color: var(--ink);
   transition: border-color 0.18s, box-shadow 0.18s;
+}
+select.rd-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230a4b57' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
 }
 .rd-input::placeholder { color: var(--faint); }
 .rd-input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 4px rgba(14, 124, 134, 0.15); background: #fff; }
