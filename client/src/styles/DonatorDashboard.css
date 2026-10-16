@@ -434,10 +434,14 @@
 /* ============ Status pills ============ */
 .sd-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 99px; font-size: 12px; font-weight: 600; background: var(--s-soft); color: var(--s); }
 .sd-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--s); }
-.sd-pill--Active, .sd-pill--Approved { --s: var(--approved); --s-soft: var(--approved-soft); }
-.sd-pill--Completed { --s: var(--completed); --s-soft: var(--completed-soft); }
-.sd-pill--Pending { --s: var(--pending); --s-soft: var(--pending-soft); }
-.sd-pill--Rejected { --s: var(--rejected); --s-soft: var(--rejected-soft); }
+.sd-pill--available, .sd-pill--Active, .sd-pill--Approved { --s: var(--approved); --s-soft: var(--approved-soft); }
+.sd-pill--matched, .sd-pill--accepted, .sd-pill--Pending { --s: var(--pending); --s-soft: var(--pending-soft); }
+.sd-pill--in_transit { --s: var(--cloth); --s-soft: var(--cloth-soft); }
+.sd-pill--completed, .sd-pill--Completed { --s: var(--completed); --s-soft: var(--completed-soft); }
+.sd-pill--cancelled, .sd-pill--Rejected { --s: var(--rejected); --s-soft: var(--rejected-soft); }
+
+@keyframes sd-spin-anim { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.sd-spin { animation: sd-spin-anim 0.8s linear infinite; }
 
 /* ============ Request list ============ */
 .sd-list { overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--card); box-shadow: var(--shadow); }
@@ -472,6 +476,14 @@
 .sd-input::placeholder { color: var(--faint); }
 .sd-input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 4px rgba(14, 124, 134, 0.15); background: #fff; }
 textarea.sd-input { resize: vertical; min-height: 92px; }
+select.sd-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230a4b57' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
 .sd-type-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .sd-type-btn {
   display: flex; align-items: center; gap: 10px;

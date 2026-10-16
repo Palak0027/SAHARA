@@ -90,6 +90,25 @@ const donationSchema = new mongoose.Schema(
       },
       default: 'available'
     },
+    deliveryPreference: {
+      type: String,
+      enum: ['volunteer_delivery', 'donor_dropoff', 'receiver_pickup', 'any'],
+      default: 'any'
+    },
+    matchedWith: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Need',
+      default: null
+    },
+    fulfillmentDetails: {
+      mode: {
+        type: String,
+        enum: ['volunteer_delivery', 'donor_dropoff', 'receiver_pickup', 'unspecified'],
+        default: 'unspecified'
+      },
+      matchedAt: { type: Date, default: null },
+      notes: { type: String, default: '' }
+    },
     images: {
       type: [String],
       default: []
