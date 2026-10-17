@@ -147,6 +147,16 @@ const userSchema = new mongoose.Schema(
       }
     },
 
+    // Password reset credentials are stored hashed and expire quickly.
+    passwordResetToken: {
+      type: String,
+      select: false
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false
+    },
+
     isActive: {
       type: Boolean,
       default: true

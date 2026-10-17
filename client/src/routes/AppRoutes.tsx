@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import App from "../App";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 import DonatorDashboard from "../pages/DonatorDashboard";
 import ReceiverDashboard from "../pages/ReceiverDashboard";
@@ -85,27 +87,21 @@ function RoleRoute({
     );
   }
 
-  /*
-   * Use activeRole first because the backend
-   * sends activeRole for authenticated users.
-   *
-   * Fall back to role if activeRole is missing.
-   */
+  // Use activeRole first because the backend
+  // sends activeRole for authenticated users.
+  // Fall back to role if activeRole is missing.
+
   const currentRole =
     user.activeRole || user.role;
 
-  // -----------------------------------------------
   // Correct role → allow dashboard
-  // -----------------------------------------------
 
   if (currentRole === role) {
     return <>{children}</>;
   }
 
-  // -----------------------------------------------
-  // If role doesn't match, send user to
-  // THEIR OWN dashboard.
-  // -----------------------------------------------
+  // If role doesn't match, redirect to
+  // the user's own dashboard.
 
   if (currentRole === "admin") {
     return (
@@ -143,9 +139,7 @@ function RoleRoute({
     );
   }
 
-  // -----------------------------------------------
   // Unknown / missing role
-  // -----------------------------------------------
 
   return (
     <Navigate
@@ -162,7 +156,6 @@ function RoleRoute({
 export default function AppRoutes() {
   return (
     <Routes>
-
       {/* -------------------------------------------
           PUBLIC PAGES
       ------------------------------------------- */}
@@ -180,6 +173,24 @@ export default function AppRoutes() {
       <Route
         path="/register"
         element={<Register />}
+      />
+
+      {/* -------------------------------------------
+          FORGOT PASSWORD
+      ------------------------------------------- */}
+
+      <Route
+        path="/forgot-password"
+        element={<ForgotPassword />}
+      />
+
+      {/* -------------------------------------------
+          RESET PASSWORD
+      ------------------------------------------- */}
+
+      <Route
+        path="/reset-password"
+        element={<ResetPassword />}
       />
 
       {/* -------------------------------------------
@@ -255,7 +266,6 @@ export default function AppRoutes() {
           />
         }
       />
-
     </Routes>
   );
 }
