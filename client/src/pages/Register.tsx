@@ -1,7 +1,19 @@
+import volunteersImg from '../components/image/volunteers.jpg';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImg from '../components/image/sahara-logo.jpeg';
 import Navbar from '../components/Navbar';
+import {
+  GiftIcon,
+  HandHeartIcon,
+  HeartIcon,
+  UsersIcon,
+  SproutIcon,
+  ShieldCheckIcon,
+  LockIcon,
+  ArrowRightIcon,
+  EyeIcon,
+  EyeOffIcon
+} from '../components/Icons/Icons';
 import { translations, type ErrorKey, type Language } from './translations';
 import { useAuth, type RegisterData } from '../context/AuthContext';
 import '../styles/Register.css';
@@ -58,9 +70,8 @@ const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PINCODE_REGEX = /^\d{6}$/;
 
-/* Decorative, language-neutral icons (food, clothes, books, blankets) */
-const FEATURE_ICONS = ['💚', '🤝', '🌿', '✓'];
-const CATEGORY_CHIPS = ['🍞', '👕', '📚', '🧣'];
+/* One icon per feature (same order as t.features) */
+const FEATURE_ICONS = [HeartIcon, HandHeartIcon, SproutIcon, ShieldCheckIcon];
 
 /* ---------- Validation ---------- */
 
@@ -228,11 +239,18 @@ const Field: React.FC<FieldProps> = ({
             aria-label={visible ? (language === 'hi' ? 'पासवर्ड छिपाएँ' : 'Hide password') : (language === 'hi' ? 'पासवर्ड दिखाएँ' : 'Show password')}
           >
             {visible ? (language === 'hi' ? 'छिपाएँ' : 'Hide') : (language === 'hi' ? 'दिखाएँ' : 'Show')}
+
+            {visible ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
           </button>
         )}
       </div>
 
-      {error && <span className="field__error">{error}</span>}
+      {/* Absolutely positioned in CSS, so showing an error never moves the layout */}
+      {error && (
+        <span className="field__error" title={error}>
+          {error}
+        </span>
+      )}
     </div>
   );
 };
@@ -329,36 +347,44 @@ const Register: React.FC = () => {
       />
 
       <main className="register__main">
-        {/* Left: welcome + logo card */}
+        {/* Left: welcome + photo + features */}
         <section className="intro">
           <h2 className="intro__title">{t.welcome}</h2>
           <p className="intro__text">{t.welcomeText}</p>
 
-          <div className="intro__hero">
-            <div className="logo-card">
-              <span className="logo-card__ring" aria-hidden="true" />
-              <div className="logo-card__disc">
-                <img src={logoImg} alt="SAHARA – Give what you can, get what you need" />
-              </div>
-
-              {CATEGORY_CHIPS.map((emoji, index) => (
-                <span key={emoji} className={`chip chip--${index + 1}`} aria-hidden="true">
-                  {emoji}
-                </span>
-              ))}
-            </div>
+          <div className="photo">
+            <span className="photo__frame" aria-hidden="true" />
+            <img
+              className="photo__img"
+             src={volunteersImg}
+              alt="Volunteers packing donated food together"
+              onError={e => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <span className="photo__shade" aria-hidden="true" />
+            <span className="photo__badge" aria-hidden="true">
+              <HandHeartIcon size={24} />
+            </span>
+            <span className="photo__tags" aria-hidden="true">
+              <GiftIcon size={16} />
+              <HeartIcon size={16} />
+              <UsersIcon size={16} />
+            </span>
+            <p className="photo__caption">“{t.quote}”</p>
           </div>
 
           <ul className="intro__features">
-            {FEATURE_ICONS.map((icon, index) => (
-              <li key={icon}>
-                <span className="intro__icon" aria-hidden="true">{icon}</span>
+            {FEATURE_ICONS.map((Icon, index) => (
+              <li key={index}>
+                <span className="intro__icon">
+                  <Icon size={18} />
+                </span>
                 <span>{t.features[index]}</span>
               </li>
             ))}
           </ul>
 
-          <p className="intro__quote">“{t.quote}”</p>
         </section>
 
         {/* Right: form */}
@@ -376,7 +402,7 @@ const Register: React.FC = () => {
               className={`tabs__btn${intent === 'donor' ? ' is-active' : ''}`}
               onClick={() => handleIntentChange('donor')}
             >
-              <span aria-hidden="true">🎁</span> {t.donorTab}
+              <GiftIcon size={18} /> {t.donorTab}
             </button>
             <button
               type="button"
@@ -385,10 +411,11 @@ const Register: React.FC = () => {
               className={`tabs__btn${isReceiver ? ' is-active' : ''}`}
               onClick={() => handleIntentChange('receiver')}
             >
-              <span aria-hidden="true">🤲</span> {t.receiverTab}
+              <HandHeartIcon size={18} /> {t.receiverTab}
             </button>
           </div>
 
+          {/* Only this area scrolls (and only when the receiver form is long) */}
           <div className="card__body">
             <form className="form" onSubmit={handleSubmit} noValidate>
               {isReceiver && (
@@ -571,15 +598,23 @@ const Register: React.FC = () => {
               )}
 
               <button type="submit" className="submit" disabled={loading}>
-                {loading ? t.creating : <>{t.createAccount} <span aria-hidden="true">→</span></>}
+                {loading ? (
+                  t.creating
+                ) : (
+                  <>
+                    {t.createAccount} <ArrowRightIcon size={18} />
+                  </>
+                )}
               </button>
             </form>
           </div>
 
           <div className="card__foot">
-            <p className="card__secure">🔒 {t.secureNote}</p>
+            <p className="card__secure">
+              <LockIcon size={14} /> {t.secureNote}
+            </p>
             <p className="card__login">
-              {t.alreadyAccount} <Link to="/login">{t.login} →</Link>
+              {t.alreadyAccount} <Link to="/login">{t.login}</Link>
             </p>
           </div>
         </section>

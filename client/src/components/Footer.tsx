@@ -63,7 +63,7 @@ export default function Footer({ t }: FooterProps) {
             >
               <img
                 src={logoImg}
-                alt=""
+                alt="LogoImg"
                 className="h-14 w-14 rounded-full bg-white object-contain shadow-sm ring-1 ring-[#DCE6E1]"
               />
               <span className="text-2xl font-bold tracking-tight text-[#065A6B]">
@@ -145,7 +145,7 @@ export default function Footer({ t }: FooterProps) {
             © {year} SAHARA. {f.rights ?? "All rights reserved."}
           </p>
 
-          <p>{f.madeWith ?? "Made with ♥ for stronger communities."}</p>
+          <p>{f.madeWith ?? "Made with ♥ for (The Outliers)."}</p>
         </div>
       </div>
     </footer>
