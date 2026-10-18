@@ -29,6 +29,7 @@ import {
 import { RequestPrefillDonation } from "../types";
 
 interface RaiseNeedTabProps {
+  language?: "en" | "hi";
   categories: CategoryItem[];
   onCategoryCreated: (newCategory: CategoryItem) => void;
   onSuccess: () => void;
@@ -45,6 +46,7 @@ interface RaiseNeedTabProps {
 }
 
 export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
+  language = "en",
   categories,
   onCategoryCreated,
   onSuccess,
@@ -54,6 +56,8 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
   prefillDonation,
   onClearPrefill,
 }) => {
+  const tr = (en: string, hi: string) => language === "hi" ? hi : en;
+
   // Category state
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
@@ -135,7 +139,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
         setNewCategoryDesc("");
       }
     } catch (err: any) {
-      setFormError(err?.message || "Failed to create category");
+      setFormError(err?.message || tr("Failed to create category", "श्रेणी बनाने में विफल"));
     } finally {
       setCreatingCategory(false);
     }
@@ -146,41 +150,41 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
     setFormError(null);
 
     if (!selectedCategoryId) {
-      setFormError("Please select a resource category");
+      setFormError(tr("Please select a resource category", "कृपया संसाधन श्रेणी चुनें"));
       return;
     }
 
     if (!title.trim()) {
-      setFormError("Please enter a title for your request");
+      setFormError(tr("Please enter a title for your request", "कृपया अनुरोध का शीर्षक दर्ज करें"));
       return;
     }
 
     const numQty = parseFloat(quantity);
     if (isNaN(numQty) || numQty <= 0) {
-      setFormError("Please specify a valid quantity greater than 0");
+      setFormError(tr("Please specify a valid quantity greater than 0", "कृपया 0 से अधिक सही मात्रा दर्ज करें"));
       return;
     }
 
     if (!address.trim()) {
-      setFormError("Please provide a delivery address");
+      setFormError(tr("Please provide a delivery address", "कृपया डिलीवरी का पता दर्ज करें"));
       return;
     }
 
     if (!city.trim()) {
-      setFormError("Please provide a city for delivery");
+      setFormError(tr("Please provide a city for delivery", "कृपया डिलीवरी के लिए शहर दर्ज करें"));
       return;
     }
 
     const reqDate = new Date(requiredBy);
     if (isNaN(reqDate.getTime())) {
-      setFormError("Please provide a valid required by date");
+      setFormError(tr("Please provide a valid required by date", "कृपया आवश्यक तारीख सही दर्ज करें"));
       return;
     }
 
     let onBehalfPayload: OnBehalfOfData = { isOnBehalf: false };
     if (isOnBehalf) {
       if (!beneficiaryName.trim()) {
-        setFormError("Please provide the beneficiary's name");
+        setFormError(tr("Please provide the beneficiary's name", "कृपया लाभार्थी का नाम दर्ज करें"));
         return;
       }
       onBehalfPayload = {
@@ -216,7 +220,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
       if (onClearPrefill) onClearPrefill();
       onSuccess();
     } catch (err: any) {
-      setFormError(err?.message || "Failed to submit request. Please check your inputs.");
+      setFormError(err?.message || tr("Failed to submit request. Please check your inputs.", "अनुरोध भेजने में विफल। कृपया अपनी जानकारी जाँचें।"));
     } finally {
       setSubmitting(false);
     }
@@ -228,9 +232,9 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
     <section className="rd-narrow">
       <div className="rd-section-head">
         <div>
-          <h2 className="rd-section-title">Raise a Community Need</h2>
+          <h2 className="rd-section-title">{tr("Raise a Community Need", "समुदाय की आवश्यकता दर्ज करें")}</h2>
           <p className="rd-section-sub">
-            Specify resources required for yourself, your family, or community relief shelter
+            {tr("Specify resources required for yourself, your family, or community relief shelter", "अपने, अपने परिवार या समुदाय के लिए आवश्यक संसाधनों का विवरण दें")}
           </p>
         </div>
       </div>
@@ -238,12 +242,12 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
       {prefillDonation && (
         <div style={{ background: "#e8f4fc", border: "1px solid #b8daf2", padding: "12px 16px", borderRadius: "10px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <span style={{ fontSize: "12px", color: "#1c658c", fontWeight: 700, textTransform: "uppercase" }}>Requesting Listed Supply</span>
+            <span style={{ fontSize: "12px", color: "#1c658c", fontWeight: 700, textTransform: "uppercase" }}>{tr("Requesting Listed Supply", "सूचीबद्ध सामग्री के लिए अनुरोध")}</span>
             <p style={{ margin: "2px 0 0", fontWeight: 600, fontSize: "14px" }}>{prefillDonation.title}</p>
           </div>
           {onClearPrefill && (
             <button onClick={onClearPrefill} className="rd-link-btn" style={{ fontSize: "13px" }}>
-              Clear
+              {tr("Clear", "हटाएँ")}
             </button>
           )}
         </div>
@@ -261,7 +265,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
             <label className="rd-label" htmlFor="need-cat" style={{ marginBottom: 0 }}>
-              Resource Category *
+              {tr("Resource Category *", "संसाधन श्रेणी *")}
             </label>
             <button
               type="button"
@@ -270,7 +274,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
               style={{ fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "4px" }}
             >
               <Plus size={14} />
-              {isAddingNewCategory ? "Cancel Custom Category" : "+ Add New Category"}
+              {isAddingNewCategory ? tr("Cancel Custom Category", "कस्टम श्रेणी रद्द करें") : tr("+ Add New Category", "+ नई श्रेणी जोड़ें")}
             </button>
           </div>
 
@@ -289,13 +293,13 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
               }}
               required
             >
-              <option value="" disabled>-- Select a Resource Category --</option>
+              <option value="" disabled>{tr("-- Select a Resource Category --", "-- संसाधन श्रेणी चुनें --")}</option>
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>
                   {cat.name} {cat.description ? `— (${cat.description})` : ""}
                 </option>
               ))}
-              <option value="__new__">+ Add New Category...</option>
+              <option value="__new__">{tr("+ Add New Category...", "+ नई श्रेणी जोड़ें...")}</option>
             </select>
           </div>
 
@@ -340,20 +344,20 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
             >
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                 <Plus size={16} color="var(--forest)" />
-                <strong style={{ fontSize: "13.5px", color: "var(--forest)" }}>Add a New Category</strong>
+                <strong style={{ fontSize: "13.5px", color: "var(--forest)" }}>{tr("Add a New Category", "नई श्रेणी जोड़ें")}</strong>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <div>
                   <label className="rd-label" htmlFor="new-need-cat-name" style={{ fontSize: "13px" }}>
-                    Category Name *
+                    {tr("Category Name *", "श्रेणी का नाम *")}
                   </label>
                   <input
                     id="new-need-cat-name"
                     className="rd-input"
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="e.g. Blankets, Stationery, Medicines"
+                    placeholder={tr("e.g. Blankets, Stationery, Medicines", "जैसे कंबल, स्टेशनरी, दवाइयाँ")}
                     maxLength={30}
                     autoFocus
                   />
@@ -361,14 +365,14 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
 
                 <div>
                   <label className="rd-label" htmlFor="new-need-cat-desc" style={{ fontSize: "13px" }}>
-                    Description (Optional)
+                    {tr("Description (Optional)", "विवरण (वैकल्पिक)")}
                   </label>
                   <input
                     id="new-need-cat-desc"
                     className="rd-input"
                     value={newCategoryDesc}
                     onChange={(e) => setNewCategoryDesc(e.target.value)}
-                    placeholder="Short description of items under this category"
+                    placeholder={tr("Short description of items under this category", "इस श्रेणी की वस्तुओं का संक्षिप्त विवरण")}
                     maxLength={80}
                   />
                 </div>
@@ -380,7 +384,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
                     disabled={creatingCategory || !newCategoryName.trim()}
                     className="rd-btn rd-btn-primary rd-btn-sm"
                   >
-                    {creatingCategory ? "Saving..." : "Create & Select Category"}
+                    {creatingCategory ? tr("Saving...", "सेव हो रहा है...") : tr("Create & Select Category", "श्रेणी बनाएँ और चुनें")}
                   </button>
                   <button
                     type="button"
@@ -391,7 +395,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
                     }}
                     className="rd-btn rd-btn-outline rd-btn-sm"
                   >
-                    Cancel
+                    {tr("Cancel", "रद्द करें")}
                   </button>
                 </div>
               </div>
@@ -401,13 +405,13 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
 
         {/* Request Title */}
         <div>
-          <label className="rd-label" htmlFor="need-title">Request Title *</label>
+          <label className="rd-label" htmlFor="need-title">{tr("Request Title *", "अनुरोध का शीर्षक *")}</label>
           <input
             id="need-title"
             className="rd-input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Urgent Ration Kits for 40 Families / 30 Warm Blankets for Children"
+            placeholder={tr("e.g. Urgent Ration Kits for 40 Families / 30 Warm Blankets for Children", "जैसे 40 परिवारों के लिए राशन किट / बच्चों के लिए 30 गर्म कंबल")}
             required
           />
         </div>
@@ -415,7 +419,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
         {/* Quantity & Unit */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
           <div>
-            <label className="rd-label" htmlFor="need-qty">Quantity Needed *</label>
+            <label className="rd-label" htmlFor="need-qty">{tr("Quantity Needed *", "आवश्यक मात्रा *")}</label>
             <input
               id="need-qty"
               type="number"
@@ -424,18 +428,18 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
               className="rd-input"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              placeholder="e.g. 50"
+              placeholder={tr("e.g. 50", "जैसे 50")}
               required
             />
           </div>
           <div>
-            <label className="rd-label" htmlFor="need-unit">Unit of Measure *</label>
+            <label className="rd-label" htmlFor="need-unit">{tr("Unit of Measure *", "माप की इकाई *")}</label>
             <input
               id="need-unit"
               className="rd-input"
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              placeholder="e.g. meals, blankets, kits, kg"
+              placeholder={tr("e.g. meals, blankets, kits, kg", "जैसे भोजन, कंबल, किट, किलो")}
               required
             />
           </div>
@@ -444,21 +448,21 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
         {/* Urgency & Required By Date */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
           <div>
-            <label className="rd-label" htmlFor="need-urgency">Urgency Level *</label>
+            <label className="rd-label" htmlFor="need-urgency">{tr("Urgency Level *", "तात्कालिकता का स्तर *")}</label>
             <select
               id="need-urgency"
               className="rd-input"
               value={urgency}
               onChange={(e) => setUrgency(e.target.value as any)}
             >
-              <option value="low">Low Urgency (Within a week)</option>
-              <option value="medium">Medium Urgency (In 3-4 days)</option>
-              <option value="high">High Urgency (Next 24-48 hours)</option>
-              <option value="critical">Critical (Immediate Relief Needed)</option>
+              <option value="low">{tr("Low Urgency (Within a week)", "कम (एक सप्ताह के भीतर)")}</option>
+              <option value="medium">{tr("Medium Urgency (In 3-4 days)", "मध्यम (3–4 दिनों में)")}</option>
+              <option value="high">{tr("High Urgency (Next 24-48 hours)", "उच्च (अगले 24–48 घंटों में)")}</option>
+              <option value="critical">{tr("Critical (Immediate Relief Needed)", "अत्यंत गंभीर (तुरंत सहायता आवश्यक)")}</option>
             </select>
           </div>
           <div>
-            <label className="rd-label" htmlFor="need-date">Required By Date *</label>
+            <label className="rd-label" htmlFor="need-date">{tr("Required By Date *", "आवश्यकता की तारीख *")}</label>
             <input
               id="need-date"
               type="date"
@@ -472,14 +476,14 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
 
         {/* Description */}
         <div>
-          <label className="rd-label" htmlFor="need-desc">Detailed Description / Context *</label>
+          <label className="rd-label" htmlFor="need-desc">{tr("Detailed Description / Context *", "विस्तृत विवरण / संदर्भ *")}</label>
           <textarea
             id="need-desc"
             className="rd-input"
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Explain why these supplies are needed, who will receive them, and any specific packing preferences..."
+            placeholder={tr("Explain why these supplies are needed, who will receive them, and any specific packing preferences...", "बताएँ कि सामग्री क्यों चाहिए, किसे मिलेगी और पैकिंग से जुड़ी कोई विशेष आवश्यकता...")}
             required
           />
         </div>
@@ -488,52 +492,52 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
         <div style={{ borderTop: "1px solid var(--line)", paddingTop: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <MapPin size={18} color="var(--forest)" />
-            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Delivery Destination</h3>
+            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>{tr("Delivery Destination", "डिलीवरी का स्थान")}</h3>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div>
-              <label className="rd-label" htmlFor="need-addr">Street Address / Community Landmark *</label>
+              <label className="rd-label" htmlFor="need-addr">{tr("Street Address / Community Landmark *", "सड़क का पता / नज़दीकी पहचान-स्थल *")}</label>
               <input
                 id="need-addr"
                 className="rd-input"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="e.g. Near Community Center, Sector 12"
+                placeholder={tr("e.g. Near Community Center, Sector 12", "जैसे सामुदायिक केंद्र के पास, सेक्टर 12")}
                 required
               />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
               <div>
-                <label className="rd-label" htmlFor="need-city">City *</label>
+                <label className="rd-label" htmlFor="need-city">{tr("City *", "शहर *")}</label>
                 <input
                   id="need-city"
                   className="rd-input"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Kanpur"
+                  placeholder={tr("e.g. Kanpur", "जैसे कानपुर")}
                   required
                 />
               </div>
               <div>
-                <label className="rd-label" htmlFor="need-state">State</label>
+                <label className="rd-label" htmlFor="need-state">{tr("State", "राज्य")}</label>
                 <input
                   id="need-state"
                   className="rd-input"
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  placeholder="e.g. Uttar Pradesh"
+                  placeholder={tr("e.g. Uttar Pradesh", "जैसे उत्तर प्रदेश")}
                 />
               </div>
               <div>
-                <label className="rd-label" htmlFor="need-pincode">Pincode</label>
+                <label className="rd-label" htmlFor="need-pincode">{tr("Pincode", "पिन कोड")}</label>
                 <input
                   id="need-pincode"
                   className="rd-input"
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value)}
-                  placeholder="e.g. 208001"
+                  placeholder={tr("e.g. 208001", "जैसे 208001")}
                 />
               </div>
             </div>
@@ -544,17 +548,17 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
         <div style={{ borderTop: "1px solid var(--line)", paddingTop: "16px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", alignItems: "center" }}>
             <div>
-              <label className="rd-label" htmlFor="need-rectype">Beneficiary Category</label>
+              <label className="rd-label" htmlFor="need-rectype">{tr("Beneficiary Category", "लाभार्थी की श्रेणी")}</label>
               <select
                 id="need-rectype"
                 className="rd-input"
                 value={receiverType}
                 onChange={(e) => setReceiverType(e.target.value)}
               >
-                <option value="individual">Individual Beneficiary</option>
-                <option value="family">Underprivileged Family</option>
-                <option value="community">Neighborhood / Slum Community</option>
-                <option value="organization">Registered NGO / Shelter Home</option>
+                <option value="individual">{tr("Individual Beneficiary", "व्यक्तिगत लाभार्थी")}</option>
+                <option value="family">{tr("Underprivileged Family", "वंचित परिवार")}</option>
+                <option value="community">{tr("Neighborhood / Slum Community", "आस-पड़ोस / झुग्गी समुदाय")}</option>
+                <option value="organization">{tr("Registered NGO / Shelter Home", "पंजीकृत NGO / आश्रय गृह")}</option>
               </select>
             </div>
 
@@ -566,7 +570,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
                   onChange={(e) => setIsOnBehalf(e.target.checked)}
                   style={{ width: "16px", height: "16px", accentColor: "var(--forest)" }}
                 />
-                Raising on behalf of someone else
+                {tr("Raising on behalf of someone else", "किसी अन्य व्यक्ति की ओर से अनुरोध कर रहे हैं")}
               </label>
             </div>
           </div>
@@ -574,39 +578,39 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
           {isOnBehalf && (
             <div style={{ background: "var(--paper)", padding: "14px", borderRadius: "10px", marginTop: "12px", border: "1px solid var(--line)" }}>
               <strong style={{ fontSize: "13.5px", color: "var(--forest)", display: "block", marginBottom: "8px" }}>
-                Beneficiary Details
+                {tr("Beneficiary Details", "लाभार्थी का विवरण")}
               </strong>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
                 <div>
-                  <label className="rd-label" htmlFor="ben-name" style={{ fontSize: "12.5px" }}>Beneficiary Name *</label>
+                  <label className="rd-label" htmlFor="ben-name" style={{ fontSize: "12.5px" }}>{tr("Beneficiary Name *", "लाभार्थी का नाम *")}</label>
                   <input
                     id="ben-name"
                     className="rd-input"
                     value={beneficiaryName}
                     onChange={(e) => setBeneficiaryName(e.target.value)}
-                    placeholder="e.g. Sunita Devi"
+                    placeholder={tr("e.g. Sunita Devi", "जैसे सुनीता देवी")}
                     required={isOnBehalf}
                   />
                 </div>
                 <div>
-                  <label className="rd-label" htmlFor="ben-age" style={{ fontSize: "12.5px" }}>Age</label>
+                  <label className="rd-label" htmlFor="ben-age" style={{ fontSize: "12.5px" }}>{tr("Age", "आयु")}</label>
                   <input
                     id="ben-age"
                     type="number"
                     className="rd-input"
                     value={beneficiaryAge}
                     onChange={(e) => setBeneficiaryAge(e.target.value)}
-                    placeholder="e.g. 62"
+                    placeholder={tr("e.g. 62", "जैसे 62")}
                   />
                 </div>
                 <div>
-                  <label className="rd-label" htmlFor="ben-rel" style={{ fontSize: "12.5px" }}>Relationship</label>
+                  <label className="rd-label" htmlFor="ben-rel" style={{ fontSize: "12.5px" }}>{tr("Relationship", "संबंध")}</label>
                   <input
                     id="ben-rel"
                     className="rd-input"
                     value={relationship}
                     onChange={(e) => setRelationship(e.target.value)}
-                    placeholder="e.g. Neighbor, Elder, Student"
+                    placeholder={tr("e.g. Neighbor, Elder, Student", "जैसे पड़ोसी, बुज़ुर्ग, विद्यार्थी")}
                   />
                 </div>
               </div>
@@ -618,36 +622,36 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
         <div style={{ borderTop: "1px solid var(--line)", paddingTop: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
             <Car size={18} color="var(--forest)" />
-            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Logistics & Receiving Mode</h3>
+            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>{tr("Logistics & Receiving Mode", "डिलीवरी और प्राप्त करने का तरीका")}</h3>
           </div>
           <p style={{ margin: "0 0 12px", fontSize: "12.5px", color: "var(--muted)" }}>
-            How would you like to receive the supplies once matched?
+            {tr("How would you like to receive the supplies once matched?", "अनुरोध मैच होने पर आप सामग्री कैसे प्राप्त करना चाहेंगे?")}
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px" }}>
             {[
               {
                 id: "any",
-                label: "Flexible / Any",
-                sub: "Volunteer, pickup, or donor drop-off",
+                label: tr("Flexible / Any", "कोई भी तरीका"),
+                sub: tr("Volunteer, pickup, or donor drop-off", "स्वयंसेवक, पिकअप या दाता द्वारा डिलीवरी"),
                 icon: Handshake,
               },
               {
                 id: "receiver_pickup",
-                label: "I Can Self-Pickup",
-                sub: "I/we can travel to donor address",
+                label: tr("I Can Self-Pickup", "मैं स्वयं ले सकता/सकती हूँ"),
+                sub: tr("I/we can travel to donor address", "मैं/हम दाता के पते पर जा सकते हैं"),
                 icon: Car,
               },
               {
                 id: "donor_dropoff",
-                label: "Request Donor Drop-off",
-                sub: "Need donor to deliver to destination",
+                label: tr("Request Donor Drop-off", "दाता से डिलीवरी का अनुरोध"),
+                sub: tr("Need donor to deliver to destination", "दाता से गंतव्य तक डिलीवरी चाहिए"),
                 icon: Truck,
               },
               {
                 id: "volunteer_delivery",
-                label: "Volunteer Courier Needed",
-                sub: "Cannot travel; volunteer needed",
+                label: tr("Volunteer Courier Needed", "स्वयंसेवक की डिलीवरी चाहिए"),
+                sub: tr("Cannot travel; volunteer needed", "आ-जा नहीं सकते; स्वयंसेवक चाहिए"),
                 icon: Bike,
               },
             ].map((opt) => {
@@ -699,7 +703,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
             className="rd-btn rd-btn-primary"
             style={{ minWidth: "160px" }}
           >
-            {submitting ? "Submitting..." : <><Plus size={16} /> Submit Need Request</>}
+            {submitting ? tr("Submitting...", "अनुरोध भेजा जा रहा है...") : <><Plus size={16} /> {tr("Submit Need Request", "आवश्यकता का अनुरोध भेजें")}</>}
           </button>
           <button
             type="button"
@@ -707,7 +711,7 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
             disabled={submitting}
             className="rd-btn rd-btn-outline"
           >
-            Cancel
+            {tr("Cancel", "रद्द करें")}
           </button>
         </div>
       </form>

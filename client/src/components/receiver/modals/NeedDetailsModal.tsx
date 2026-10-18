@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { X, Calendar, MapPin, User, AlertCircle, Edit2 } from "lucide-react";
 import { ReceiverNeedItem } from "../../../services/api/receiverApi";
 
@@ -15,14 +15,21 @@ export const NeedDetailsModal: React.FC<NeedDetailsModalProps> = ({
   onEdit,
   onCancelNeed,
 }) => {
+  const [language, setLanguage] = useState<"en" | "hi">(() => { try { return localStorage.getItem("sahara-language") === "hi" ? "hi" : "en"; } catch { return "en"; } });
+  const hi = language === "hi";
+  useEffect(() => {
+    const syncLanguage = (event?: Event) => { const detail = (event as CustomEvent<string> | undefined)?.detail; try { setLanguage(detail === "hi" || (!detail && localStorage.getItem("sahara-language") === "hi") ? "hi" : "en"); } catch { setLanguage(detail === "hi" ? "hi" : "en"); } };
+    window.addEventListener("sahara-language-change", syncLanguage); window.addEventListener("storage", syncLanguage);
+    return () => { window.removeEventListener("sahara-language-change", syncLanguage); window.removeEventListener("storage", syncLanguage); };
+  }, []);
   if (!need) return null;
 
   const categoryName = typeof need.categoryId === "object" ? need.categoryId?.name : "General";
 
   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "N/A";
+    if (!dateStr) return hi ? "उपलब्ध नहीं" : "N/A";
     const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("en-IN", { dateStyle: "medium" });
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString(hi ? "hi-IN" : "en-IN", { dateStyle: "medium" });
   };
 
   const urgencyPills: Record<string, { bg: string; color: string; border: string }> = {
@@ -59,13 +66,13 @@ export const NeedDetailsModal: React.FC<NeedDetailsModalProps> = ({
                 textTransform: "uppercase",
               }}
             >
-              {need.urgency} Urgency
+              {hi ? ({ critical: "अत्यंत गंभीर", high: "उच्च", medium: "मध्यम", low: "कम" }[need.urgency] || need.urgency) : `${need.urgency} Urgency`}
             </span>
             <span className={`rd-pill rd-pill--${need.status}`}>
               {need.status}
             </span>
           </div>
-          <button onClick={onClose} aria-label="Close dialog" className="rd-modal-close">
+          <button onClick={onClose} aria-label={hi ? "डायलॉग बंद करें" : "Close dialog"} className="rd-modal-close">
             <X size={19} />
           </button>
         </div>
@@ -77,18 +84,18 @@ export const NeedDetailsModal: React.FC<NeedDetailsModalProps> = ({
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           {need.description && (
             <div style={{ background: "var(--paper)", padding: "12px 14px", borderRadius: "8px", fontSize: "14px" }}>
-              <strong>Requirement Details:</strong>
+              <strong>{hi ? "आवश्यकता का विवरण:" : "Requirement Details:"}</strong>
               <p style={{ margin: "4px 0 0", color: "var(--muted)", lineHeight: "1.5" }}>{need.description}</p>
             </div>
           )}
 
           <div className="rd-info-grid">
             <div className="rd-field">
-              <span className="rd-field-label">Quantity Needed</span>
+              <span className="rd-field-label">{hi ? "आवश्यक मात्रा" : "Quantity Needed"}</span>
               <p className="rd-field-value">{need.quantity} {need.unit}</p>
             </div>
             <div className="rd-field">
-              <span className="rd-field-label">Category</span>
+              <span className="rd-field-label">{hi ? "श्रेणी" : "Category"}</span>
               <p className="rd-field-value">{categoryName}</p>
             </div>
           </div>
@@ -96,7 +103,7 @@ export const NeedDetailsModal: React.FC<NeedDetailsModalProps> = ({
           <div className="rd-field" style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
             <MapPin size={18} color="var(--forest)" style={{ marginTop: "3px", flexShrink: 0 }} />
             <div>
-              <span className="rd-field-label">Delivery Destination</span>
+              <span className="rd-field-label">{hi ? "डिलीवरी का स्थान" : "Delivery Destination"}</span>
               <p className="rd-field-value" style={{ margin: "2px 0 0" }}>
                 {need.location?.address}
                 {need.location?.city ? `, ${need.location.city}` : ""}
@@ -108,29 +115,29 @@ export const NeedDetailsModal: React.FC<NeedDetailsModalProps> = ({
 
           <div className="rd-info-grid">
             <div className="rd-field">
-              <span className="rd-field-label">Required By Date</span>
+              <span className="rd-field-label">{hi ? "आवश्यकता की अंतिम तिथि" : "Required By Date"}</span>
               <p className="rd-field-value" style={{ color: "var(--pending)" }}>{formatDate(need.requiredBy)}</p>
             </div>
             <div className="rd-field">
-              <span className="rd-field-label">Beneficiary Type</span>
-              <p className="rd-field-value" style={{ textTransform: "capitalize" }}>{need.receiverType || "Individual"}</p>
+              <span className="rd-field-label">{hi ? "लाभार्थी का प्रकार" : "Beneficiary Type"}</span>
+              <p className="rd-field-value" style={{ textTransform: "capitalize" }}>{(hi ? ({ individual: "व्यक्ति", ngo: "गैर-सरकारी संगठन", organization: "संस्था", orphanage: "अनाथालय", old_age_home: "वृद्धाश्रम", shelter: "आश्रय गृह", hospital: "अस्पताल", school: "विद्यालय", community: "समुदाय" }[String(need.receiverType || "individual").toLowerCase()] || need.receiverType || "व्यक्ति") : (need.receiverType || "Individual"))}</p>
             </div>
           </div>
 
           {need.onBehalfOf?.isOnBehalf && (
             <div style={{ background: "#fdf8ee", padding: "10px 14px", borderRadius: "8px", border: "1px solid #f6e3c0", fontSize: "13px" }}>
-              <strong>Beneficiary on whose behalf this request was raised:</strong>
+              <strong>{hi ? "जिस लाभार्थी की ओर से यह अनुरोध किया गया:" : "Beneficiary on whose behalf this request was raised:"}</strong>
               <p style={{ margin: "4px 0 0", color: "var(--ink)" }}>
                 {need.onBehalfOf.beneficiaryName}
-                {need.onBehalfOf.beneficiaryAge ? ` (Age: ${need.onBehalfOf.beneficiaryAge})` : ""}
-                {need.onBehalfOf.relationship ? ` • Relationship: ${need.onBehalfOf.relationship}` : ""}
+                {need.onBehalfOf.beneficiaryAge ? (hi ? ` (आयु: ${need.onBehalfOf.beneficiaryAge})` : ` (Age: ${need.onBehalfOf.beneficiaryAge})`) : ""}
+                {need.onBehalfOf.relationship ? (hi ? ` • संबंध: ${need.onBehalfOf.relationship}` : ` • Relationship: ${need.onBehalfOf.relationship}`) : ""}
               </p>
             </div>
           )}
 
           <div style={{ fontSize: "12px", color: "var(--faint)", display: "flex", justifyContent: "space-between" }}>
-            <span>Created on: {formatDate(need.createdAt)}</span>
-            <span>Request ID: {need._id.slice(-8)}</span>
+            <span>{hi ? "बनाया गया:" : "Created on:"} {formatDate(need.createdAt)}</span>
+            <span>{hi ? "अनुरोध आईडी:" : "Request ID:"} {need._id.slice(-8)}</span>
           </div>
         </div>
 

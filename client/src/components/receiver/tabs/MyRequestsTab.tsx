@@ -24,6 +24,7 @@ interface MyRequestsTabProps {
   onEditNeed: (need: ReceiverNeedItem) => void;
   onRaiseNeedClick: () => void;
   onRefresh: () => void;
+  language?: "en" | "hi";
 }
 
 export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
@@ -34,7 +35,10 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
   onEditNeed,
   onRaiseNeedClick,
   onRefresh,
+  language = "en",
 }) => {
+  const hi = language === "hi";
+  const t = (en: string, hindi: string) => (hi ? hindi : en);
   const [searchQuery, setSearchQuery] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
@@ -72,7 +76,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
   });
 
   const handleCancelNeed = async (id: string) => {
-    if (!window.confirm("Are you sure you want to cancel this need request?")) {
+    if (!window.confirm(t("Are you sure you want to cancel this need request?", "क्या आप यह आवश्यकता अनुरोध रद्द करना चाहते हैं?"))) {
       return;
     }
 
@@ -81,14 +85,14 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
       await receiverApi.updateNeed(id, { status: "cancelled" });
       onRefresh();
     } catch (err: any) {
-      alert(err?.message || "Failed to cancel need request");
+      alert(err?.message || t("Failed to cancel need request", "आवश्यकता अनुरोध रद्द नहीं हो सका"));
     } finally {
       setActionLoadingId(null);
     }
   };
 
   const handleDeleteNeed = async (id: string) => {
-    if (!window.confirm("Permanently delete this need request record?")) {
+    if (!window.confirm(t("Permanently delete this need request record?", "क्या आप इस अनुरोध को हमेशा के लिए हटाना चाहते हैं?"))) {
       return;
     }
 
@@ -97,7 +101,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
       await receiverApi.deleteNeed(id);
       onRefresh();
     } catch (err: any) {
-      alert(err?.message || "Failed to delete request");
+      alert(err?.message || t("Failed to delete request", "अनुरोध हटाया नहीं जा सका"));
     } finally {
       setActionLoadingId(null);
     }
@@ -107,13 +111,13 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
     <section>
       <div className="rd-section-head">
         <div>
-          <h2 className="rd-section-title">My Resource Requests</h2>
+          <h2 className="rd-section-title">{t("My Resource Requests", "मेरे संसाधन अनुरोध") }</h2>
           <p className="rd-section-sub">
-            Track fulfillment, volunteer assignments, and delivery verification
+            {t("Track fulfillment, volunteer assignments, and delivery verification", "अनुरोधों की पूर्ति, स्वयंसेवक असाइनमेंट और डिलीवरी की स्थिति देखें")}
           </p>
         </div>
         <button onClick={onRaiseNeedClick} className="rd-btn rd-btn-primary rd-btn-sm">
-          <PlusCircle size={15} /> Raise a Need
+          <PlusCircle size={15} /> {t("Raise a Need", "ज़रूरत दर्ज करें")}
         </button>
       </div>
 
@@ -134,7 +138,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
               onClick={() => setFilter(f.id)}
               className={`rd-chip ${filter === f.id ? "is-active" : ""}`}
             >
-              {f.label}
+              {t(f.label, ({ "All Requests": "सभी अनुरोध", "Open & Waiting": "खुले और प्रतीक्षारत", "Matched / In Transit": "मिलान / रास्ते में", "Fulfilled Deliveries": "पूरी हुई डिलीवरी", "Cancelled": "रद्द किए गए" } as Record<string, string>)[f.label] || f.label)}
             </button>
           ))}
         </div>
@@ -146,7 +150,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
             style={{ paddingLeft: "34px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", fontSize: "13.5px" }}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by title, city, category..."
+            placeholder={t("Search by title, city, category...", "शीर्षक, शहर या श्रेणी से खोजें...")}
           />
         </div>
       </div>
@@ -159,11 +163,11 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
           </span>
           <p>
             {searchQuery
-              ? `No requests found matching "${searchQuery}".`
-              : "No requests found under this filter."}
+              ? t(`No requests found matching "${searchQuery}".`, `"${searchQuery}" से मेल खाते अनुरोध नहीं मिले।`)
+              : t("No requests found under this filter.", "इस फ़िल्टर में कोई अनुरोध नहीं मिला।")}
           </p>
           <button onClick={onRaiseNeedClick} className="rd-btn rd-btn-primary rd-btn-sm">
-            <PlusCircle size={15} /> Raise a Need Request
+            <PlusCircle size={15} /> {t("Raise a Need Request", "ज़रूरत का अनुरोध दर्ज करें")}
           </button>
         </div>
       ) : (
@@ -196,9 +200,9 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
                         textTransform: "uppercase",
                       }}
                     >
-                      {n.urgency}
+                      {t(n.urgency, ({ critical: "अत्यंत ज़रूरी", high: "उच्च", medium: "मध्यम", low: "कम" } as Record<string, string>)[n.urgency] || n.urgency)}
                     </span>
-                    <span className={`rd-pill rd-pill--${n.status}`}>{n.status}</span>
+                    <span className={`rd-pill rd-pill--${n.status}`}>{t(n.status, ({ open: "खुला", matched: "मिलान हुआ", accepted: "स्वीकृत", in_transit: "रास्ते में", fulfilled: "पूरा हुआ", cancelled: "रद्द" } as Record<string, string>)[n.status] || n.status)}</span>
                   </div>
                 </div>
 
@@ -222,7 +226,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                       <Calendar size={14} color="var(--pending)" />
                       <span>
-                        Needed by:{" "}
+                        {t("Needed by:", "आवश्यकता की तारीख:")}{" "}
                         {new Date(n.requiredBy).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
@@ -238,7 +242,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
                       onClick={() => onViewNeed(n)}
                       className="rd-link-btn"
                     >
-                      <Eye size={14} /> Details
+                      <Eye size={14} /> {t("Details", "विवरण")}
                     </button>
                     {isOpen && (
                       <button
@@ -246,7 +250,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
                         className="rd-link-btn"
                         style={{ color: "var(--forest)" }}
                       >
-                        <Edit2 size={13} /> Edit
+                        <Edit2 size={13} /> {t("Edit", "संपादित करें")}
                       </button>
                     )}
                   </div>
@@ -259,7 +263,7 @@ export const MyRequestsTab: React.FC<MyRequestsTabProps> = ({
                         className="rd-btn rd-btn-danger rd-btn-sm"
                         style={{ padding: "4px 8px", fontSize: "12px" }}
                       >
-                        Cancel
+                        {t("Cancel", "रद्द करें")}
                       </button>
                     )}
                     {canDelete && (

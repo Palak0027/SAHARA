@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   X,
   Sparkles,
@@ -60,6 +60,70 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<"en" | "hi">(() =>
+    localStorage.getItem("sahara-language") === "hi" ? "hi" : "en"
+  );
+
+  useEffect(() => {
+    const syncLanguage = (event: Event) => {
+      const detail = (event as CustomEvent<"en" | "hi">).detail;
+      setLanguage(detail === "hi" ? "hi" : "en");
+    };
+    const syncStorage = () => setLanguage(localStorage.getItem("sahara-language") === "hi" ? "hi" : "en");
+    window.addEventListener("sahara-language-change", syncLanguage);
+    window.addEventListener("storage", syncStorage);
+    return () => {
+      window.removeEventListener("sahara-language-change", syncLanguage);
+      window.removeEventListener("storage", syncStorage);
+    };
+  }, []);
+
+  const copy = {
+    en: {
+      failed: "Failed to confirm match", error: "An error occurred while confirming the match",
+      receiverPickup: "Receiver Self-Pickup", directHandover: "Direct Handover",
+      receiverSummary: "Receiver collects supplies directly from Donor",
+      receiverDescription: "The receiver (or their NGO representative/shelter vehicle) will travel to the donor's address. No volunteer courier is required.",
+      receiverRecommended: "Receiver has a vehicle or lives close to donor.",
+      donorDropoff: "Donor Direct Drop-Off", directDelivery: "Direct Delivery",
+      donorSummary: "Donor drives and drops off at Receiver's destination",
+      donorDescription: "The donor will transport supplies directly to the receiver's address, without an intermediary.",
+      donorRecommended: "Donor is mobile and willing to deliver along the way.",
+      volunteerDelivery: "SAHARA Volunteer Delivery", communityCourier: "Community Courier",
+      volunteerSummary: "A verified SAHARA Volunteer is dispatched",
+      volunteerDescription: "A delivery task is posted to local SAHARA volunteers. A nearby volunteer picks up from the donor and delivers to the receiver.",
+      volunteerRecommended: "Neither donor nor receiver can travel.",
+      compatibility: "Compatibility Match", smartLogistics: "Smart Match Logistics",
+      title: "Confirm Match & Delivery Mode", subtitle: "Select who will handle pickup and transport between Donor and Receiver.",
+      donorContribution: "Donor Contribution", general: "General", donorCity: "Donor City",
+      receiverRequirement: "Receiver Requirement", beneficiary: "Beneficiary", receiverCity: "Receiver City",
+      fulfillment: "Select Fulfillment Scenario:", instructions: "Specific Handover / Delivery Instructions (Optional):",
+      placeholder: "e.g. Items are boxed at security gate; available between 3 PM–6 PM; call before arrival…",
+      cancel: "Cancel", confirming: "Confirming…", confirm: "Confirm Match & Schedule Delivery"
+    },
+    hi: {
+      failed: "मिलान की पुष्टि नहीं हो सकी", error: "मिलान की पुष्टि करते समय त्रुटि हुई",
+      receiverPickup: "प्राप्तकर्ता स्वयं सामान लेगा", directHandover: "सीधे सुपुर्दगी",
+      receiverSummary: "प्राप्तकर्ता दानदाता से सीधे सामान लेगा",
+      receiverDescription: "प्राप्तकर्ता (या उनके NGO प्रतिनिधि/आश्रय-गृह का वाहन) दानदाता के पते पर जाएगा। स्वयंसेवक की आवश्यकता नहीं होगी।",
+      receiverRecommended: "प्राप्तकर्ता के पास वाहन है या वह दानदाता के पास रहता है।",
+      donorDropoff: "दानदाता सीधे सामान पहुँचाएगा", directDelivery: "सीधी डिलीवरी",
+      donorSummary: "दानदाता प्राप्तकर्ता के स्थान पर सामान पहुँचाएगा",
+      donorDescription: "दानदाता बिना किसी मध्यस्थ के सामान सीधे प्राप्तकर्ता के पते पर पहुँचाएगा।",
+      donorRecommended: "दानदाता यात्रा कर सकता है और रास्ते में सामान पहुँचाने को तैयार है।",
+      volunteerDelivery: "SAHARA स्वयंसेवक द्वारा डिलीवरी", communityCourier: "समुदाय का डिलीवरी सहयोगी",
+      volunteerSummary: "सत्यापित SAHARA स्वयंसेवक को जिम्मेदारी दी जाएगी",
+      volunteerDescription: "स्थानीय SAHARA स्वयंसेवकों को डिलीवरी का कार्य भेजा जाएगा। पास का स्वयंसेवक दान लेकर प्राप्तकर्ता तक पहुँचाएगा।",
+      volunteerRecommended: "दानदाता और प्राप्तकर्ता, दोनों में से कोई यात्रा नहीं कर सकता।",
+      compatibility: "अनुकूलता मिलान", smartLogistics: "स्मार्ट डिलीवरी व्यवस्था",
+      title: "मिलान और डिलीवरी की पुष्टि करें", subtitle: "चुनें कि दानदाता और प्राप्तकर्ता के बीच सामान कौन ले जाएगा।",
+      donorContribution: "दानदाता का योगदान", general: "सामान्य", donorCity: "दानदाता का शहर",
+      receiverRequirement: "प्राप्तकर्ता की आवश्यकता", beneficiary: "लाभार्थी", receiverCity: "प्राप्तकर्ता का शहर",
+      fulfillment: "डिलीवरी का तरीका चुनें:", instructions: "सामान पहुँचाने/लेने के निर्देश (वैकल्पिक):",
+      placeholder: "जैसे: सामान सुरक्षा गेट पर रखा है; दोपहर 3–6 बजे उपलब्ध; आने से पहले कॉल करें…",
+      cancel: "रद्द करें", confirming: "पुष्टि हो रही है…", confirm: "मिलान की पुष्टि करें और डिलीवरी तय करें"
+    }
+  }[language];
 
   if (!isOpen) return null;
 
@@ -83,10 +147,10 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
         onConfirmSuccess(result);
         onClose();
       } else {
-        setError(result.message || "Failed to confirm match");
+        setError(result.message || copy.failed);
       }
     } catch (err: any) {
-      setError(err?.message || "An error occurred while confirming match");
+      setError(err?.message || copy.error);
     } finally {
       setSubmitting(false);
     }
@@ -95,36 +159,36 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
   const scenarios = [
     {
       id: "receiver_pickup" as LogisticsMode,
-      title: "Receiver Self-Pickup",
+      title: copy.receiverPickup,
       icon: Car,
-      tag: "Direct Handover",
+      tag: copy.directHandover,
       accent: "#0b5563",
-      summary: "Receiver collects supplies directly from Donor",
+      summary: copy.receiverSummary,
       description:
-        "Receiver (or their NGO representative/shelter vehicle) will travel to the donor's address. No volunteer courier required.",
-      recommendedWhen: "Receiver has a vehicle or lives close to donor.",
+        copy.receiverDescription,
+      recommendedWhen: copy.receiverRecommended,
     },
     {
       id: "donor_dropoff" as LogisticsMode,
-      title: "Donor Direct Drop-Off",
+      title: copy.donorDropoff,
       icon: Truck,
-      tag: "Direct Delivery",
+      tag: copy.directDelivery,
       accent: "#2c8a4c",
-      summary: "Donor drives & drops off at Receiver's destination",
+      summary: copy.donorSummary,
       description:
-        "Donor will transport and deliver supplies directly to the receiver's address. Direct handover without intermediary.",
-      recommendedWhen: "Donor is mobile and willing to deliver on their way.",
+        copy.donorDescription,
+      recommendedWhen: copy.donorRecommended,
     },
     {
       id: "volunteer_delivery" as LogisticsMode,
-      title: "SAHARA Volunteer Delivery",
+      title: copy.volunteerDelivery,
       icon: Bike,
-      tag: "Community Courier",
+      tag: copy.communityCourier,
       accent: "#d97706",
-      summary: "A verified SAHARA Volunteer is dispatched",
+      summary: copy.volunteerSummary,
       description:
-        "Platform automatically posts a delivery task to local SAHARA volunteers. A nearby volunteer will pick up from donor and deliver to receiver.",
-      recommendedWhen: "Neither donor nor receiver can travel.",
+        copy.volunteerDescription,
+      recommendedWhen: copy.volunteerRecommended,
     },
   ];
 
@@ -166,13 +230,13 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#e6f4f2", color: "#0b5563", padding: "4px 10px", borderRadius: "99px", fontSize: "12px", fontWeight: 700, marginBottom: "6px" }}>
               <Sparkles size={13} />
-              {score ? `${score}% Compatibility Match` : "Smart Match Logistics"}
+              {score ? `${score}% ${copy.compatibility}` : copy.smartLogistics}
             </div>
             <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#162828", margin: 0 }}>
-              Confirm Match & Delivery Mode
+              {copy.title}
             </h2>
             <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#5d7473" }}>
-              Select who will handle the pickup and transport between Donor and Receiver.
+              {copy.subtitle}
             </p>
           </div>
           <button
@@ -214,17 +278,17 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
           {/* Donation Box */}
           <div style={{ minWidth: 0 }}>
             <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#0b5563" }}>
-              Donor Contribution
+              {copy.donorContribution}
             </span>
             <h4 style={{ margin: "3px 0 2px", fontSize: "14px", fontWeight: 700, color: "#162828", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {donation.title}
             </h4>
             <p style={{ margin: 0, fontSize: "12px", color: "#5d7473" }}>
-              {donation.quantity} {donation.unit} • {donation.category || "General"}
+              {donation.quantity} {donation.unit} • {donation.category || copy.general}
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11.5px", color: "#5d7473", marginTop: "3px" }}>
               <MapPin size={12} color="#0b5563" />
-              <span>{donation.location?.city || "Donor City"}</span>
+              <span>{donation.location?.city || copy.donorCity}</span>
             </div>
           </div>
 
@@ -236,17 +300,17 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
           {/* Need Box */}
           <div style={{ minWidth: 0 }}>
             <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#2c8a4c" }}>
-              Receiver Requirement
+              {copy.receiverRequirement}
             </span>
             <h4 style={{ margin: "3px 0 2px", fontSize: "14px", fontWeight: 700, color: "#162828", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {need.title}
             </h4>
             <p style={{ margin: 0, fontSize: "12px", color: "#5d7473" }}>
-              {need.quantity} {need.unit} • {need.receiverName || need.organization || "Beneficiary"}
+              {need.quantity} {need.unit} • {need.receiverName || need.organization || copy.beneficiary}
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11.5px", color: "#5d7473", marginTop: "3px" }}>
               <MapPin size={12} color="#2c8a4c" />
-              <span>{need.location?.city || "Receiver City"}</span>
+              <span>{need.location?.city || copy.receiverCity}</span>
             </div>
           </div>
         </div>
@@ -254,7 +318,7 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
         {/* 3 Logistics Scenarios Selector */}
         <div>
           <label style={{ display: "block", fontSize: "13.5px", fontWeight: 700, color: "#162828", marginBottom: "8px" }}>
-            Select Fulfillment Scenario:
+            {copy.fulfillment}
           </label>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {scenarios.map((sc) => {
@@ -326,12 +390,12 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
         {/* Handover & Delivery Instructions */}
         <div>
           <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#162828", marginBottom: "6px" }}>
-            Specific Handover / Delivery Instructions (Optional):
+            {copy.instructions}
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g. Items are boxed at security gate; Available between 3 PM - 6 PM; Call before arrival..."
+            placeholder={copy.placeholder}
             rows={2}
             style={{
               width: "100%",
@@ -363,7 +427,7 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
               cursor: "pointer",
             }}
           >
-            Cancel
+            {copy.cancel}
           </button>
           <button
             type="button"
@@ -386,11 +450,11 @@ export const ConfirmMatchModal: React.FC<ConfirmMatchModalProps> = ({
             }}
           >
             {submitting ? (
-              <span>Confirming...</span>
+              <span>{copy.confirming}</span>
             ) : (
               <>
                 <CheckCircle2 size={16} />
-                Confirm Match & Schedule Delivery
+                {copy.confirm}
               </>
             )}
           </button>

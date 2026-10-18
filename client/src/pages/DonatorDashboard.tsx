@@ -42,6 +42,85 @@ const initialStats: DonorStats = {
 export default function DonatorDashboard() {
   const { user, logout } = useAuth();
 
+  // Language preference shared with the other pages through localStorage.
+  const [language, setLanguage] = useState<"en" | "hi">(() =>
+    localStorage.getItem("sahara-language") === "hi" ? "hi" : "en"
+  );
+
+  const t = {
+    en: {
+      language: "हिन्दी",
+      dashboard: "Donor Dashboard",
+      unavailable: "Unable to refresh some dashboard data",
+      criticalNeed: "Critical Community Need",
+      neededUrgently: "needed urgently in",
+      nearbyArea: "nearby area",
+      donationMatched: "Donation Matched",
+      inTransit: "Donation In Transit",
+      matchedBeneficiary: "matched with a beneficiary",
+      volunteerDelivery: "out for volunteer delivery",
+      deliveryCompleted: "Delivery Completed",
+      deliveredVerified: "has been successfully delivered and verified.",
+      justNow: "Just now",
+      today: "Today",
+      recent: "Recent",
+      categoryCreated: "created successfully!",
+      donationPublished: "Donation published successfully! It is now available for community pickup.",
+      cancelled: "Donation cancelled successfully.",
+      cancelFailed: "Failed to cancel donation",
+      updated: "Donation updated successfully!",
+      matchConfirmed: "Match confirmed! Delivery logistics dispatched.",
+    },
+    hi: {
+      language: "English",
+      dashboard: "दाता डैशबोर्ड",
+      unavailable: "डैशबोर्ड का कुछ डेटा रीफ़्रेश नहीं हो सका",
+      criticalNeed: "समुदाय की अत्यावश्यक ज़रूरत",
+      neededUrgently: "की तुरंत आवश्यकता है —",
+      nearbyArea: "आस-पास का क्षेत्र",
+      donationMatched: "दान का मिलान हो गया",
+      inTransit: "दान रास्ते में है",
+      matchedBeneficiary: "लाभार्थी से मिलान हो गया है",
+      volunteerDelivery: "स्वयंसेवक द्वारा पहुँचाया जा रहा है",
+      deliveryCompleted: "डिलीवरी पूरी हुई",
+      deliveredVerified: "सफलतापूर्वक पहुँचाया और सत्यापित किया गया है।",
+      justNow: "अभी-अभी",
+      today: "आज",
+      recent: "हाल ही में",
+      categoryCreated: "सफलतापूर्वक बनाई गई!",
+      donationPublished: "दान सफलतापूर्वक प्रकाशित हुआ! अब समुदाय इसे प्राप्त कर सकता है।",
+      cancelled: "दान सफलतापूर्वक रद्द किया गया।",
+      cancelFailed: "दान रद्द नहीं हो सका",
+      updated: "दान सफलतापूर्वक अपडेट हुआ!",
+      matchConfirmed: "मिलान की पुष्टि हो गई! डिलीवरी की व्यवस्था भेज दी गई है।",
+    },
+  }[language];
+
+  useEffect(() => {
+    document.documentElement.lang = language === "hi" ? "hi" : "en";
+  }, [language]);
+
+  useEffect(() => {
+    const syncLanguage = (event?: Event) => {
+      const detail = (event as CustomEvent<string> | undefined)?.detail;
+      let stored: string | null = null;
+      try {
+        stored = localStorage.getItem("sahara-language");
+      } catch {
+        // Keep the current language if storage is unavailable.
+      }
+      const next = detail === "hi" || (!detail && stored === "hi") ? "hi" : "en";
+      setLanguage(next);
+    };
+
+    window.addEventListener("sahara-language-change", syncLanguage);
+    window.addEventListener("storage", syncLanguage);
+    return () => {
+      window.removeEventListener("sahara-language-change", syncLanguage);
+      window.removeEventListener("storage", syncLanguage);
+    };
+  }, []);
+
   // Navigation & UI state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DonorTab>("Overview");
@@ -107,7 +186,7 @@ export default function DonatorDashboard() {
         setSmartMatches(matchesRes.value.matches || []);
       }
     } catch {
-      showToast("Unable to refresh some dashboard data", "error");
+      showToast(t.unavailable, "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -124,9 +203,9 @@ export default function DonatorDashboard() {
       .filter((n) => n.urgency === "critical")
       .map((n) => ({
         id: `need-${n._id}`,
-        title: "Critical Community Need",
-        message: `${n.title} (${n.quantity} ${n.unit}) needed urgently in ${n.location?.city || "nearby area"}`,
-        time: "Just now",
+        title: t.criticalNeed,
+        message: language === "hi" ? `${n.title} (${n.quantity} ${n.unit}) ${t.neededUrgently} ${n.location?.city || t.nearbyArea}` : `${n.title} (${n.quantity} ${n.unit}) needed urgently in ${n.location?.city || t.nearbyArea}`,
+        time: t.justNow,
         type: "warning" as const,
         read: false,
       })),
@@ -134,9 +213,9 @@ export default function DonatorDashboard() {
       .filter((d) => ["matched", "in_transit"].includes(d.status))
       .map((d) => ({
         id: `don-${d._id}`,
-        title: d.status === "matched" ? "Donation Matched" : "Donation In Transit",
-        message: `Your donation "${d.title}" is now ${d.status === "matched" ? "matched with a beneficiary" : "out for volunteer delivery"}`,
-        time: "Today",
+        title: d.status === "matched" ? t.donationMatched : t.inTransit,
+        message: language === "hi" ? `आपका दान "${d.title}" अब ${d.status === "matched" ? t.matchedBeneficiary : t.volunteerDelivery}` : `Your donation "${d.title}" is now ${d.status === "matched" ? t.matchedBeneficiary : t.volunteerDelivery}`,
+        time: t.today,
         type: "info" as const,
         read: false,
       })),
@@ -145,9 +224,9 @@ export default function DonatorDashboard() {
       .slice(0, 2)
       .map((d) => ({
         id: `done-${d._id}`,
-        title: "Delivery Completed",
-        message: `"${d.title}" has been successfully delivered and verified.`,
-        time: "Recent",
+        title: t.deliveryCompleted,
+        message: language === "hi" ? `"${d.title}" ${t.deliveredVerified}` : `"${d.title}" ${t.deliveredVerified}`,
+        time: t.recent,
         type: "success" as const,
         read: true,
       })),
@@ -160,11 +239,11 @@ export default function DonatorDashboard() {
 
   const handleCategoryCreated = (newCat: CategoryItem) => {
     setCategories((prev) => [newCat, ...prev]);
-    showToast(`Category "${newCat.name}" created successfully!`);
+    showToast(language === "hi" ? `श्रेणी "${newCat.name}" ${t.categoryCreated}` : `Category "${newCat.name}" ${t.categoryCreated}`);
   };
 
   const handleDonationCreated = () => {
-    showToast("Donation published successfully! It is now available for community pickup.");
+    showToast(t.donationPublished);
     loadDashboardData(true);
     setActiveTab("My Donations");
   };
@@ -191,7 +270,7 @@ export default function DonatorDashboard() {
   const urgentNeedsCount = communityNeeds.filter((n) => ["critical", "high"].includes(n.urgency)).length;
 
   return (
-    <div className="sd">
+    <div className="sd" lang={language === "hi" ? "hi" : "en"}>
       {/* Toast Notification Banner */}
       {toast && (
         <div
@@ -248,6 +327,7 @@ export default function DonatorDashboard() {
         <main className="sd-main">
           {activeTab === "Overview" && (
             <OverviewTab
+              language={language}
               userName={userName}
               stats={stats}
               categoryDistribution={categoryDistribution}
@@ -274,6 +354,7 @@ export default function DonatorDashboard() {
               userLocation={user?.location}
               needPrefill={needPrefill}
               onClearPrefill={() => setNeedPrefill(null)}
+              language={language}
             />
           )}
 
@@ -286,6 +367,7 @@ export default function DonatorDashboard() {
               onEditDonation={setEditingDonation}
               onPostClick={() => setActiveTab("Post Donation")}
               onRefresh={() => loadDashboardData(true)}
+              language={language}
             />
           )}
 
@@ -296,6 +378,7 @@ export default function DonatorDashboard() {
               onViewNeed={setSelectedNeed}
               onFulfillNeed={handleFulfillNeed}
               onRefresh={() => loadDashboardData(true)}
+              language={language}
             />
           )}
 
@@ -303,6 +386,7 @@ export default function DonatorDashboard() {
             <AccountTab
               user={user}
               onLogout={logout}
+              language={language}
             />
           )}
         </main>
@@ -320,11 +404,11 @@ export default function DonatorDashboard() {
           onCancelDonation={async (id) => {
             try {
               await donorApi.updateDonation(id, { status: "cancelled" });
-              showToast("Donation cancelled successfully.");
+              showToast(t.cancelled);
               setSelectedDonation(null);
               loadDashboardData(true);
             } catch (err: any) {
-              alert(err?.message || "Failed to cancel donation");
+              alert(err?.message || t.cancelFailed);
             }
           }}
         />
@@ -336,7 +420,7 @@ export default function DonatorDashboard() {
           donation={editingDonation}
           onClose={() => setEditingDonation(null)}
           onSuccess={() => {
-            showToast("Donation updated successfully!");
+            showToast(t.updated);
             loadDashboardData(true);
           }}
         />
@@ -362,7 +446,7 @@ export default function DonatorDashboard() {
           initialMode={matchToConfirm.logistics?.recommendedMode || "volunteer_delivery"}
           currentRole="donor"
           onConfirmSuccess={(res) => {
-            showToast(res.message || "Match confirmed! Delivery logistics dispatched.");
+            showToast(res.message || t.matchConfirmed);
             loadDashboardData(true);
           }}
         />

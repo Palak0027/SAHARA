@@ -36,6 +36,7 @@ interface PostDonationTabProps {
   };
   needPrefill?: NeedPrefillData | null;
   onClearPrefill?: () => void;
+  language?: "en" | "hi";
 }
 
 export const PostDonationTab: React.FC<PostDonationTabProps> = ({
@@ -46,7 +47,10 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
   userLocation,
   needPrefill,
   onClearPrefill,
+  language = "en",
 }) => {
+  const isHindi = language === "hi";
+  const tr = (en: string, hi: string) => (isHindi ? hi : en);
   // Helpers to get ISO datetime strings for default values
   const getNowIsoLocal = () => {
     const d = new Date();
@@ -140,7 +144,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
         setNewCategoryDesc("");
       }
     } catch (err: any) {
-      setFormError(err?.message || "Failed to create new category");
+      setFormError(err?.message || tr("Failed to create new category", "नई श्रेणी नहीं बनाई जा सकी"));
     } finally {
       setCreatingCategory(false);
     }
@@ -151,33 +155,33 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
     setFormError(null);
 
     if (!selectedCategoryId) {
-      setFormError("Please select a donation category");
+      setFormError(tr("Please select a donation category", "कृपया दान की श्रेणी चुनें"));
       return;
     }
 
     if (!title.trim()) {
-      setFormError("Please enter a donation title");
+      setFormError(tr("Please enter a donation title", "कृपया दान का शीर्षक दर्ज करें"));
       return;
     }
 
     const numQty = parseFloat(quantity);
     if (isNaN(numQty) || numQty <= 0) {
-      setFormError("Please enter a valid quantity greater than 0");
+      setFormError(tr("Please enter a valid quantity greater than 0", "कृपया 0 से अधिक सही मात्रा दर्ज करें"));
       return;
     }
 
     if (!unit.trim()) {
-      setFormError("Please enter or select a unit of measurement");
+      setFormError(tr("Please enter or select a unit of measurement", "कृपया माप की इकाई दर्ज करें या चुनें"));
       return;
     }
 
     if (!address.trim()) {
-      setFormError("Please provide a pickup street address");
+      setFormError(tr("Please provide a pickup street address", "कृपया पिकअप का सड़क पता दर्ज करें"));
       return;
     }
 
     if (!city.trim()) {
-      setFormError("Please provide a pickup city");
+      setFormError(tr("Please provide a pickup city", "कृपया पिकअप का शहर दर्ज करें"));
       return;
     }
 
@@ -185,12 +189,12 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
     const untilDate = new Date(availableUntil);
 
     if (isNaN(fromDate.getTime()) || isNaN(untilDate.getTime())) {
-      setFormError("Please provide valid availability dates");
+      setFormError(tr("Please provide valid availability dates", "कृपया उपलब्धता की सही तारीखें दर्ज करें"));
       return;
     }
 
     if (untilDate <= fromDate) {
-      setFormError("Available until date must be after available from date");
+      setFormError(tr("Available until date must be after available from date", "उपलब्धता की अंतिम तारीख, प्रारंभिक तारीख के बाद होनी चाहिए"));
       return;
     }
 
@@ -200,17 +204,17 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
       const safeDate = safeUntil ? new Date(safeUntil) : null;
 
       if (!safeDate || isNaN(safeDate.getTime())) {
-        setFormError("Please specify a safe consumption deadline for food items");
+        setFormError(tr("Please specify a safe consumption deadline for food items", "कृपया खाद्य सामग्री के सुरक्षित उपभोग की अंतिम तारीख तय करें"));
         return;
       }
 
       if (safeDate <= new Date()) {
-        setFormError("Safe until date/time must be in the future. Expired food cannot be distributed.");
+        setFormError(tr("Safe until date/time must be in the future. Expired food cannot be distributed.", "सुरक्षित उपभोग की तारीख भविष्य में होनी चाहिए। एक्सपायर भोजन वितरित नहीं किया जा सकता।"));
         return;
       }
 
       if (prepDate && safeDate <= prepDate) {
-        setFormError("Safe until date/time must be after the prepared on date/time");
+        setFormError(tr("Safe until date/time must be after the prepared on date/time", "सुरक्षित उपभोग की तारीख, तैयार करने की तारीख के बाद होनी चाहिए"));
         return;
       }
 
@@ -245,7 +249,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
       if (onClearPrefill) onClearPrefill();
       onSuccess();
     } catch (err: any) {
-      setFormError(err?.message || "Failed to post donation. Please check your inputs.");
+      setFormError(err?.message || tr("Failed to post donation. Please check your inputs.", "दान प्रकाशित नहीं हो सका। कृपया दर्ज की गई जानकारी जाँचें।"));
     } finally {
       setSubmitting(false);
     }
@@ -263,9 +267,9 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
     <section className="sd-narrow">
       <div className="sd-section-head">
         <div>
-          <h2 className="sd-section-title">Post a Donation</h2>
+          <h2 className="sd-section-title">{tr("Post a Donation", "दान दें")}</h2>
           <p className="sd-section-sub">
-            Share surplus resources, hot meals, or winter clothes directly with community receivers
+            {tr("Share surplus resources, hot meals, or winter clothes directly with community receivers", "अतिरिक्त सामान, गर्म भोजन या सर्दियों के कपड़े सीधे समुदाय के जरूरतमंद लोगों तक पहुँचाएँ")}
           </p>
         </div>
       </div>
@@ -273,12 +277,12 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
       {needPrefill && (
         <div style={{ background: "#e8f4fc", border: "1px solid #b8daf2", padding: "12px 16px", borderRadius: "10px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <span style={{ fontSize: "12px", color: "#1c658c", fontWeight: 700, textTransform: "uppercase" }}>Fulfilling Community Request</span>
+            <span style={{ fontSize: "12px", color: "#1c658c", fontWeight: 700, textTransform: "uppercase" }}>{tr("Fulfilling Community Request", "समुदाय की आवश्यकता पूरी की जा रही है")}</span>
             <p style={{ margin: "2px 0 0", fontWeight: 600, fontSize: "14px" }}>{needPrefill.title}</p>
           </div>
           {onClearPrefill && (
-            <button onClick={onClearPrefill} className="sd-link-btn" style={{ fontSize: "13px" }}>
-              Clear
+            <button onClick={onClearPrefill} className="sd-link-btn" style={{ fontSize: "13px" }} >
+              {tr("Clear", "हटाएँ")}
             </button>
           )}
         </div>
@@ -296,7 +300,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
             <label className="sd-label" htmlFor="don-category" style={{ marginBottom: 0 }}>
-              Select Resource Category *
+              {tr("Select Resource Category *", "संसाधन की श्रेणी चुनें *")}
             </label>
             <button
               type="button"
@@ -305,7 +309,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
               style={{ fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "4px" }}
             >
               <Plus size={14} />
-              {isAddingNewCategory ? "Cancel Custom Category" : "+ Add New Category"}
+              {isAddingNewCategory ? tr("Cancel Custom Category", "नई श्रेणी रद्द करें") : tr("+ Add New Category", "+ नई श्रेणी जोड़ें")}
             </button>
           </div>
 
@@ -324,13 +328,13 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
               }}
               required
             >
-              <option value="" disabled>-- Select a Resource Category --</option>
+              <option value="" disabled>{tr("-- Select a Resource Category --", "-- संसाधन की श्रेणी चुनें --")}</option>
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>
                   {cat.name} {cat.description ? `— (${cat.description})` : ""}
                 </option>
               ))}
-              <option value="__new__">+ Add New Category...</option>
+              <option value="__new__">{tr("+ Add New Category...", "+ नई श्रेणी जोड़ें...")}</option>
             </select>
           </div>
 
@@ -378,20 +382,20 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
             >
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                 <Plus size={16} color="var(--forest)" />
-                <strong style={{ fontSize: "13.5px", color: "var(--forest)" }}>Add a New Category</strong>
+                <strong style={{ fontSize: "13.5px", color: "var(--forest)" }}>{tr("Add a New Category", "नई श्रेणी जोड़ें")}</strong>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <div>
                   <label className="sd-label" htmlFor="new-cat-name" style={{ fontSize: "13px" }}>
-                    Category Name *
+                    {tr("Category Name *", "श्रेणी का नाम *")}
                   </label>
                   <input
                     id="new-cat-name"
                     className="sd-input"
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="e.g. Blankets, Stationery, Medicines"
+                    placeholder={tr("e.g. Blankets, Stationery, Medicines", "जैसे कंबल, स्टेशनरी, दवाइयाँ")}
                     maxLength={30}
                     autoFocus
                   />
@@ -399,14 +403,14 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
 
                 <div>
                   <label className="sd-label" htmlFor="new-cat-desc" style={{ fontSize: "13px" }}>
-                    Description (Optional)
+                    {tr("Description (Optional)", "विवरण (वैकल्पिक)")}
                   </label>
                   <input
                     id="new-cat-desc"
                     className="sd-input"
                     value={newCategoryDesc}
                     onChange={(e) => setNewCategoryDesc(e.target.value)}
-                    placeholder="Short description of what items fall under this category"
+                    placeholder={tr("Short description of what items fall under this category", "इस श्रेणी में आने वाली वस्तुओं का संक्षिप्त विवरण")}
                     maxLength={80}
                   />
                 </div>
@@ -418,7 +422,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
                     disabled={creatingCategory || !newCategoryName.trim()}
                     className="sd-btn sd-btn-primary sd-btn-sm"
                   >
-                    {creatingCategory ? "Saving..." : "Create & Select Category"}
+                    {creatingCategory ? tr("Saving...", "सहेजा जा रहा है...") : tr("Create & Select Category", "श्रेणी बनाएँ और चुनें")}
                   </button>
                   <button
                     type="button"
@@ -429,24 +433,24 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
                     }}
                     className="sd-btn sd-btn-outline sd-btn-sm"
                   >
-                    Cancel
+                    {tr("Cancel", "रद्द करें")}
                   </button>
                 </div>
               </div>
-              <p className="sd-hint">This category will be permanently saved in the database for all future donations and community needs.</p>
+              <p className="sd-hint">{tr("This category will be permanently saved in the database for all future donations and community needs.", "यह श्रेणी भविष्य के सभी दान और सामुदायिक आवश्यकताओं के लिए डेटाबेस में स्थायी रूप से सहेजी जाएगी।")}</p>
             </div>
           )}
         </div>
 
         {/* Title */}
         <div>
-          <label className="sd-label" htmlFor="don-title">Donation Title *</label>
+          <label className="sd-label" htmlFor="don-title">{tr("Donation Title *", "दान का शीर्षक *")}</label>
           <input
             id="don-title"
             className="sd-input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. 50 Fresh Packed Vegetarian Meals / 20 Woolen Sweaters"
+            placeholder={tr("e.g. 50 Fresh Packed Vegetarian Meals / 20 Woolen Sweaters", "जैसे 50 ताज़ा शाकाहारी भोजन पैकेट / 20 ऊनी स्वेटर")}
             required
           />
         </div>
@@ -454,7 +458,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
         {/* Quantity & Unit */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
           <div>
-            <label className="sd-label" htmlFor="don-qty">Quantity *</label>
+            <label className="sd-label" htmlFor="don-qty">{tr("Quantity *", "मात्रा *")}</label>
             <input
               id="don-qty"
               type="number"
@@ -463,19 +467,19 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
               className="sd-input"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              placeholder="e.g. 25"
+              placeholder={tr("e.g. 25", "जैसे 25")}
               required
             />
           </div>
           <div>
-            <label className="sd-label" htmlFor="don-unit">Unit of Measure *</label>
+            <label className="sd-label" htmlFor="don-unit">{tr("Unit of Measure *", "माप की इकाई *")}</label>
             <div style={{ display: "flex", gap: "8px" }}>
               <input
                 id="don-unit"
                 className="sd-input"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                placeholder="e.g. kg, meals, items"
+                placeholder={tr("e.g. kg, meals, items", "जैसे किलो, भोजन, वस्तुएँ")}
                 required
               />
             </div>
@@ -503,14 +507,14 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
 
         {/* Description */}
         <div>
-          <label className="sd-label" htmlFor="don-desc">Description / Instructions</label>
+          <label className="sd-label" htmlFor="don-desc">{tr("Description / Instructions", "विवरण / निर्देश")}</label>
           <textarea
             id="don-desc"
             className="sd-input"
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe what items are included, packaging details, and any handling instructions..."
+            placeholder={tr("Describe what items are included, packaging details, and any handling instructions...", "शामिल वस्तुओं, पैकेजिंग और संभालने के निर्देशों का विवरण दें...")}
           />
         </div>
 
@@ -518,52 +522,52 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
         <div style={{ borderTop: "1px solid var(--line)", paddingTop: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <MapPin size={18} color="var(--forest)" />
-            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Pickup Location</h3>
+            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>{tr("Pickup Location", "पिकअप स्थान")}</h3>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div>
-              <label className="sd-label" htmlFor="don-addr">Street Address / Landmark *</label>
+              <label className="sd-label" htmlFor="don-addr">{tr("Street Address / Landmark *", "सड़क का पता / नज़दीकी पहचान *")}</label>
               <input
                 id="don-addr"
                 className="sd-input"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="e.g. Flat 302, Sunrise Apartments, Green Park Ext."
+                placeholder={tr("e.g. Flat 302, Sunrise Apartments, Green Park Ext.", "जैसे फ्लैट 302, सनराइज़ अपार्टमेंट्स")}
                 required
               />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
               <div>
-                <label className="sd-label" htmlFor="don-city">City *</label>
+                <label className="sd-label" htmlFor="don-city">{tr("City *", "शहर *")}</label>
                 <input
                   id="don-city"
                   className="sd-input"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. New Delhi"
+                  placeholder={tr("e.g. New Delhi", "जैसे नई दिल्ली")}
                   required
                 />
               </div>
               <div>
-                <label className="sd-label" htmlFor="don-state">State</label>
+                <label className="sd-label" htmlFor="don-state">{tr("State", "राज्य")}</label>
                 <input
                   id="don-state"
                   className="sd-input"
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  placeholder="e.g. Delhi"
+                  placeholder={tr("e.g. Delhi", "जैसे दिल्ली")}
                 />
               </div>
               <div>
-                <label className="sd-label" htmlFor="don-pincode">Pincode</label>
+                <label className="sd-label" htmlFor="don-pincode">{tr("Pincode", "पिन कोड")}</label>
                 <input
                   id="don-pincode"
                   className="sd-input"
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value)}
-                  placeholder="e.g. 110016"
+                  placeholder={tr("e.g. 110016", "जैसे 110016")}
                 />
               </div>
             </div>
@@ -574,12 +578,12 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
         <div style={{ borderTop: "1px solid var(--line)", paddingTop: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <Calendar size={18} color="var(--forest)" />
-            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Availability Window</h3>
+            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>{tr("Availability Window", "उपलब्धता की अवधि")}</h3>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div>
-              <label className="sd-label" htmlFor="don-from">Available From *</label>
+              <label className="sd-label" htmlFor="don-from">{tr("Available From *", "उपलब्धता शुरू *")}</label>
               <input
                 id="don-from"
                 type="datetime-local"
@@ -590,7 +594,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
               />
             </div>
             <div>
-              <label className="sd-label" htmlFor="don-until">Available Until *</label>
+              <label className="sd-label" htmlFor="don-until">{tr("Available Until *", "उपलब्धता समाप्त *")}</label>
               <input
                 id="don-until"
                 type="datetime-local"
@@ -609,37 +613,37 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--forest)", marginBottom: "12px" }}>
               <ShieldCheck size={20} color="var(--green)" />
               <div>
-                <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 700 }}>Food Safety & Hygiene Compliance</h4>
+                <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 700 }}>{tr("Food Safety & Hygiene Compliance", "खाद्य सुरक्षा और स्वच्छता अनुपालन")}</h4>
                 <p style={{ margin: "2px 0 0", fontSize: "12px", color: "var(--muted)" }}>
-                  SAHARA enforces zero-waste and safe consumption guidelines.
+                  {tr("SAHARA enforces zero-waste and safe consumption guidelines.", "SAHARA शून्य-बर्बादी और सुरक्षित उपभोग के दिशानिर्देशों का पालन करता है।")}
                 </p>
               </div>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
-                <label className="sd-label">Dietary Preference</label>
+                <label className="sd-label">{tr("Dietary Preference", "आहार संबंधी प्राथमिकता")}</label>
                 <div style={{ display: "flex", gap: "12px" }}>
                   <button
                     type="button"
                     onClick={() => setIsVeg(true)}
                     className={`sd-btn ${isVeg ? "sd-btn-primary" : "sd-btn-outline"} sd-btn-sm`}
                   >
-                    🌱 Pure Vegetarian
+                    🌱 {tr("Pure Vegetarian", "शुद्ध शाकाहारी")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsVeg(false)}
                     className={`sd-btn ${!isVeg ? "sd-btn-primary" : "sd-btn-outline"} sd-btn-sm`}
                   >
-                    🍗 Non-Vegetarian
+                    🍗 {tr("Non-Vegetarian", "मांसाहारी")}
                   </button>
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label className="sd-label" htmlFor="food-prep">Prepared / Packed On</label>
+                  <label className="sd-label" htmlFor="food-prep">{tr("Prepared / Packed On", "तैयार / पैक करने की तारीख")}</label>
                   <input
                     id="food-prep"
                     type="datetime-local"
@@ -649,7 +653,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="sd-label" htmlFor="food-safe">Safe Until (Consumption Deadline) *</label>
+                  <label className="sd-label" htmlFor="food-safe">{tr("Safe Until (Consumption Deadline) *", "सुरक्षित उपभोग की अंतिम समय-सीमा *")}</label>
                   <input
                     id="food-safe"
                     type="datetime-local"
@@ -668,36 +672,36 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
         <div style={{ borderTop: "1px solid var(--line)", paddingTop: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
             <Car size={18} color="var(--forest)" />
-            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>Delivery & Logistics Preference</h3>
+            <h3 style={{ fontSize: "15px", fontWeight: 700 }}>{tr("Delivery & Logistics Preference", "डिलीवरी और परिवहन की प्राथमिकता")}</h3>
           </div>
           <p style={{ margin: "0 0 12px", fontSize: "12.5px", color: "var(--muted)" }}>
-            How would you like the supplies to reach the receiver?
+            {tr("How would you like the supplies to reach the receiver?", "आप सामान प्राप्तकर्ता तक किस तरह पहुँचाना चाहेंगे?")}
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px" }}>
             {[
               {
                 id: "any",
-                label: "Flexible / Either",
-                sub: "Volunteer, pickup, or drop-off",
+                label: tr("Flexible / Either", "लचीला / कोई भी विकल्प"),
+                sub: tr("Volunteer, pickup, or drop-off", "स्वयंसेवक, पिकअप या स्वयं पहुँचाना"),
                 icon: Handshake,
               },
               {
                 id: "receiver_pickup",
-                label: "Receiver Pick-up Only",
-                sub: "Receiver collects from your address",
+                label: tr("Receiver Pick-up Only", "केवल प्राप्तकर्ता पिकअप करेगा"),
+                sub: tr("Receiver collects from your address", "प्राप्तकर्ता आपके पते से सामान लेगा"),
                 icon: Car,
               },
               {
                 id: "donor_dropoff",
-                label: "I Can Drop Off",
-                sub: "I will deliver to receiver's location",
+                label: tr("I Can Drop Off", "मैं सामान पहुँचा सकता/सकती हूँ"),
+                sub: tr("I will deliver to receiver's location", "मैं प्राप्तकर्ता के स्थान पर सामान पहुँचाऊँगा/पहुँचाऊँगी"),
                 icon: Truck,
               },
               {
                 id: "volunteer_delivery",
-                label: "Volunteer Needed",
-                sub: "Cannot travel; courier required",
+                label: tr("Volunteer Needed", "स्वयंसेवक की आवश्यकता है"),
+                sub: tr("Cannot travel; courier required", "मैं यात्रा नहीं कर सकता/सकती; डिलीवरी सहायता चाहिए"),
                 icon: Bike,
               },
             ].map((opt) => {
@@ -749,7 +753,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
             className="sd-btn sd-btn-primary"
             style={{ minWidth: "160px" }}
           >
-            {submitting ? "Publishing..." : <><Plus size={16} /> Publish Donation</>}
+            {submitting ? tr("Publishing...", "प्रकाशित किया जा रहा है...") : <><Plus size={16} /> {tr("Publish Donation", "दान प्रकाशित करें")}</>}
           </button>
           <button
             type="button"
@@ -757,7 +761,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
             disabled={submitting}
             className="sd-btn sd-btn-outline"
           >
-            Cancel
+            {tr("Cancel", "रद्द करें")}
           </button>
         </div>
       </form>

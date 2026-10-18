@@ -1,3 +1,4 @@
+
 import { Navigate, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 
@@ -6,6 +7,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import ContactUs from "../pages/ContactUs";
 
 import DonatorDashboard from "../pages/DonatorDashboard";
 import ReceiverDashboard from "../pages/ReceiverDashboard";
@@ -87,22 +89,15 @@ function RoleRoute({
     );
   }
 
-  // Use activeRole first because the backend
-  // sends activeRole for authenticated users.
-  // Fall back to role if activeRole is missing.
+  // Prefer activeRole; fall back to role.
+  const currentRole = user.activeRole || user.role;
 
-  const currentRole =
-    user.activeRole || user.role;
-
-  // Correct role → allow dashboard
-
+  // Allow access when the role matches.
   if (currentRole === role) {
     return <>{children}</>;
   }
 
-  // If role doesn't match, redirect to
-  // the user's own dashboard.
-
+  // Redirect users to their own dashboards.
   if (currentRole === "admin") {
     return (
       <Navigate
@@ -139,8 +134,7 @@ function RoleRoute({
     );
   }
 
-  // Unknown / missing role
-
+  // Unknown or missing role.
   return (
     <Navigate
       to="/"
@@ -156,13 +150,17 @@ function RoleRoute({
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* -------------------------------------------
-          PUBLIC PAGES
-      ------------------------------------------- */}
+      {/* PUBLIC PAGES */}
 
       <Route
         path="/"
         element={<App />}
+      />
+
+      {/* CONTACT US */}
+      <Route
+        path="/contact"
+        element={<ContactUs />}
       />
 
       <Route
@@ -175,27 +173,21 @@ export default function AppRoutes() {
         element={<Register />}
       />
 
-      {/* -------------------------------------------
-          FORGOT PASSWORD
-      ------------------------------------------- */}
+      {/* FORGOT PASSWORD */}
 
       <Route
         path="/forgot-password"
         element={<ForgotPassword />}
       />
 
-      {/* -------------------------------------------
-          RESET PASSWORD
-      ------------------------------------------- */}
+      {/* RESET PASSWORD */}
 
       <Route
         path="/reset-password"
         element={<ResetPassword />}
       />
 
-      {/* -------------------------------------------
-          DONOR DASHBOARD
-      ------------------------------------------- */}
+      {/* DONOR DASHBOARD */}
 
       <Route
         path="/donator-dashboard"
@@ -208,9 +200,7 @@ export default function AppRoutes() {
         }
       />
 
-      {/* -------------------------------------------
-          RECEIVER DASHBOARD
-      ------------------------------------------- */}
+      {/* RECEIVER DASHBOARD */}
 
       <Route
         path="/receiver-dashboard"
@@ -223,9 +213,7 @@ export default function AppRoutes() {
         }
       />
 
-      {/* -------------------------------------------
-          VOLUNTEER DASHBOARD
-      ------------------------------------------- */}
+      {/* VOLUNTEER DASHBOARD */}
 
       <Route
         path="/volunteer-dashboard"
@@ -238,9 +226,7 @@ export default function AppRoutes() {
         }
       />
 
-      {/* -------------------------------------------
-          ADMIN DASHBOARD
-      ------------------------------------------- */}
+      {/* ADMIN DASHBOARD */}
 
       <Route
         path="/admin-dashboard"
@@ -253,9 +239,7 @@ export default function AppRoutes() {
         }
       />
 
-      {/* -------------------------------------------
-          UNKNOWN ROUTE
-      ------------------------------------------- */}
+      {/* UNKNOWN ROUTE */}
 
       <Route
         path="*"
