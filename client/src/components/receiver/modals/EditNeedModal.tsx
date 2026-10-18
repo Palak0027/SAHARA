@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Save, AlertCircle } from "lucide-react";
 import { ReceiverNeedItem, receiverApi } from "../../../services/api/receiverApi";
 
@@ -26,6 +26,13 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<"en" | "hi">(() => { try { return localStorage.getItem("sahara-language") === "hi" ? "hi" : "en"; } catch { return "en"; } });
+  const hi = language === "hi";
+  useEffect(() => {
+    const syncLanguage = (event?: Event) => { const detail = (event as CustomEvent<string> | undefined)?.detail; try { setLanguage(detail === "hi" || (!detail && localStorage.getItem("sahara-language") === "hi") ? "hi" : "en"); } catch { setLanguage(detail === "hi" ? "hi" : "en"); } };
+    window.addEventListener("sahara-language-change", syncLanguage); window.addEventListener("storage", syncLanguage);
+    return () => { window.removeEventListener("sahara-language-change", syncLanguage); window.removeEventListener("storage", syncLanguage); };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +40,7 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
 
     const numQty = parseFloat(quantity);
     if (isNaN(numQty) || numQty <= 0) {
-      setError("Please provide a valid quantity greater than 0");
+      setError((hi ? "कृपया 0 से अधिक सही मात्रा दर्ज करें।" : "Please provide a valid quantity greater than 0"));
       return;
     }
 
@@ -51,7 +58,7 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err?.message || "Failed to update need request");
+      setError(err?.message || (hi ? "अनुरोध अपडेट नहीं हो सका। कृपया दोबारा प्रयास करें।" : "Failed to update need request"));
     } finally {
       setLoading(false);
     }
@@ -64,12 +71,12 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
         style={{ maxWidth: "520px" }}
         role="dialog"
         aria-modal="true"
-        aria-label="Edit Request"
+        aria-label={hi ? "अनुरोध संपादित करें" : "Edit Request"}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="rd-modal-head">
-          <h3 className="rd-modal-title">Edit Need Request</h3>
-          <button onClick={onClose} aria-label="Close dialog" className="rd-modal-close">
+          <h3 className="rd-modal-title">{hi ? "ज़रूरत का अनुरोध संपादित करें" : "Edit Need Request"}</h3>
+          <button onClick={onClose} aria-label={hi ? "डायलॉग बंद करें" : "Close dialog"} className="rd-modal-close">
             <X size={19} />
           </button>
         </div>
@@ -83,7 +90,7 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           <div>
-            <label className="rd-label" htmlFor="edit-need-title">Request Title</label>
+            <label className="rd-label" htmlFor="edit-need-title">{hi ? "अनुरोध का शीर्षक" : "Request Title"}</label>
             <input
               id="edit-need-title"
               className="rd-input"
@@ -95,7 +102,7 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div>
-              <label className="rd-label" htmlFor="edit-need-qty">Quantity</label>
+              <label className="rd-label" htmlFor="edit-need-qty">{hi ? "मात्रा" : "Quantity"}</label>
               <input
                 id="edit-need-qty"
                 type="number"
@@ -108,13 +115,13 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
               />
             </div>
             <div>
-              <label className="rd-label" htmlFor="edit-need-unit">Unit</label>
+              <label className="rd-label" htmlFor="edit-need-unit">{hi ? "इकाई" : "Unit"}</label>
               <input
                 id="edit-need-unit"
                 className="rd-input"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                placeholder="e.g. meals, blankets, kits"
+                placeholder={hi ? "जैसे भोजन, कंबल, किट" : "e.g. meals, blankets, kits"}
                 required
               />
             </div>
@@ -122,21 +129,21 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div>
-              <label className="rd-label" htmlFor="edit-need-urgency">Urgency</label>
+              <label className="rd-label" htmlFor="edit-need-urgency">{hi ? "प्राथमिकता" : "Urgency"}</label>
               <select
                 id="edit-need-urgency"
                 className="rd-input"
                 value={urgency}
                 onChange={(e) => setUrgency(e.target.value as any)}
               >
-                <option value="low">Low Urgency</option>
-                <option value="medium">Medium Urgency</option>
-                <option value="high">High Urgency</option>
-                <option value="critical">Critical Urgency</option>
+                <option value="low">{hi ? "कम प्राथमिकता" : "Low Urgency"}</option>
+                <option value="medium">{hi ? "मध्यम प्राथमिकता" : "Medium Urgency"}</option>
+                <option value="high">{hi ? "उच्च प्राथमिकता" : "High Urgency"}</option>
+                <option value="critical">{hi ? "अत्यंत गंभीर" : "Critical Urgency"}</option>
               </select>
             </div>
             <div>
-              <label className="rd-label" htmlFor="edit-need-date">Required By</label>
+              <label className="rd-label" htmlFor="edit-need-date">{hi ? "आवश्यकता की अंतिम तिथि" : "Required By"}</label>
               <input
                 id="edit-need-date"
                 type="date"
@@ -149,7 +156,7 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
           </div>
 
           <div>
-            <label className="rd-label" htmlFor="edit-need-desc">Description</label>
+            <label className="rd-label" htmlFor="edit-need-desc">{hi ? "विवरण" : "Description"}</label>
             <textarea
               id="edit-need-desc"
               className="rd-input"
@@ -161,10 +168,10 @@ export const EditNeedModal: React.FC<EditNeedModalProps> = ({
 
           <div className="rd-modal-actions" style={{ justifyContent: "flex-end", marginTop: "12px" }}>
             <button type="button" onClick={onClose} className="rd-btn rd-btn-outline" disabled={loading}>
-              Cancel
+              {hi ? "रद्द करें" : "Cancel"}
             </button>
             <button type="submit" className="rd-btn rd-btn-primary" disabled={loading}>
-              {loading ? "Saving..." : <><Save size={16} /> Save Changes</>}
+              {loading ? (hi ? "सेव हो रहा है..." : "Saving...") : <><Save size={16} /> {hi ? "बदलाव सेव करें" : "Save Changes"}</>}
             </button>
           </div>
         </form>

@@ -18,6 +18,9 @@ const homepageContent = {
       explore: "Explore donations",
       login: "Login",
       signup: "Sign up",
+      // English
+      contact: "Contact Us",
+
     },
     hero: {
       badge: "Small help can make a big difference",
@@ -103,6 +106,8 @@ const homepageContent = {
       explore: "दान देखें",
       login: "लॉगिन",
       signup: "साइन अप",
+      // Hindi
+      contact: "संपर्क करें",
     },
     hero: {
       badge: "छोटी मदद बड़ा बदलाव ला सकती है",

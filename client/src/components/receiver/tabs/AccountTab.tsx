@@ -1,14 +1,9 @@
 import React, { useState } from "react";
 import {
-  User as UserIcon,
-  Phone,
-  Mail,
-  MapPin,
   Shield,
   Building,
   LogOut,
   Bell,
-  CheckCircle2,
 } from "lucide-react";
 import { User } from "../../../context/AuthContext";
 import ChangePasswordCard from "../../common/ChangePasswordCard";
@@ -16,9 +11,16 @@ import ChangePasswordCard from "../../common/ChangePasswordCard";
 interface AccountTabProps {
   user: User | null;
   onLogout: () => void;
+  language?: "en" | "hi";
 }
 
-export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
+export const AccountTab: React.FC<AccountTabProps> = ({
+  user,
+  onLogout,
+  language = "en",
+}) => {
+  const hi = language === "hi";
+
   const [emailNotifs, setEmailNotifs] = useState(() => {
     return localStorage.getItem("rd_email_notifs") !== "false";
   });
@@ -26,27 +28,70 @@ export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
     return localStorage.getItem("rd_app_notifs") !== "false";
   });
 
-  const handleToggleEmail = (val: boolean) => {
-    setEmailNotifs(val);
-    localStorage.setItem("rd_email_notifs", String(val));
+  const handleToggleEmail = (value: boolean) => {
+    setEmailNotifs(value);
+    localStorage.setItem("rd_email_notifs", String(value));
   };
 
-  const handleToggleApp = (val: boolean) => {
-    setAppNotifs(val);
-    localStorage.setItem("rd_app_notifs", String(val));
+  const handleToggleApp = (value: boolean) => {
+    setAppNotifs(value);
+    localStorage.setItem("rd_app_notifs", String(value));
   };
 
-  const userName = user?.name || "Receiver User";
+  const t = {
+    heading: hi ? "रिसीवर खाता और प्रोफ़ाइल" : "Receiver Account & Profile",
+    subtitle: hi
+      ? "अपने सत्यापन विवरण, पंजीकृत पते और सूचना प्राथमिकताओं को प्रबंधित करें"
+      : "Your verification credentials, registered address, and alert preferences",
+    organization: hi ? "संस्था" : "Organization",
+    communityBeneficiary: hi ? "सामुदायिक लाभार्थी" : "Community Beneficiary",
+    individual: hi ? "व्यक्तिगत" : "Individual",
+    representative: hi ? "प्रतिनिधि / उपयोगकर्ता का नाम" : "Representative / User Name",
+    phone: hi ? "संपर्क फ़ोन नंबर" : "Phone Contact",
+    email: hi ? "ईमेल पता" : "Email Address",
+    beneficiaryType: hi ? "लाभार्थी का प्रकार" : "Beneficiary Type",
+    deliveryLocation: hi ? "डिफ़ॉल्ट डिलीवरी स्थान" : "Default Delivery Location",
+    unavailable: hi ? "उपलब्ध नहीं" : "Not available",
+    unspecified: hi ? "निर्दिष्ट नहीं" : "Not specified",
+    addressUnspecified: hi ? "पता निर्दिष्ट नहीं" : "Address not specified",
+    organizationVerification: hi ? "संस्था सत्यापन" : "Organization Verification",
+    registeredName: hi ? "पंजीकृत नाम" : "Registered Name",
+    registrationNumber: hi ? "पंजीकरण / सोसायटी नंबर" : "Registration / Society No.",
+    pendingSubmission: hi ? "जमा करना बाकी है" : "Pending submission",
+    notifications: hi ? "सूचना अलर्ट" : "Notification Alerts",
+    volunteerAlerts: hi ? "स्वयंसेवक मिलान अलर्ट" : "Volunteer Match Alerts",
+    volunteerDescription: hi
+      ? "जब कोई दाता या स्वयंसेवक आपके अनुरोध को स्वीकार करे, तो तुरंत सूचना पाएँ"
+      : "Get instant notification when a donor or volunteer accepts your request",
+    deliveryUpdates: hi ? "SMS और डिलीवरी अपडेट" : "SMS & Delivery Updates",
+    deliveryDescription: hi
+      ? "अपने पंजीकृत फ़ोन पर OTP और भेजे जाने से जुड़े रीयल-टाइम अपडेट पाएँ"
+      : "Receive real-time OTP and dispatch updates on your registered phone",
+    logout: hi ? "खाते से लॉग आउट करें" : "Log Out of Account",
+    toggleApp: hi ? "ऐप सूचनाएँ चालू/बंद करें" : "Toggle App notifications",
+    toggleEmail: hi ? "SMS और डिलीवरी सूचनाएँ चालू/बंद करें" : "Toggle SMS and delivery notifications",
+  };
+
+  const userName = user?.name || (hi ? "रिसीवर उपयोगकर्ता" : "Receiver User");
   const initial = userName.charAt(0).toUpperCase();
+  const receiverType = user?.receiverType || "Individual";
+  const receiverTypeLabel =
+    receiverType.toLowerCase() === "individual"
+      ? t.individual
+      : receiverType.toLowerCase() === "family"
+        ? hi ? "परिवार" : "Family"
+        : receiverType.toLowerCase() === "community"
+          ? hi ? "समुदाय" : "Community"
+          : receiverType.toLowerCase() === "organization" || receiverType.toLowerCase() === "organisation"
+            ? hi ? "संस्था" : "Organization"
+            : receiverType;
 
   return (
     <section className="rd-narrow rd-stack">
       <div className="rd-section-head">
         <div>
-          <h2 className="rd-section-title">Receiver Account & Profile</h2>
-          <p className="rd-section-sub">
-            Your verification credentials, registered address, and alert preferences
-          </p>
+          <h2 className="rd-section-title">{t.heading}</h2>
+          <p className="rd-section-sub">{t.subtitle}</p>
         </div>
       </div>
 
@@ -56,42 +101,45 @@ export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
           <div className="rd-avatar">{initial}</div>
           <div>
             <h3 className="rd-profile-name">{userName}</h3>
-            <p className="rd-profile-role" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <p
+              className="rd-profile-role"
+              style={{ display: "flex", alignItems: "center", gap: "4px" }}
+            >
               <Shield size={13} color="var(--forest)" />
               {user?.organization?.orgName
-                ? `Organization: ${user.organization.orgName}`
-                : `Community Beneficiary (${user?.receiverType || "Individual"})`}
+                ? `${t.organization}: ${user.organization.orgName}`
+                : `${t.communityBeneficiary} (${receiverTypeLabel})`}
             </p>
           </div>
         </div>
 
         <div className="rd-fields">
           <div className="rd-field">
-            <span className="rd-field-label">Representative / User Name</span>
-            <p className="rd-field-value">{user?.name || "Not available"}</p>
+            <span className="rd-field-label">{t.representative}</span>
+            <p className="rd-field-value">{user?.name || t.unavailable}</p>
           </div>
 
           <div className="rd-field">
-            <span className="rd-field-label">Phone Contact</span>
-            <p className="rd-field-value">{user?.phone || "Not available"}</p>
+            <span className="rd-field-label">{t.phone}</span>
+            <p className="rd-field-value">{user?.phone || t.unavailable}</p>
           </div>
 
           <div className="rd-field">
-            <span className="rd-field-label">Email Address</span>
-            <p className="rd-field-value">{user?.email || "Not specified"}</p>
+            <span className="rd-field-label">{t.email}</span>
+            <p className="rd-field-value">{user?.email || t.unspecified}</p>
           </div>
 
           <div className="rd-field">
-            <span className="rd-field-label">Beneficiary Type</span>
+            <span className="rd-field-label">{t.beneficiaryType}</span>
             <p className="rd-field-value" style={{ textTransform: "capitalize" }}>
-              {user?.receiverType || "Individual"}
+              {receiverTypeLabel}
             </p>
           </div>
 
           <div className="rd-field" style={{ gridColumn: "1 / -1" }}>
-            <span className="rd-field-label">Default Delivery Location</span>
+            <span className="rd-field-label">{t.deliveryLocation}</span>
             <p className="rd-field-value">
-              {user?.location?.address || "Address not specified"}
+              {user?.location?.address || t.addressUnspecified}
               {user?.location?.city ? `, ${user.location.city}` : ""}
               {user?.location?.pincode ? ` - ${user.location.pincode}` : ""}
             </p>
@@ -104,17 +152,21 @@ export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
         <div className="rd-card">
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <Building size={18} color="var(--forest)" />
-            <h3 className="rd-card-title" style={{ margin: 0 }}>Organization Verification</h3>
+            <h3 className="rd-card-title" style={{ margin: 0 }}>
+              {t.organizationVerification}
+            </h3>
           </div>
 
           <div className="rd-fields">
             <div className="rd-field">
-              <span className="rd-field-label">Registered Name</span>
+              <span className="rd-field-label">{t.registeredName}</span>
               <p className="rd-field-value">{user.organization.orgName}</p>
             </div>
             <div className="rd-field">
-              <span className="rd-field-label">Registration / Society No.</span>
-              <p className="rd-field-value">{user.organization.regNumber || "Pending submission"}</p>
+              <span className="rd-field-label">{t.registrationNumber}</span>
+              <p className="rd-field-value">
+                {user.organization.regNumber || t.pendingSubmission}
+              </p>
             </div>
           </div>
         </div>
@@ -124,19 +176,19 @@ export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
       <div className="rd-card">
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
           <Bell size={18} color="var(--forest)" />
-          <h3 className="rd-card-title" style={{ margin: 0 }}>Notification Alerts</h3>
+          <h3 className="rd-card-title" style={{ margin: 0 }}>{t.notifications}</h3>
         </div>
 
         <div className="rd-toggle-row">
           <div>
-            <p className="rd-toggle-title">Volunteer Match Alerts</p>
-            <p className="rd-toggle-desc">Get instant notification when a donor or volunteer accepts your request</p>
+            <p className="rd-toggle-title">{t.volunteerAlerts}</p>
+            <p className="rd-toggle-desc">{t.volunteerDescription}</p>
           </div>
           <button
             type="button"
             role="switch"
             aria-checked={appNotifs}
-            aria-label="Toggle App notifications"
+            aria-label={t.toggleApp}
             onClick={() => handleToggleApp(!appNotifs)}
             className="rd-switch"
           />
@@ -144,14 +196,14 @@ export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
 
         <div className="rd-toggle-row">
           <div>
-            <p className="rd-toggle-title">SMS & Delivery Updates</p>
-            <p className="rd-toggle-desc">Receive real-time OTP and dispatch updates on your registered phone</p>
+            <p className="rd-toggle-title">{t.deliveryUpdates}</p>
+            <p className="rd-toggle-desc">{t.deliveryDescription}</p>
           </div>
           <button
             type="button"
             role="switch"
             aria-checked={emailNotifs}
-            aria-label="Toggle Email notifications"
+            aria-label={t.toggleEmail}
             onClick={() => handleToggleEmail(!emailNotifs)}
             className="rd-switch"
           />
@@ -167,7 +219,7 @@ export const AccountTab: React.FC<AccountTabProps> = ({ user, onLogout }) => {
         className="rd-btn rd-btn-outline rd-btn-block rd-logout"
         style={{ marginTop: "8px" }}
       >
-        <LogOut size={16} /> Log Out of Account
+        <LogOut size={16} /> {t.logout}
       </button>
     </section>
   );

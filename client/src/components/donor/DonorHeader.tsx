@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
+  Languages,
 } from "lucide-react";
 import { DonorTab, DonorNotification } from "./types";
 
@@ -40,6 +41,13 @@ export const DonorHeader: React.FC<DonorHeaderProps> = ({
 
   const hi = language === "hi";
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const toggleLanguage = () => {
+    const next = language === "en" ? "hi" : "en";
+    setLanguage(next);
+    try { localStorage.setItem("sahara-language", next); } catch { /* storage may be unavailable */ }
+    window.dispatchEvent(new CustomEvent("sahara-language-change", { detail: next }));
+  };
 
   useEffect(() => {
     const syncLanguage = (event?: Event) => {
@@ -117,12 +125,19 @@ export const DonorHeader: React.FC<DonorHeaderProps> = ({
       </div>
 
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-        }}
+        style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}
       >
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="sd-btn sd-btn-outline sd-btn-sm"
+          title={hi ? "भाषा बदलें" : "Change language"}
+          aria-label={hi ? "Switch to English" : "हिंदी में बदलें"}
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}
+        >
+          <Languages size={16} />
+          {hi ? "English" : "हिंदी"}
+        </button>
         <button
           type="button"
           onClick={onRefresh}

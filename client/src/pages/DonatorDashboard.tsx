@@ -100,13 +100,26 @@ export default function DonatorDashboard() {
     document.documentElement.lang = language === "hi" ? "hi" : "en";
   }, [language]);
 
-  const toggleLanguage = () => {
-    const next = language === "en" ? "hi" : "en";
-    setLanguage(next);
-    localStorage.setItem("sahara-language", next);
-    document.documentElement.lang = next === "hi" ? "hi" : "en";
-    window.dispatchEvent(new CustomEvent("sahara-language-change", { detail: next }));
-  };
+  useEffect(() => {
+    const syncLanguage = (event?: Event) => {
+      const detail = (event as CustomEvent<string> | undefined)?.detail;
+      let stored: string | null = null;
+      try {
+        stored = localStorage.getItem("sahara-language");
+      } catch {
+        // Keep the current language if storage is unavailable.
+      }
+      const next = detail === "hi" || (!detail && stored === "hi") ? "hi" : "en";
+      setLanguage(next);
+    };
+
+    window.addEventListener("sahara-language-change", syncLanguage);
+    window.addEventListener("storage", syncLanguage);
+    return () => {
+      window.removeEventListener("sahara-language-change", syncLanguage);
+      window.removeEventListener("storage", syncLanguage);
+    };
+  }, []);
 
   // Navigation & UI state
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -258,14 +271,6 @@ export default function DonatorDashboard() {
 
   return (
     <div className="sd" lang={language === "hi" ? "hi" : "en"}>
-      <button
-        type="button"
-        onClick={toggleLanguage}
-        aria-label={language === "en" ? "Switch language to Hindi" : "भाषा English में बदलें"}
-        style={{ position: "fixed", top: 16, right: 18, zIndex: 1001, border: "1px solid #cbd5d1", borderRadius: 10, padding: "8px 12px", background: "#ffffff", color: "#0b5563", fontWeight: 600, cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
-      >
-        {t.language}
-      </button>
       {/* Toast Notification Banner */}
       {toast && (
         <div
@@ -322,6 +327,7 @@ export default function DonatorDashboard() {
         <main className="sd-main">
           {activeTab === "Overview" && (
             <OverviewTab
+              language={language}
               userName={userName}
               stats={stats}
               categoryDistribution={categoryDistribution}
@@ -348,6 +354,7 @@ export default function DonatorDashboard() {
               userLocation={user?.location}
               needPrefill={needPrefill}
               onClearPrefill={() => setNeedPrefill(null)}
+              language={language}
             />
           )}
 
@@ -360,6 +367,7 @@ export default function DonatorDashboard() {
               onEditDonation={setEditingDonation}
               onPostClick={() => setActiveTab("Post Donation")}
               onRefresh={() => loadDashboardData(true)}
+              language={language}
             />
           )}
 
@@ -370,6 +378,7 @@ export default function DonatorDashboard() {
               onViewNeed={setSelectedNeed}
               onFulfillNeed={handleFulfillNeed}
               onRefresh={() => loadDashboardData(true)}
+              language={language}
             />
           )}
 
@@ -377,6 +386,7 @@ export default function DonatorDashboard() {
             <AccountTab
               user={user}
               onLogout={logout}
+              language={language}
             />
           )}
         </main>
