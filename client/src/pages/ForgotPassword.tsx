@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 export default function ForgotPassword() {
-  const [language, setLanguage] = useState<"en" | "hi">("en");
+  const [language, setLanguage] = useState<"en" | "hi">(() => {
+    const saved = localStorage.getItem("sahara-language");
+    return saved === "hi" ? "hi" : "en";
+  });
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -26,6 +29,63 @@ export default function ForgotPassword() {
       login: "लॉगिन",
       signup: "साइन अप",
     },
+  };
+
+  const content = {
+    en: {
+      tagline: "A little help goes a long way",
+      title: <>Reset your<br />SAHARA password.</>,
+      intro: "Forgot your password? It happens. Follow a simple, secure process to regain access to your account and continue making a difference in your community.",
+      features: ["Support Communities", "Help People", "Build a Better Tomorrow", "Safe & Secure"],
+      cardTitle: "Forgot Your Password?",
+      cardSubtitle: "No worries! We'll help you get back into your account.",
+      reset: "Reset",
+      email: "Email Address",
+      placeholder: "Enter your registered email",
+      hint: "Make sure you use the email linked to your account.",
+      sending: "Sending Reset Link...",
+      send: "Send Reset Link",
+      safe: "Your information is kept safe and secure.",
+      remember: "Remember your password?",
+      login: "Login →",
+      noAccount: "Don't have an account?",
+      register: "Register →",
+      footer: "© 2026 SAHARA • Give • Help • Build Communities • Together",
+      requestError: "Unable to process your request. Please try again.",
+      fallbackMessage: "If an account exists with this email, you will receive a password reset link shortly.",
+      fallbackError: "Something went wrong. Please try again.",
+      toggle: "हिन्दी",
+    },
+    hi: {
+      tagline: "छोटी-सी मदद भी बड़ा बदलाव ला सकती है",
+      title: <>अपना SAHARA<br />पासवर्ड रीसेट करें।</>,
+      intro: "पासवर्ड भूल गए? कोई बात नहीं। अपने अकाउंट का दोबारा उपयोग करने और समुदाय की मदद जारी रखने के लिए इस आसान और सुरक्षित प्रक्रिया का पालन करें।",
+      features: ["समुदायों का सहयोग करें", "लोगों की मदद करें", "बेहतर कल बनाएँ", "सुरक्षित और भरोसेमंद"],
+      cardTitle: "पासवर्ड भूल गए?",
+      cardSubtitle: "चिंता न करें! हम आपके अकाउंट तक दोबारा पहुँचने में मदद करेंगे।",
+      reset: "रीसेट",
+      email: "ईमेल पता",
+      placeholder: "अपना पंजीकृत ईमेल दर्ज करें",
+      hint: "अपने अकाउंट से जुड़े ईमेल पते का ही उपयोग करें।",
+      sending: "रीसेट लिंक भेजा जा रहा है...",
+      send: "रीसेट लिंक भेजें",
+      safe: "आपकी जानकारी सुरक्षित रखी जाती है।",
+      remember: "पासवर्ड याद है?",
+      login: "लॉगिन करें →",
+      noAccount: "अकाउंट नहीं है?",
+      register: "रजिस्टर करें →",
+      footer: "© 2026 SAHARA • दान • मदद • समुदाय निर्माण • साथ मिलकर",
+      requestError: "आपका अनुरोध पूरा नहीं हो सका। कृपया दोबारा प्रयास करें।",
+      fallbackMessage: "यदि इस ईमेल से अकाउंट जुड़ा है, तो आपको जल्द ही पासवर्ड रीसेट लिंक मिलेगा।",
+      fallbackError: "कुछ गलत हो गया। कृपया दोबारा प्रयास करें।",
+      toggle: "English",
+    },
+  }[language];
+
+  const toggleLanguage = () => {
+    const next = language === "en" ? "hi" : "en";
+    setLanguage(next);
+    localStorage.setItem("sahara-language", next);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -56,14 +116,12 @@ export default function ForgotPassword() {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            "Unable to process your request. Please try again."
+          data.message || content.requestError
         );
       }
 
       setMessage(
-        data.message ||
-          "If an account exists with this email, you will receive a password reset link shortly."
+        data.message || content.fallbackMessage
       );
 
       setEmail("");
@@ -71,7 +129,7 @@ export default function ForgotPassword() {
       setError(
         err instanceof Error
           ? err.message
-          : "Something went wrong. Please try again."
+          : content.fallbackError
       );
     } finally {
       setLoading(false);
@@ -83,9 +141,7 @@ export default function ForgotPassword() {
       {/* Shared SAHARA Navbar */}
       <Navbar
         language={language}
-        toggleLanguage={() =>
-          setLanguage((current) => (current === "en" ? "hi" : "en"))
-        }
+        toggleLanguage={toggleLanguage}
         t={{ nav: navContent[language] }}
       />
 
@@ -95,19 +151,15 @@ export default function ForgotPassword() {
         <section className="mx-auto w-full max-w-xl">
           <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#CDE6D3] bg-white px-4 py-2 text-sm font-semibold text-[#287B53] shadow-sm">
             <span>💚</span>
-            A little help goes a long way
+            {content.tagline}
           </p>
 
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-[#086474] sm:text-5xl lg:text-6xl">
-            Reset your
-            <br />
-            SAHARA password.
+            {content.title}
           </h1>
 
           <p className="mt-5 max-w-lg text-base leading-7 text-[#647780] sm:text-lg">
-            Forgot your password? It happens. Follow a simple, secure
-            process to regain access to your account and continue
-            making a difference in your community.
+            {content.intro}
           </p>
 
           {/* Donation Illustration */}
@@ -146,10 +198,10 @@ export default function ForgotPassword() {
           {/* Feature Cards */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
-              ["💚", "Support Communities"],
-              ["🤝", "Help People"],
-              ["🌱", "Build a Better Tomorrow"],
-              ["✓", "Safe & Secure"],
+              ["💚", content.features[0]],
+              ["🤝", content.features[1]],
+              ["🌱", content.features[2]],
+              ["✓", content.features[3]],
             ].map(([icon, title]) => (
               <div
                 key={title}
@@ -177,17 +229,16 @@ export default function ForgotPassword() {
               <div className="mb-8 flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-extrabold tracking-tight text-[#29353B] sm:text-3xl">
-                    Forgot Your Password?
+                    {content.cardTitle}
                   </h2>
 
                   <p className="mt-2 leading-6 text-[#71818A]">
-                    No worries! We'll help you get back into your
-                    account.
+                    {content.cardSubtitle}
                   </p>
                 </div>
 
                 <span className="shrink-0 rounded-full border border-[#B7DFBC] bg-[#EAF6EC] px-3 py-2 text-xs font-bold uppercase tracking-wide text-[#086474] sm:text-sm">
-                  Reset
+                  {content.reset}
                 </span>
               </div>
 
@@ -222,7 +273,7 @@ export default function ForgotPassword() {
                     htmlFor="reset-email"
                     className="mb-2 block text-sm font-semibold text-[#34434A]"
                   >
-                    Email Address{" "}
+                    {content.email}{" "}
                     <span className="text-red-500">*</span>
                   </label>
 
@@ -237,7 +288,7 @@ export default function ForgotPassword() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your registered email"
+                      placeholder={content.placeholder}
                       autoComplete="email"
                       required
                       className="min-w-0 flex-1 bg-transparent py-4 text-sm text-[#26343A] outline-none placeholder:text-[#8A9AA5] sm:text-base"
@@ -245,8 +296,7 @@ export default function ForgotPassword() {
                   </div>
 
                   <p className="mt-2 text-xs leading-5 text-[#71818A]">
-                    Make sure you use the email linked to your
-                    account.
+                    {content.hint}
                   </p>
                 </div>
 
@@ -260,11 +310,11 @@ export default function ForgotPassword() {
                       <span className="animate-spin" aria-hidden="true">
                         ◌
                       </span>
-                      Sending Reset Link...
+                      {content.sending}
                     </>
                   ) : (
                     <>
-                      Send Reset Link{" "}
+                      {content.send}{" "}
                       <span aria-hidden="true">→</span>
                     </>
                   )}
@@ -277,26 +327,26 @@ export default function ForgotPassword() {
               <div className="space-y-3 text-center">
                 <p className="text-sm text-[#71818A]">
                   <span aria-hidden="true">🔒</span>{" "}
-                  Your information is kept safe and secure.
+                  {content.safe}
                 </p>
 
                 <p className="text-sm text-[#71818A]">
-                  Remember your password?{" "}
+                  {content.remember}{" "}
                   <Link
                     to="/login"
                     className="font-bold text-[#078C96] transition hover:text-[#075A6A] hover:underline"
                   >
-                    Login →
+                    {content.login}
                   </Link>
                 </p>
 
                 <p className="text-sm text-[#71818A]">
-                  Don't have an account?{" "}
+                  {content.noAccount}{" "}
                   <Link
                     to="/register"
                     className="font-bold text-[#078C96] transition hover:text-[#075A6A] hover:underline"
                   >
-                    Register →
+                    {content.register}
                   </Link>
                 </p>
               </div>
@@ -307,8 +357,7 @@ export default function ForgotPassword() {
 
       {/* Footer */}
       <footer className="border-t border-[#DCE8E1] bg-white/70 px-4 py-5 text-center text-xs text-[#71818A] sm:text-sm">
-        © 2026 SAHARA &nbsp;•&nbsp; Give &nbsp;•&nbsp; Help &nbsp;•&nbsp;
-        Build Communities &nbsp;•&nbsp; Together
+        {content.footer}
       </footer>
     </div>
   );

@@ -63,6 +63,7 @@ interface FieldProps {
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   icon: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  language: Language;
 }
 
 const Field: React.FC<FieldProps> = ({
@@ -76,7 +77,8 @@ const Field: React.FC<FieldProps> = ({
   autoComplete,
   inputMode,
   icon,
-  onChange
+  onChange,
+  language
 }) => {
   const [visible, setVisible] = useState(false);
   const isPassword = type === 'password';
@@ -108,9 +110,9 @@ const Field: React.FC<FieldProps> = ({
             type="button"
             className="lg-field__toggle"
             onClick={() => setVisible(prev => !prev)}
-            aria-label={visible ? 'Hide password' : 'Show password'}
+            aria-label={language === 'hi' ? (visible ? 'पासवर्ड छिपाएँ' : 'पासवर्ड दिखाएँ') : (visible ? 'Hide password' : 'Show password')}
           >
-            {visible ? 'Hide' : 'Show'}
+            {language === 'hi' ? (visible ? 'छिपाएँ' : 'दिखाएँ') : (visible ? 'Hide' : 'Show')}
           </button>
         )}
       </div>
@@ -126,12 +128,21 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login, loading } = useAuth();
 
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('sahara-language');
+    return saved === 'hi' ? 'hi' : 'en';
+  });
   const [form, setForm] = useState<LoginForm>({ phone: '', password: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
 
   const t = loginTranslations[language];
+
+  const toggleLanguage = () => {
+    const nextLanguage: Language = language === 'en' ? 'hi' : 'en';
+    setLanguage(nextLanguage);
+    localStorage.setItem('sahara-language', nextLanguage);
+  };
 
   const errorText = (name: FieldName) => {
     const key = errors[name];
@@ -177,7 +188,7 @@ const Login: React.FC = () => {
     <div className="login">
       <Navbar
         language={language}
-        toggleLanguage={() => setLanguage(current => (current === 'en' ? 'hi' : 'en'))}
+        toggleLanguage={toggleLanguage}
       />
 
       <main className="login__main">
@@ -235,6 +246,7 @@ const Login: React.FC = () => {
               autoComplete="username"
               error={errorText('phone')}
               onChange={handleChange}
+              language={language}
             />
 
             <Field
@@ -247,6 +259,7 @@ const Login: React.FC = () => {
               autoComplete="current-password"
               error={errorText('password')}
               onChange={handleChange}
+              language={language}
             />
 
             {serverError && (
@@ -280,8 +293,9 @@ const Login: React.FC = () => {
       </main>
 
       <footer className="login__footer">
-        © 2026 SAHARA &nbsp;•&nbsp; Give &nbsp;•&nbsp; Help &nbsp;•&nbsp; Build Communities
-        &nbsp;•&nbsp; Together
+        {language === 'hi'
+          ? '© 2026 SAHARA • दान करें • सहायता करें • समुदाय बनाएँ • साथ मिलकर'
+          : '© 2026 SAHARA • Give • Help • Build Communities • Together'}
       </footer>
     </div>
   );

@@ -184,6 +184,7 @@ interface FieldProps {
   autoComplete?: string;
   wide?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  language?: Language;
 }
 
 const Field: React.FC<FieldProps> = ({
@@ -196,7 +197,8 @@ const Field: React.FC<FieldProps> = ({
   maxLength,
   autoComplete,
   wide,
-  onChange
+  onChange,
+  language = 'en'
 }) => {
   const [visible, setVisible] = useState(false);
   const isPassword = type === 'password';
@@ -223,9 +225,9 @@ const Field: React.FC<FieldProps> = ({
             type="button"
             className="field__toggle"
             onClick={() => setVisible(prev => !prev)}
-            aria-label={visible ? 'Hide password' : 'Show password'}
+            aria-label={visible ? (language === 'hi' ? 'पासवर्ड छिपाएँ' : 'Hide password') : (language === 'hi' ? 'पासवर्ड दिखाएँ' : 'Show password')}
           >
-            {visible ? 'Hide' : 'Show'}
+            {visible ? (language === 'hi' ? 'छिपाएँ' : 'Hide') : (language === 'hi' ? 'दिखाएँ' : 'Show')}
           </button>
         )}
       </div>
@@ -240,13 +242,21 @@ const Field: React.FC<FieldProps> = ({
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { register, loading } = useAuth();
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('sahara-language');
+    return saved === 'hi' ? 'hi' : 'en';
+  });
   const [intent, setIntent] = useState<Intent>('donor');
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
 
   const t = translations[language];
+  const toggleLanguage = () => {
+    const nextLanguage: Language = language === 'en' ? 'hi' : 'en';
+    setLanguage(nextLanguage);
+    localStorage.setItem('sahara-language', nextLanguage);
+  };
   const isReceiver = intent === 'receiver';
   const isOrganization = isReceiver && form.receiverType === 'organization';
   const showOnBehalf = isReceiver && form.receiverType !== 'organization';
@@ -315,7 +325,7 @@ const Register: React.FC = () => {
     <div className="register">
       <Navbar
         language={language}
-        toggleLanguage={() => setLanguage(current => (current === 'en' ? 'hi' : 'en'))}
+        toggleLanguage={toggleLanguage}
       />
 
       <main className="register__main">
@@ -535,6 +545,7 @@ const Register: React.FC = () => {
                 label={t.labels.password}
                 name="password"
                 type="password"
+                language={language}
                 value={form.password}
                 placeholder={t.placeholders.password}
                 autoComplete="new-password"
@@ -545,6 +556,7 @@ const Register: React.FC = () => {
                 label={t.labels.confirmPassword}
                 name="confirmPassword"
                 type="password"
+                language={language}
                 value={form.confirmPassword}
                 placeholder={t.placeholders.confirmPassword}
                 autoComplete="new-password"
@@ -574,8 +586,9 @@ const Register: React.FC = () => {
       </main>
 
       <footer className="register__footer">
-        © 2026 SAHARA &nbsp;•&nbsp; Give &nbsp;•&nbsp; Help &nbsp;•&nbsp; Build Communities
-        &nbsp;•&nbsp; Together
+        {language === 'hi'
+          ? '© 2026 SAHARA • दें • सहायता करें • समुदाय बनाएँ • साथ मिलकर'
+          : '© 2026 SAHARA • Give • Help • Build Communities • Together'}
       </footer>
     </div>
   );

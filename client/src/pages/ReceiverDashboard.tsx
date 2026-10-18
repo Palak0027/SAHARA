@@ -43,6 +43,38 @@ const initialStats: ReceiverStats = {
 export default function ReceiverDashboard() {
   const { user, logout } = useAuth();
 
+  // Language preference (shared localStorage key used by other pages)
+  const [language, setLanguage] = useState<"en" | "hi">(() =>
+    localStorage.getItem("sahara-language") === "hi" ? "hi" : "en"
+  );
+  useEffect(() => {
+    document.documentElement.lang = language === "hi" ? "hi" : "en";
+  }, [language]);
+
+  const toggleLanguage = () => {
+    const next = language === "en" ? "hi" : "en";
+    setLanguage(next);
+    localStorage.setItem("sahara-language", next);
+    document.documentElement.lang = next === "hi" ? "hi" : "en";
+    window.dispatchEvent(new CustomEvent("sahara-language-change", { detail: next }));
+  };
+  const text = {
+    en: { language: "हिन्दी", loadingError: "Unable to refresh some dashboard data",
+      newDonation: "New Surplus Donation Ready", outForDelivery: "Out for Delivery",
+      requestMatched: "Request Matched", recent: "Recent", today: "Today",
+      categoryCreated: (name: string) => `Category "${name}" created successfully!`,
+      needSubmitted: "Need request submitted successfully! Donors and volunteers can now see your requirement.",
+      needCancelled: "Need request cancelled successfully.", needUpdated: "Need request updated successfully!",
+      cancelFailed: "Failed to cancel request", matchConfirmed: "Match confirmed! Delivery scheduled." },
+    hi: { language: "English", loadingError: "डैशबोर्ड का कुछ डेटा रीफ़्रेश नहीं हो सका",
+      newDonation: "अतिरिक्त दान उपलब्ध है", outForDelivery: "डिलीवरी के लिए रवाना",
+      requestMatched: "अनुरोध का मिलान हो गया", recent: "हाल ही में", today: "आज",
+      categoryCreated: (name: string) => `श्रेणी "${name}" सफलतापूर्वक बनाई गई!`,
+      needSubmitted: "ज़रूरत का अनुरोध सफलतापूर्वक भेज दिया गया! अब दानदाता और स्वयंसेवक आपकी आवश्यकता देख सकते हैं।",
+      needCancelled: "ज़रूरत का अनुरोध रद्द कर दिया गया।", needUpdated: "ज़रूरत का अनुरोध सफलतापूर्वक अपडेट हुआ!",
+      cancelFailed: "अनुरोध रद्द नहीं हो सका", matchConfirmed: "मिलान की पुष्टि हो गई! डिलीवरी निर्धारित है।" }
+  }[language];
+
   // Navigation & UI state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ReceiverTab>("Overview");
@@ -110,7 +142,7 @@ export default function ReceiverDashboard() {
         setSmartMatches(matchesRes.value.matches || []);
       }
     } catch {
-      showToast("Unable to refresh some dashboard data", "error");
+      showToast(text.loadingError, "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -125,9 +157,9 @@ export default function ReceiverDashboard() {
   const notifications: ReceiverNotification[] = [
     ...availableDonations.slice(0, 2).map((d) => ({
       id: `avail-${d._id}`,
-      title: "New Surplus Donation Ready",
+      title: text.newDonation,
       message: `"${d.title}" (${d.quantity} ${d.unit}) is available in ${d.location?.city || "nearby area"}`,
-      time: "Recent",
+      time: text.recent,
       type: "info" as const,
       read: false,
     })),
@@ -135,9 +167,9 @@ export default function ReceiverDashboard() {
       .filter((n) => ["matched", "accepted", "in_transit"].includes(n.status))
       .map((n) => ({
         id: `need-${n._id}`,
-        title: n.status === "in_transit" ? "Out for Delivery" : "Request Matched",
+        title: n.status === "in_transit" ? text.outForDelivery : text.requestMatched,
         message: `Your request "${n.title}" has been ${n.status === "in_transit" ? "dispatched with a volunteer" : "matched with a donor"}`,
-        time: "Today",
+        time: text.today,
         type: "success" as const,
         read: false,
       })),
@@ -150,11 +182,11 @@ export default function ReceiverDashboard() {
 
   const handleCategoryCreated = (newCat: CategoryItem) => {
     setCategories((prev) => [newCat, ...prev]);
-    showToast(`Category "${newCat.name}" created successfully!`);
+    showToast(text.categoryCreated(newCat.name));
   };
 
   const handleNeedCreated = () => {
-    showToast("Need request submitted successfully! Donors and volunteers can now see your requirement.");
+    showToast(text.needSubmitted);
     loadDashboardData(true);
     setActiveTab("My Requests");
   };
@@ -224,7 +256,15 @@ export default function ReceiverDashboard() {
   const openNeedsCount = myNeeds.filter((n) => n.status === "open").length;
 
   return (
-    <div className="rd">
+    <div className="rd" lang={language === "hi" ? "hi" : "en"}>
+      <button
+        type="button"
+        onClick={toggleLanguage}
+        aria-label={language === "en" ? "Switch language to Hindi" : "भाषा अंग्रेज़ी में बदलें"}
+        style={{ position: "fixed", top: "16px", right: "18px", zIndex: 1200, border: "1px solid #cbd5d1", borderRadius: "10px", background: "#ffffff", color: "#0b5563", padding: "8px 13px", fontWeight: 700, cursor: "pointer", boxShadow: "0 3px 12px rgba(0,0,0,0.08)" }}
+      >
+        {text.language}
+      </button>
       {/* Toast Notification Banner */}
       {toast && (
         <div
@@ -365,11 +405,11 @@ export default function ReceiverDashboard() {
           onCancelNeed={async (id) => {
             try {
               await receiverApi.updateNeed(id, { status: "cancelled" });
-              showToast("Need request cancelled successfully.");
+              showToast(text.needCancelled);
               setSelectedNeed(null);
               loadDashboardData(true);
             } catch (err: any) {
-              alert(err?.message || "Failed to cancel request");
+              alert(err?.message || text.cancelFailed);
             }
           }}
         />
@@ -381,7 +421,7 @@ export default function ReceiverDashboard() {
           need={editingNeed}
           onClose={() => setEditingNeed(null)}
           onSuccess={() => {
-            showToast("Need request updated successfully!");
+            showToast(text.needUpdated);
             loadDashboardData(true);
           }}
         />
@@ -398,7 +438,7 @@ export default function ReceiverDashboard() {
           initialMode={matchToConfirm.logistics?.recommendedMode || "volunteer_delivery"}
           currentRole="receiver"
           onConfirmSuccess={(res) => {
-            showToast(res.message || "Match confirmed! Delivery scheduled.");
+            showToast(res.message || text.matchConfirmed);
             loadDashboardData(true);
           }}
         />
