@@ -337,8 +337,8 @@ const Register: React.FC = () => {
       <main className="register__main">
         {/* Left: welcome + photo + features */}
         <section className="intro">
-          <h2 className="intro__title">{t.welcome}</h2>
-          <p className="intro__text">{t.welcomeText}</p>
+          {/* <h2 className="intro__title">{t.welcome}</h2> */}
+          {/* <p className="intro__text">{t.welcomeText}</p> */}
 
           <div className="photo">
             <span className="photo__frame" aria-hidden="true" />
@@ -352,7 +352,7 @@ const Register: React.FC = () => {
             />
             <span className="photo__shade" aria-hidden="true" />
             <span className="photo__badge" aria-hidden="true">
-              <HandHeartIcon size={24} />
+              <HandHeartIcon size={18} />
             </span>
             <span className="photo__tags" aria-hidden="true">
               <GiftIcon size={16} />
@@ -378,8 +378,8 @@ const Register: React.FC = () => {
         {/* Right: form */}
         <section className={`card${isReceiver ? ' card--receiver' : ''}`}>
           <div className="card__head">
-            <h2 className="card__title">{t.title}</h2>
-            <p className="card__subtitle">{t.subtitle}</p>
+            {/* <h2 className="card__title">{t.title}</h2> */}
+            {/* <p className="card__subtitle">{t.subtitle}</p> */}
           </div>
 
           <div className="tabs" role="tablist">
@@ -596,9 +596,9 @@ const Register: React.FC = () => {
           </div>
 
           <div className="card__foot">
-            <p className="card__secure">
+            {/* <p className="card__secure">
               <LockIcon size={14} /> {t.secureNote}
-            </p>
+            </p> */}
             <p className="card__login">
               {t.alreadyAccount} <Link to="/login">{t.login}</Link>
             </p>
