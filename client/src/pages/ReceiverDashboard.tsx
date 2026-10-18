@@ -343,7 +343,8 @@ export default function ReceiverDashboard() {
               loading={loading}
               onViewDonation={setSelectedDonation}
               onRequestDonation={handleRequestDonation}
-              onRefresh={() => loadDashboardData(true)}
+              onRefresh={() => void loadDashboardData(true)}
+              language={language}
             />
           )}
 
@@ -384,7 +385,6 @@ export default function ReceiverDashboard() {
         </main>
       </div>
 
-      {/* Donation Details Modal */}
       {selectedDonation && (
         <DonationDetailsModal
           donation={selectedDonation}
@@ -393,7 +393,6 @@ export default function ReceiverDashboard() {
         />
       )}
 
-      {/* Need Details Modal */}
       {selectedNeed && (
         <NeedDetailsModal
           need={selectedNeed}
@@ -415,7 +414,6 @@ export default function ReceiverDashboard() {
         />
       )}
 
-      {/* Edit Need Modal */}
       {editingNeed && (
         <EditNeedModal
           need={editingNeed}

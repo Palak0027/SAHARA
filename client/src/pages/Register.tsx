@@ -17,6 +17,7 @@ import {
 import { translations, type ErrorKey, type Language } from './translations';
 import { useAuth, type RegisterData } from '../context/AuthContext';
 import '../styles/Register.css';
+import ContactUs from "./ContactUs";
 
 /* ---------- Types ---------- */
 
