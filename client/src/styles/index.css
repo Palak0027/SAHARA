@@ -195,12 +195,14 @@
     border-radius: 1.5rem;
     padding: 1.75rem;
     border: 1px solid rgba(255, 255, 255, 0.75);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease-in-out;
   }
 
   .category-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-7px);
     box-shadow: 0 18px 40px rgba(47, 85, 71, 0.1);
+    border-top: 5px solid #6f8f78;
+    border-bottom: 5px solid orange;
   }
 
   .food-card {
@@ -335,4 +337,21 @@ table {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+ul li a{
+  
+ transition: all 0.3s ease-in-out;
+ text-decoration: none;
+ 
+ color: black;
+ display: inline-block;
+ font-weight: 500;
+ font-size:medium;
+  }
+ul li a:hover{
+  color: green;
+  text-decoration: 2px solid underline rgb(22, 22, 22);
+  font-weight: 500;
+   font-size:16px;
+transform: translateY(-2px);
 }
