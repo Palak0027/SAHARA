@@ -188,6 +188,10 @@ export default function AppRoutes() {
         path="/about"
         element={<AboutUs />}
       />
+      <Route
+        path="/contact"
+        element={<ContactUs />}
+      />
 
       {/* FORGOT PASSWORD */}
 

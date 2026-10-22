@@ -18,6 +18,7 @@ const needRoutes = require('./routes/need.routes');
 const impactRoutes = require('./routes/impact.routes');
 const adminRoutes = require('./routes/admin.routes');
 const matchRoutes = require('./routes/match.routes');
+const contactRoutes = require('./routes/contact.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,15 +26,21 @@ const PORT = process.env.PORT || 5000;
 // Security & parsing middlewares
 app.use(helmet());
 const allowedOrigins = [
-  process.env.CORS_ORIGIN || 'http://localhost:5173',
-  ...(process.env.NODE_ENV === 'production'
-    ? []
-    : ['http://localhost:5173', 'http://localhost:5174'])
-];
+  process.env.CORS_ORIGIN,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000'
+].filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin, matched origins, or any Vercel domain
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin)
+      ) {
         return callback(null, true);
       }
       const error = new Error(`Origin ${origin} is not allowed by CORS`);
@@ -63,6 +70,7 @@ app.use('/api/needs', needRoutes);
 app.use('/api/impact', impactRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/matches', matchRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Unknown routes
 app.use((req, res) => {

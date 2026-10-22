@@ -60,7 +60,14 @@ async function forgotPassword(req, res, next) {
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save();
-      return next(mailError);
+      
+      const isConfigError = mailError.message && mailError.message.includes('Email service is not configured');
+      return res.status(isConfigError ? 503 : 500).json({
+        success: false,
+        message: isConfigError
+          ? 'Email service is not configured in backend/.env. Please configure Gmail SMTP or use Phone OTP reset.'
+          : 'Failed to send password reset email. Please try again later or use Phone OTP reset.'
+      });
     }
 
     return res.status(200).json({ success: true, message: GENERIC_MESSAGE });
@@ -104,4 +111,86 @@ async function resetPassword(req, res, next) {
   }
 }
 
-module.exports = { forgotPassword, resetPassword };
+/**
+ * Check if a user with given 10-digit phone number exists
+ */
+async function checkPhone(req, res, next) {
+  try {
+    const phone = typeof req.body.phone === 'string' ? req.body.phone.trim() : '';
+
+    if (!phone || !/^[0-9]{10}$/.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid 10-digit mobile number.'
+      });
+    }
+
+    const user = await User.findOne({ phone });
+    if (!user || !user.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'No registered active account found with this mobile number.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Account verified.',
+      name: user.name,
+      phone: user.phone
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Reset password via Phone OTP verification
+ */
+async function resetPasswordWithPhone(req, res, next) {
+  try {
+    const { phone, password } = req.body;
+
+    if (!phone || !/^[0-9]{10}$/.test(String(phone).trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid 10-digit mobile number is required.'
+      });
+    }
+
+    if (typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long.'
+      });
+    }
+
+    const user = await User.findOne({ phone: String(phone).trim() });
+    if (!user || !user.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'User account not found or is currently inactive.'
+      });
+    }
+
+    user.passwordHash = await bcrypt.hash(password, 10);
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset successfully! You can now log in with your new password.'
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = {
+  forgotPassword,
+  resetPassword,
+  checkPhone,
+  resetPasswordWithPhone
+};
+
