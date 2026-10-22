@@ -62,7 +62,7 @@ export default function ForgotPassword() {
       tagline: "A little help goes a long way",
       title: "Reset your SAHARA password.",
       remember: "Remember your password?",
-      login: "Login →",
+      login: "Login",
       noAccount: "Don't have an account?",
       register: "Register →",
     },
@@ -350,14 +350,18 @@ export default function ForgotPassword() {
                 </span>
               </div>
             ))}
-          </div>
+          </ul>
         </section>
 
-        {/* Forgot Password Card */}
-        <section className="mx-auto w-full max-w-xl">
-          <div className="overflow-hidden rounded-[28px] border border-[#DCE8E1] bg-white shadow-[0_24px_65px_rgba(8,100,116,0.12)]">
-            {/* Gradient Top Border */}
-            <div className="h-1.5 bg-gradient-to-r from-[#4CAF50] via-[#168F91] to-[#086474]" />
+        {/* Right: forgot password card */}
+        <section className="fp-card">
+          <div className="fp-card__head">
+            <div>
+              <h2 className="fp-card__title">{content.cardTitle}</h2>
+              <p className="fp-card__subtitle">{content.cardSubtitle}</p>
+            </div>
+            <span className="fp-card__badge">{content.reset}</span>
+          </div>
 
             <div className="p-6 sm:p-9 lg:p-10">
               <div className="mb-6 flex items-start justify-between gap-3">
@@ -373,6 +377,16 @@ export default function ForgotPassword() {
                 <span className="shrink-0 rounded-full border border-[#B7DFBC] bg-[#EAF6EC] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#086474]">
                   Secure
                 </span>
+                <input
+                  id="reset-email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={content.placeholder}
+                  autoComplete="email"
+                  required
+                />
               </div>
 
               {/* Recovery Method Tabs */}

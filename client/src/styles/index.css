@@ -141,7 +141,7 @@
     height: auto;
   }
 
-  /* Don't force Lucide SVG icons to auto height; Tailwind sets their dimensions. */
+ 
   svg {
     max-width: 100%;
   }

@@ -1,3 +1,9 @@
+
+const dns = require('node:dns');
+
+// Configure DNS servers for MongoDB Atlas SRV resolution
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 const path = require('path');
 const dotenv = require('dotenv');
 
@@ -25,6 +31,7 @@ const PORT = process.env.PORT || 5000;
 
 // Security & parsing middlewares
 app.use(helmet());
+
 const allowedOrigins = [
   process.env.CORS_ORIGIN,
   'http://localhost:5173',
@@ -43,6 +50,7 @@ app.use(
       ) {
         return callback(null, true);
       }
+
       const error = new Error(`Origin ${origin} is not allowed by CORS`);
       error.statusCode = 403;
       return callback(error);
@@ -50,6 +58,7 @@ app.use(
     credentials: true
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -74,10 +83,13 @@ app.use('/api/contact', contactRoutes);
 
 // Unknown routes
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route not found: ${req.originalUrl}` });
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.originalUrl}`
+  });
 });
 
-// Centralized error handler (must stay after all routes)
+// Centralized error handler
 app.use(errorHandler);
 
 const startServer = async () => {

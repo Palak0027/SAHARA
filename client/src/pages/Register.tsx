@@ -1,7 +1,7 @@
-import volunteersImg from '../components/image/volunteers.jpg';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import logoImg from '../components/image/volunteers.jpg';
 import {
   GiftIcon,
   HandHeartIcon,
@@ -17,7 +17,6 @@ import {
 import { translations, type ErrorKey, type Language } from './translations';
 import { useAuth, type RegisterData } from '../context/AuthContext';
 import '../styles/Register.css';
-import ContactUs from "./ContactUs";
 
 /* ---------- Types ---------- */
 
@@ -196,7 +195,6 @@ interface FieldProps {
   autoComplete?: string;
   wide?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  language?: Language;
 }
 
 const Field: React.FC<FieldProps> = ({
@@ -209,8 +207,7 @@ const Field: React.FC<FieldProps> = ({
   maxLength,
   autoComplete,
   wide,
-  onChange,
-  language = 'en'
+  onChange
 }) => {
   const [visible, setVisible] = useState(false);
   const isPassword = type === 'password';
@@ -237,10 +234,8 @@ const Field: React.FC<FieldProps> = ({
             type="button"
             className="field__toggle"
             onClick={() => setVisible(prev => !prev)}
-            aria-label={visible ? (language === 'hi' ? 'पासवर्ड छिपाएँ' : 'Hide password') : (language === 'hi' ? 'पासवर्ड दिखाएँ' : 'Show password')}
+            aria-label={visible ? 'Hide password' : 'Show password'}
           >
-            {visible ? (language === 'hi' ? 'छिपाएँ' : 'Hide') : (language === 'hi' ? 'दिखाएँ' : 'Show')}
-
             {visible ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
           </button>
         )}
@@ -261,21 +256,13 @@ const Field: React.FC<FieldProps> = ({
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { register, loading } = useAuth();
-  const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('sahara-language');
-    return saved === 'hi' ? 'hi' : 'en';
-  });
+  const [language, setLanguage] = useState<Language>('en');
   const [intent, setIntent] = useState<Intent>('donor');
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
 
   const t = translations[language];
-  const toggleLanguage = () => {
-    const nextLanguage: Language = language === 'en' ? 'hi' : 'en';
-    setLanguage(nextLanguage);
-    localStorage.setItem('sahara-language', nextLanguage);
-  };
   const isReceiver = intent === 'receiver';
   const isOrganization = isReceiver && form.receiverType === 'organization';
   const showOnBehalf = isReceiver && form.receiverType !== 'organization';
@@ -344,7 +331,7 @@ const Register: React.FC = () => {
     <div className="register">
       <Navbar
         language={language}
-        toggleLanguage={toggleLanguage}
+        toggleLanguage={() => setLanguage(current => (current === 'en' ? 'hi' : 'en'))}
       />
 
       <main className="register__main">
@@ -357,7 +344,7 @@ const Register: React.FC = () => {
             <span className="photo__frame" aria-hidden="true" />
             <img
               className="photo__img"
-             src={volunteersImg}
+              src={logoImg}
               alt="Volunteers packing donated food together"
               onError={e => {
                 e.currentTarget.style.display = 'none';
@@ -573,7 +560,6 @@ const Register: React.FC = () => {
                 label={t.labels.password}
                 name="password"
                 type="password"
-                language={language}
                 value={form.password}
                 placeholder={t.placeholders.password}
                 autoComplete="new-password"
@@ -584,7 +570,6 @@ const Register: React.FC = () => {
                 label={t.labels.confirmPassword}
                 name="confirmPassword"
                 type="password"
-                language={language}
                 value={form.confirmPassword}
                 placeholder={t.placeholders.confirmPassword}
                 autoComplete="new-password"
@@ -620,12 +605,6 @@ const Register: React.FC = () => {
           </div>
         </section>
       </main>
-
-      <footer className="register__footer">
-        {language === 'hi'
-          ? '© 2026 SAHARA • दें • सहायता करें • समुदाय बनाएँ • साथ मिलकर'
-          : '© 2026 SAHARA • Give • Help • Build Communities • Together'}
-      </footer>
     </div>
   );
 };
