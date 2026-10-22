@@ -456,7 +456,6 @@ export default function ReceiverDashboard() {
         openNeedsCount={openNeedsCount}
         availableDonationsCount={availableDonations.length}
         onLogout={logout}
-        language={language}
       />
 
       <div className="rd-shell">
@@ -467,8 +466,6 @@ export default function ReceiverDashboard() {
           onRefresh={() => void loadDashboardData(true)}
           refreshing={refreshing}
           notifications={notifications}
-          language={language}
-          onToggleLanguage={toggleLanguage}
         />
 
         <main className="rd-main">

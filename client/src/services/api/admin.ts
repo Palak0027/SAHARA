@@ -243,5 +243,36 @@ export const adminApi = {
   }) => http.post<{ success: boolean; message: string; task: any }>("/api/admin/dispatch", payload),
 
   getTasks: (params?: { status?: string; page?: number; limit?: number }) =>
-    http.get<AdminTasksResponse>("/api/admin/tasks", { params })
+    http.get<AdminTasksResponse>("/api/admin/tasks", { params }),
+
+  getContactMessages: (params?: { status?: string; search?: string; page?: number; limit?: number }) =>
+    http.get<AdminContactMessagesResponse>("/api/contact", { params }),
+
+  updateContactStatus: (id: string, payload: { status?: "unread" | "read" | "resolved"; adminNotes?: string }) =>
+    http.patch<{ success: boolean; message: string; data: ContactMessageItem }>(`/api/contact/${id}`, payload),
+
+  deleteContactMessage: (id: string) =>
+    http.delete<{ success: boolean; message: string }>(`/api/contact/${id}`)
 };
+
+export interface ContactMessageItem {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  status: "unread" | "read" | "resolved";
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminContactMessagesResponse {
+  success: boolean;
+  total: number;
+  unreadCount: number;
+  page: number;
+  messages: ContactMessageItem[];
+}
+

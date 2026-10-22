@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   HeartHandshake,
@@ -199,7 +198,7 @@ const ContactUs: React.FC = () => {
       setLoading(true);
 
       const baseUrl = (
-        import.meta.env.VITE_API_BASE_URL || ""
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
       ).replace(/\/$/, "");
 
       const response = await fetch(`${baseUrl}/api/contact`, {
