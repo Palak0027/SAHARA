@@ -56,23 +56,11 @@ export default function Navbar({
   };
 
   const sections = [
-    { label: nav.home, to: "/", hash: "" },
-    { label: nav.about, to: "/#about", hash: "#about" },
-    {
-      label: nav.how,
-      to: "/#how-it-works",
-      hash: "#how-it-works",
-    },
-    {
-      label: nav.explore,
-      to: "/#donations",
-      hash: "#donations",
-    },
-    {
-      label: nav.contact,
-      to: "/contact",
-      hash: "",
-    },
+  { label: nav.home, to: "/", hash: "" },
+  { label: nav.about, to: "/about", hash: "" },
+  { label: nav.how, to: "/how-it-works", hash: "" },
+  { label: nav.explore, to: "/donations", hash: "" },
+  { label: nav.contact, to: "/contact", hash: "" },
   ];
 
   useEffect(() => {
@@ -98,16 +86,18 @@ export default function Navbar({
   }, [pathname, hash, key]);
 
   const isActive = (item: (typeof sections)[number]) => {
-    if (item.to === "/contact") {
-      return pathname === "/contact";
+    // Home is active only on the homepage, not on every link with an empty hash.
+    if (item.to === "/") {
+      return pathname === "/" && !hash;
     }
 
-    return pathname === "/" && hash === item.hash;
+    // Each standalone page is active only when its own route is open.
+    return pathname === item.to;
   };
 
   const linkClass = (item: (typeof sections)[number]) =>
-    `nav-link !text-black transition-colors ${
-      isActive(item) ? "active !text-black" : ""
+    `nav-link !text-black !no-underline transition-colors ${
+      isActive(item) ? "active !text-black !no-underline" : "!no-underline"
     }`;
 
   const closeMenu = () => setMenuOpen(false);

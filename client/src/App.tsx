@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -6,8 +7,9 @@ import DonationCategories from "./components/DonationCategories";
 import Footer from "./components/Footer";
 import Hero from "./components/Hero";
 import HowItWorks from "./components/HowItWorks";
- 
 import Navbar from "./components/Navbar";
+
+type Language = "en" | "hi";
 
 const homepageContent = {
   en: {
@@ -18,9 +20,7 @@ const homepageContent = {
       explore: "Explore donations",
       login: "Login",
       signup: "Sign up",
-      // English
       contact: "Contact Us",
-
     },
     hero: {
       badge: "Small help can make a big difference",
@@ -44,17 +44,20 @@ const homepageContent = {
       explore: "Explore all",
       food: {
         title: "Food",
-        description: "Share fresh meals and essential groceries with people nearby.",
+        description:
+          "Share fresh meals and essential groceries with people nearby.",
         button: "Donate food",
       },
       clothes: {
         title: "Clothes",
-        description: "Give good-quality clothing a second life in your community.",
+        description:
+          "Give good-quality clothing a second life in your community.",
         button: "Donate clothes",
       },
       medicine: {
         title: "Medicine",
-        description: "Help make essential medicines available to those who need them.",
+        description:
+          "Help make essential medicines available to those who need them.",
         button: "Coming soon",
         tag: "Coming soon",
       },
@@ -66,24 +69,29 @@ const homepageContent = {
         "A few simple steps bring useful donations to the people who need them.",
       step1: {
         title: "Share a donation",
-        description: "Tell the community what useful items you can give.",
+        description:
+          "Tell the community what useful items you can give.",
       },
       step2: {
         title: "Connect nearby",
-        description: "Find a person or family who can use your donation.",
+        description:
+          "Find a person or family who can use your donation.",
       },
       step3: {
         title: "Arrange delivery",
-        description: "Coordinate a convenient and safe way to hand it over.",
+        description:
+          "Coordinate a convenient and safe way to hand it over.",
       },
       step4: {
         title: "Make an impact",
-        description: "Help useful things reach someone in your community.",
+        description:
+          "Help useful things reach someone in your community.",
       },
     },
     location: {
       title: "Find help in your community",
-      description: "Explore donations and people near your location.",
+      description:
+        "Explore donations and people near your location.",
       placeholder: "Enter your city or pincode",
       search: "Search",
     },
@@ -98,6 +106,7 @@ const homepageContent = {
         "Connecting caring communities through sharing, support and everyday acts of kindness.",
     },
   },
+
   hi: {
     nav: {
       home: "होम",
@@ -106,7 +115,6 @@ const homepageContent = {
       explore: "दान देखें",
       login: "लॉगिन",
       signup: "साइन अप",
-      // Hindi
       contact: "संपर्क करें",
     },
     hero: {
@@ -131,17 +139,20 @@ const homepageContent = {
       explore: "सभी देखें",
       food: {
         title: "खाना",
-        description: "ताजा भोजन और जरूरी राशन आसपास के लोगों के साथ साझा करें।",
+        description:
+          "ताजा भोजन और जरूरी राशन आसपास के लोगों के साथ साझा करें।",
         button: "खाना दान करें",
       },
       clothes: {
         title: "कपड़े",
-        description: "अच्छी स्थिति के कपड़ों को समुदाय में नया उपयोग दें।",
+        description:
+          "अच्छी स्थिति के कपड़ों को समुदाय में नया उपयोग दें।",
         button: "कपड़े दान करें",
       },
       medicine: {
         title: "दवाइयां",
-        description: "जरूरतमंद लोगों तक जरूरी दवाइयां पहुंचाने में मदद करें।",
+        description:
+          "जरूरतमंद लोगों तक जरूरी दवाइयां पहुंचाने में मदद करें।",
         button: "जल्द आ रहा है",
         tag: "जल्द आ रहा है",
       },
@@ -149,27 +160,33 @@ const homepageContent = {
     how: {
       label: "आसान और सार्थक",
       title: "SAHARA कैसे काम करता है",
-      description: "कुछ आसान कदमों से आपका दान जरूरतमंद लोगों तक पहुंचता है।",
+      description:
+        "कुछ आसान कदमों से आपका दान जरूरतमंद लोगों तक पहुंचता है।",
       step1: {
         title: "दान साझा करें",
-        description: "बताएं कि आप समुदाय को कौन-सी उपयोगी चीजें दे सकते हैं।",
+        description:
+          "बताएं कि आप समुदाय को कौन-सी उपयोगी चीजें दे सकते हैं।",
       },
       step2: {
         title: "पास के लोगों से जुड़ें",
-        description: "ऐसे व्यक्ति या परिवार को खोजें जिन्हें आपके दान की जरूरत है।",
+        description:
+          "ऐसे व्यक्ति या परिवार को खोजें जिन्हें आपके दान की जरूरत है।",
       },
       step3: {
         title: "डिलीवरी तय करें",
-        description: "सामान पहुंचाने का सुविधाजनक और सुरक्षित तरीका तय करें।",
+        description:
+          "सामान पहुंचाने का सुविधाजनक और सुरक्षित तरीका तय करें।",
       },
       step4: {
         title: "बदलाव लाएं",
-        description: "उपयोगी चीजों को अपने समुदाय के लोगों तक पहुंचाएं।",
+        description:
+          "उपयोगी चीजों को अपने समुदाय के लोगों तक पहुंचाएं।",
       },
     },
     location: {
       title: "अपने समुदाय में मदद खोजें",
-      description: "अपने आसपास के दान और लोगों को देखें।",
+      description:
+        "अपने आसपास के दान और लोगों को देखें।",
       placeholder: "शहर या पिनकोड दर्ज करें",
       search: "खोजें",
     },
@@ -187,18 +204,75 @@ const homepageContent = {
 };
 
 export default function App() {
-  const [language, setLanguage] = useState<"en" | "hi">("en");
+  const [language, setLanguage] = useState<Language>(() => {
+    return localStorage.getItem("sahara-language") === "hi"
+      ? "hi"
+      : "en";
+  });
+
   const { pathname, hash } = useLocation();
   const t = homepageContent[language];
 
+  // Keep the homepage language synchronized with other pages.
+  useEffect(() => {
+    const syncLanguage = (event: Event) => {
+      const detail = (event as CustomEvent<Language>).detail;
+
+      const savedLanguage = localStorage.getItem("sahara-language");
+
+      const nextLanguage: Language =
+        detail === "en" || detail === "hi"
+          ? detail
+          : savedLanguage === "hi"
+            ? "hi"
+            : "en";
+
+      setLanguage(nextLanguage);
+    };
+
+    window.addEventListener(
+      "sahara-language-change",
+      syncLanguage
+    );
+
+    window.addEventListener("storage", syncLanguage);
+
+    return () => {
+      window.removeEventListener(
+        "sahara-language-change",
+        syncLanguage
+      );
+
+      window.removeEventListener("storage", syncLanguage);
+    };
+  }, []);
+
+  // Persist the language when the user changes it on the homepage.
+  const toggleLanguage = () => {
+    const nextLanguage: Language =
+      language === "en" ? "hi" : "en";
+
+    localStorage.setItem("sahara-language", nextLanguage);
+    setLanguage(nextLanguage);
+
+    window.dispatchEvent(
+      new CustomEvent<Language>("sahara-language-change", {
+        detail: nextLanguage,
+      })
+    );
+  };
+
+  // Preserve homepage section scrolling.
   useEffect(() => {
     if (pathname !== "/" || !hash) return;
 
     const frame = window.requestAnimationFrame(() => {
-      document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      document
+        .getElementById(decodeURIComponent(hash.slice(1)))
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
     });
 
     return () => window.cancelAnimationFrame(frame);
@@ -208,18 +282,20 @@ export default function App() {
     <div className="home-page">
       <Navbar
         language={language}
-        toggleLanguage={() =>
-          setLanguage((current) => (current === "en" ? "hi" : "en"))
-        }
+        toggleLanguage={toggleLanguage}
         t={t}
       />
+
       <main>
         <Hero language={language} t={t} />
+
         <DonationCategories t={t} />
+
         <HowItWorks t={t} />
-       
+
         <CTA t={t} />
       </main>
+
       <Footer t={t} />
     </div>
   );

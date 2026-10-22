@@ -3,15 +3,16 @@ import type { ReactNode, ElementType } from "react";
 import {
   CheckCircle, AlertTriangle, X, LayoutDashboard, Users, ShieldCheck, Package,
   ClipboardList, UserCheck, BarChart3, UserCog, Inbox, LogOut, Menu, RefreshCw,
-  Send, Search, Check, XCircle, UserPlus, Clock,
+  Send, Search, Check, XCircle, UserPlus, Clock, Mail
 } from "lucide-react";
 
 import logoImg from "../components/image/sahara-logo.jpeg";
 import { useAuth } from "../context/AuthContext";
-import { adminApi, type AdminStatsResponse } from "../services/api/admin";
+import { adminApi, type AdminStatsResponse, type ContactMessageItem } from "../services/api/admin";
+import { MessagesTab } from "../components/admin/tabs/MessagesTab";
 import "../styles/AdminDashboard.css";  
 
-type Tab = "Overview" | "Users" | "Verifications" | "Donations" | "Requests" | "Volunteers" | "Reports" | "Account";
+type Tab = "Overview" | "Users" | "Verifications" | "Donations" | "Requests" | "Volunteers" | "Reports" | "Messages" | "Account";
 type NavItem = { label: Tab; icon: ElementType; badge?: number };
 
 /* ============================================================
@@ -148,6 +149,7 @@ const SUBTITLES: Record<string, string> = {
   Requests: "Needs raised by the community",
   Volunteers: "Your on-ground team",
   Reports: "Numbers that matter",
+  Messages: "Contact inquiries from website visitors",
   Account: "Your admin profile",
 };
 
@@ -879,6 +881,8 @@ export default function AdminDashboard() {
   const [needsList, setNeedsList] = useState<any[]>([]);
   const [volunteersList, setVolunteersList] = useState<any[]>([]);
   const [tasksList, setTasksList] = useState<any[]>([]);
+  const [messagesList, setMessagesList] = useState<ContactMessageItem[]>([]);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
 
   // Search & Filter States
   const [userSearch, setUserSearch] = useState("");
@@ -927,7 +931,7 @@ export default function AdminDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsRes, usersRes, verifRes, donRes, needsRes, volRes, tasksRes] =
+      const [statsRes, usersRes, verifRes, donRes, needsRes, volRes, tasksRes, msgRes] =
         await Promise.all([
           adminApi.getStats().catch(() => null),
           adminApi.getUsers({ limit: 50 }).catch(() => null),
@@ -935,7 +939,8 @@ export default function AdminDashboard() {
           adminApi.getDonations({ limit: 50 }).catch(() => null),
           adminApi.getNeeds({ limit: 50 }).catch(() => null),
           adminApi.getVolunteers().catch(() => null),
-          adminApi.getTasks({ limit: 50 }).catch(() => null)
+          adminApi.getTasks({ limit: 50 }).catch(() => null),
+          adminApi.getContactMessages({ limit: 100 }).catch(() => null)
         ]);
 
       if (statsRes?.success) setStats(statsRes.stats);
@@ -945,6 +950,10 @@ export default function AdminDashboard() {
       if (needsRes?.success) setNeedsList(needsRes.needs);
       if (volRes?.success) setVolunteersList(volRes.volunteers);
       if (tasksRes?.success) setTasksList(tasksRes.tasks);
+      if (msgRes?.success) {
+        setMessagesList(msgRes.messages);
+        setUnreadMessagesCount(msgRes.unreadCount || 0);
+      }
     } catch (err: any) {
       showAlert("error", err?.message || "Failed to load admin data");
     } finally {
@@ -979,9 +988,14 @@ export default function AdminDashboard() {
       { label: "Requests", icon: ClipboardList },
       { label: "Volunteers", icon: UserCheck },
       { label: "Reports", icon: BarChart3 },
+      {
+        label: "Messages",
+        icon: Mail,
+        badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined
+      },
       { label: "Account", icon: UserCog }
     ],
-    [pendingVerificationsCount]
+    [pendingVerificationsCount, unreadMessagesCount]
   );
 
   // User status toggle (Block / Activate)
@@ -1318,6 +1332,51 @@ export default function AdminDashboard() {
             <ReportsTab
               verificationsList={verificationsList}
               pendingVerificationsCount={pendingVerificationsCount}
+            />
+          )}
+
+          {activeTab === "Messages" && (
+            <MessagesTab
+              messagesList={messagesList}
+              onUpdateStatus={async (id, status) => {
+                setActionLoading(true);
+                try {
+                  const res = await adminApi.updateContactStatus(id, { status });
+                  if (res.success) {
+                    setMessagesList((prev) =>
+                      prev.map((m) => (m._id === id ? { ...m, status } : m))
+                    );
+                    setUnreadMessagesCount((prev) => {
+                      const updated = messagesList.map((m) => (m._id === id ? { ...m, status } : m));
+                      return updated.filter((m) => m.status === "unread").length;
+                    });
+                    showAlert("success", "Message status updated");
+                  }
+                } catch (err: any) {
+                  showAlert("error", err?.message || "Failed to update status");
+                } finally {
+                  setActionLoading(false);
+                }
+              }}
+              onDeleteMessage={async (id) => {
+                setActionLoading(true);
+                try {
+                  const res = await adminApi.deleteContactMessage(id);
+                  if (res.success) {
+                    setMessagesList((prev) => prev.filter((m) => m._id !== id));
+                    setUnreadMessagesCount((prev) => {
+                      const updated = messagesList.filter((m) => m._id !== id);
+                      return updated.filter((m) => m.status === "unread").length;
+                    });
+                    showAlert("success", "Message deleted successfully");
+                  }
+                } catch (err: any) {
+                  showAlert("error", err?.message || "Failed to delete message");
+                } finally {
+                  setActionLoading(false);
+                }
+              }}
+              actionLoading={actionLoading}
             />
           )}
 

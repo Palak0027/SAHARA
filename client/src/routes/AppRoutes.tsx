@@ -13,6 +13,9 @@ import DonatorDashboard from "../pages/DonatorDashboard";
 import ReceiverDashboard from "../pages/ReceiverDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
 import VolunteerDashboard from "../pages/VolunteerDashboard";
+import ExploreDonations from "../components/ExploreDonations";
+import HowItWorks from "../components/HowItWorks";
+import AboutUs from "../components/AboutUs";
 
 import {
   useAuth,
@@ -171,6 +174,23 @@ export default function AppRoutes() {
       <Route
         path="/register"
         element={<Register />}
+      />
+
+      <Route 
+        path="/donations" 
+        element={<ExploreDonations />} 
+      />
+      <Route 
+        path="/how-it-works" 
+        element={<HowItWorks />} 
+      />
+      <Route
+        path="/about"
+        element={<AboutUs />}
+      />
+      <Route
+        path="/contact"
+        element={<ContactUs />}
       />
 
       {/* FORGOT PASSWORD */}

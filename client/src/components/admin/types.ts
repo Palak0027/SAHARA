@@ -8,6 +8,7 @@ export type Tab =
   | "Requests"
   | "Volunteers"
   | "Reports"
+  | "Messages"
   | "Account";
 
 export interface NavItem {
