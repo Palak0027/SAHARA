@@ -3,11 +3,7 @@ import { Link } from "react-router-dom";
 import { Mail, MapPin } from "lucide-react";
 import logoImg from "./image/sahara-logo.jpeg"; // adjust if your logo lives elsewhere
 
-/*
-  Colors (SAHARA palette)
-  green  #4CAF50 | teal #087F8C | teal-dark #065A6B
-  bg     #F7FAF8 | text #263238 | muted #5F6F76 | border #DCE6E1
-*/
+ 
 
 type FooterProps = {
   t: {

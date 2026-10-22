@@ -91,7 +91,7 @@
   min-height: 150px;
   max-height: 300px;
   max-width: 540px;
-  margin: 0 16px 16px 0; /* room for the offset frame */
+  margin: 0 16px 16px 0;  
 }
 
 .photo__frame {
@@ -125,8 +125,8 @@
   position: absolute;
   top: -14px;
   left: -14px;
-  width: 54px;
-  height: 54px;
+  width: 45px;
+  height: 45px;
   display: grid;
   place-items: center;
   color: var(--teal);

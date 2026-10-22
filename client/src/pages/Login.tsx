@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImg from '../components/image/sahara-logo.jpeg';
 import Navbar from '../components/Navbar';
+import volunteersImg from '../components/image/volunteers.jpg';
+import {
+  GiftIcon,
+  HandHeartIcon,
+  HeartIcon,
+  UsersIcon,
+  SproutIcon,
+  ShieldCheckIcon,
+  LockIcon,
+  ArrowRightIcon,
+  EyeIcon,
+  EyeOffIcon
+} from '../components/Icons/Icons';
 import { loginTranslations, type Language, type LoginErrorKey } from './translations';
 import { useAuth, type UserRole } from '../context/AuthContext';
 import '../styles/Login.css';
@@ -18,9 +30,27 @@ const ROLE_ROUTES: Record<UserRole, string> = {
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/* Decorative, language-neutral icons (food, clothes, books, blankets) */
-const FEATURE_ICONS = ['💚', '🤝', '🌿', '✓'];
-const CATEGORY_CHIPS = ['🍞', '👕', '📚', '🧣'];
+/* One icon per feature (same order as t.features) */
+const FEATURE_ICONS = [HeartIcon, HandHeartIcon, SproutIcon, ShieldCheckIcon];
+
+/* Small local icon for the phone / email field */
+const UserIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
 
 /* ---------- Types ---------- */
 
@@ -61,7 +91,7 @@ interface FieldProps {
   maxLength?: number;
   autoComplete?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
-  icon: string;
+  icon: React.ReactNode;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   language: Language;
 }
@@ -82,6 +112,11 @@ const Field: React.FC<FieldProps> = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const isPassword = type === 'password';
+
+  const toggleLabel =
+    language === 'hi'
+      ? visible ? 'पासवर्ड छिपाएँ' : 'पासवर्ड दिखाएँ'
+      : visible ? 'Hide password' : 'Show password';
 
   return (
     <div className={`lg-field${error ? ' lg-field--error' : ''}`}>
@@ -110,14 +145,19 @@ const Field: React.FC<FieldProps> = ({
             type="button"
             className="lg-field__toggle"
             onClick={() => setVisible(prev => !prev)}
-            aria-label={language === 'hi' ? (visible ? 'पासवर्ड छिपाएँ' : 'पासवर्ड दिखाएँ') : (visible ? 'Hide password' : 'Show password')}
+            aria-label={toggleLabel}
           >
-            {language === 'hi' ? (visible ? 'छिपाएँ' : 'दिखाएँ') : (visible ? 'Hide' : 'Show')}
+            {visible ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
           </button>
         )}
       </div>
 
-      {error && <span className="lg-field__error">{error}</span>}
+      {/* Absolutely positioned in CSS, so an error never moves the layout */}
+      {error && (
+        <span className="lg-field__error" title={error}>
+          {error}
+        </span>
+      )}
     </div>
   );
 };
@@ -186,42 +226,43 @@ const Login: React.FC = () => {
 
   return (
     <div className="login">
-      <Navbar
-        language={language}
-        toggleLanguage={toggleLanguage}
-      />
+      <Navbar language={language} toggleLanguage={toggleLanguage} />
 
       <main className="login__main">
-        {/* Left: welcome + logo card */}
+        {/* Left: welcome + photo + features */}
         <section className="lg-intro">
           <h2 className="lg-intro__title">{t.welcome}</h2>
           <p className="lg-intro__text">{t.welcomeText}</p>
 
-          <div className="lg-intro__hero">
-            <div className="lg-logo">
-              <span className="lg-logo__ring" aria-hidden="true" />
-              <div className="lg-logo__disc">
-                <img src={logoImg} alt="SAHARA – Give what you can, get what you need" />
-              </div>
-
-              {CATEGORY_CHIPS.map((emoji, index) => (
-                <span key={emoji} className={`lg-chip lg-chip--${index + 1}`} aria-hidden="true">
-                  {emoji}
-                </span>
-              ))}
-            </div>
+          <div className="lg-photo">
+            <span className="lg-photo__frame" aria-hidden="true" />
+            <img
+              className="lg-photo__img"
+              src={volunteersImg}
+              alt="Volunteers packing donated food together"
+            />
+            <span className="lg-photo__shade" aria-hidden="true" />
+            <span className="lg-photo__badge" aria-hidden="true">
+              <HandHeartIcon size={24} />
+            </span>
+            <span className="lg-photo__tags" aria-hidden="true">
+              <GiftIcon size={16} />
+              <HeartIcon size={16} />
+              <UsersIcon size={16} />
+            </span>
+            <p className="lg-photo__caption">“{t.quote}”</p>
           </div>
 
           <ul className="lg-intro__features">
-            {FEATURE_ICONS.map((icon, index) => (
-              <li key={icon}>
-                <span className="lg-intro__icon" aria-hidden="true">{icon}</span>
+            {FEATURE_ICONS.map((Icon, index) => (
+              <li key={index}>
+                <span className="lg-intro__icon">
+                  <Icon size={18} />
+                </span>
                 <span>{t.features[index]}</span>
               </li>
             ))}
           </ul>
-
-          <p className="lg-intro__quote">“{t.quote}”</p>
         </section>
 
         {/* Right: login form */}
@@ -236,7 +277,7 @@ const Login: React.FC = () => {
 
           <form className="lg-form" onSubmit={handleSubmit} noValidate>
             <Field
-              icon="📱"
+              icon={<UserIcon />}
               label={t.labels.phone}
               name="phone"
               type="text"
@@ -250,7 +291,7 @@ const Login: React.FC = () => {
             />
 
             <Field
-              icon="🔑"
+              icon={<LockIcon size={18} />}
               label={t.labels.password}
               name="password"
               type="password"
@@ -273,30 +314,26 @@ const Login: React.FC = () => {
                 t.loggingIn
               ) : (
                 <>
-                  {t.loginBtn} <span aria-hidden="true">→</span>
+                  {t.loginBtn} <ArrowRightIcon size={18} />
                 </>
               )}
             </button>
           </form>
 
           <div className="lg-card__foot">
-            <p className="lg-card__secure">🔒 {t.secureNote}</p>
-            <p className="lg-card__register">
-              {/* TODO: point this to your real forgot-password route */}
-              {t.forgotaccount} <Link to="/forgot-password">{t.Password1} →</Link>
+            <p className="lg-card__secure">
+              <LockIcon size={14} /> {t.secureNote}
             </p>
             <p className="lg-card__register">
-              {t.noAccount} <Link to="/register">{t.register} →</Link>
+              {/* TODO: point this to your real forgot-password route */}
+              {t.forgotaccount} <Link to="/forgot-password">{t.Password1}</Link>
+            </p>
+            <p className="lg-card__register">
+              {t.noAccount} <Link to="/register">{t.register}</Link>
             </p>
           </div>
         </section>
       </main>
-
-      <footer className="login__footer">
-        {language === 'hi'
-          ? '© 2026 SAHARA • दान करें • सहायता करें • समुदाय बनाएँ • साथ मिलकर'
-          : '© 2026 SAHARA • Give • Help • Build Communities • Together'}
-      </footer>
     </div>
   );
 };

@@ -105,7 +105,7 @@ function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, us
             <img src={logoImg} alt="SAHARA logo" className="ad-logo" />
             <div>
               <h1 className="ad-brand-name">SAHARA</h1>
-              <p className="ad-brand-tag">Admin Console</p>
+              <p className="ad-brand-tag">Admin Portal</p>
             </div>
           </div>
           <button className="ad-icon-btn-dark ad-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Close menu"><X size={20} /></button>
@@ -142,7 +142,7 @@ function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, us
    ============================================================ */
 const SUBTITLES: Record<string, string> = {
   Overview: " ",
-  Users: "Manage donors, receivers and volunteers",
+  Users: " ",
   Verifications: "Review organization requests",
   Donations: "Track and dispatch donations",
   Requests: "Needs raised by the community",

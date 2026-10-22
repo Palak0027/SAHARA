@@ -140,7 +140,7 @@ export default function Navbar({
         </Link>
 
         {/* Desktop navigation */}
-        <div className="hidden items-center gap-6 md:flex lg:gap-8">
+        <div className="hidden items-center gap-6 md:flex lg:gap-8 ">
           {sections.map((item) => (
             <Link
               key={item.to}

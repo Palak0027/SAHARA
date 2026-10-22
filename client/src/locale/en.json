@@ -2,7 +2,7 @@
   "brand": "SAHARA",
   "tagline": "Give what you can, help someone nearby.",
   "languageLabel": "Language",
-  "welcome": "Join the SAHARA community",
+  "welcome": "",
   "welcomeText": "Create an account and become part of a community where small acts of kindness create big smiles.",
   "features": [
     "Support Communities",
@@ -13,7 +13,7 @@
   "quote": "Together, we can build kinder, stronger communities.",
   "donorTab": "I Want to Donate",
   "receiverTab": "I Need Help / Resources",
-  "title": "Create Your Account",
+  "title": "",
   "subtitle": "Create your SAHARA profile and start making an impact.",
   "badge": "SIGN UP",
 
@@ -59,7 +59,7 @@
   "creating": "Creating account...",
   "alreadyAccount": "Already have an account?",
   "login": "Login",
-  "secureNote": "Your information is kept safe and secure.",
+  "secureNote": "",
 
   "successTitle": "Registration Successful!",
   "successMessage": "Welcome to SAHARA. Your account has been created successfully.",
@@ -112,7 +112,7 @@
     "forgotaccount": "Create a Password?",
     "Password1": "Forget Password",
     "register": "Register",
-    "secureNote": "Your information is kept safe and secure.",
+    "secureNote": " ",
     "errors": {
       "phoneRequired": "Phone number is required.",
       "phoneInvalid": "Enter a valid 10-digit phone number.",
