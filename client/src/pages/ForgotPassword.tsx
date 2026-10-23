@@ -1,13 +1,87 @@
-import { useState, useRef, type FormEvent } from "react";
+import React, { useState, useRef, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import volunteersImg from "../components/image/volunteers.jpg";
+import {
+  GiftIcon,
+  HandHeartIcon,
+  HeartIcon,
+  UsersIcon,
+  SproutIcon,
+  ShieldCheckIcon,
+  LockIcon,
+  ArrowRightIcon,
+  EyeIcon,
+  EyeOffIcon,
+} from "../components/Icons/Icons";
 import { firebaseAuth, isFirebaseConfigured } from "../services/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
+import "../styles/Login.css";
+
+/* Phone Icon component matching Login UserIcon */
+const PhoneFieldIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+  </svg>
+);
+
+const MailFieldIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+);
+
+const KeyFieldIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" />
+    <path d="m21 2-9.6 9.6" />
+    <circle cx="7.5" cy="15.5" r="5.5" />
+  </svg>
+);
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
-  const [language, setLanguage] = useState<"en" | "hi">("en");
-  const [resetMethod, setResetMethod] = useState<"email" | "phone">("phone");
+
+  const [language, setLanguage] = useState<"en" | "hi">(() => {
+    const saved = localStorage.getItem("sahara-language");
+    return saved === "hi" ? "hi" : "en";
+  });
+
+  const [resetMethod, setResetMethod] = useState<"phone" | "email">("email");
 
   // Email Flow States
   const [email, setEmail] = useState("");
@@ -15,8 +89,7 @@ export default function ForgotPassword() {
   const [emailMessage, setEmailMessage] = useState("");
   const [emailError, setEmailError] = useState("");
 
-  // Phone OTP Flow States
-  // Step 1 = Enter Phone, Step 2 = Enter OTP, Step 3 = Set New Password
+  // Phone OTP Flow States (Step 1 = Enter Phone, Step 2 = Enter OTP, Step 3 = Set New Password)
   const [phoneStep, setPhoneStep] = useState<1 | 2 | 3>(1);
   const [phone, setPhone] = useState("");
   const [userName, setUserName] = useState("");
@@ -36,46 +109,103 @@ export default function ForgotPassword() {
     import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
   ).replace(/\/$/, "");
 
-  const navContent = {
-    en: {
-      home: "Home",
-      about: "About",
-      how: "How it works",
-      explore: "Explore donations",
-      login: "Login",
-      signup: "Sign up",
-    },
-    hi: {
-      home: "होम",
-      about: "हमारे बारे में",
-      how: "कैसे काम करता है",
-      explore: "दान देखें",
-      login: "लॉगिन",
-      signup: "साइन अप",
-    },
+  const toggleLanguage = () => {
+    const next = language === "en" ? "hi" : "en";
+    setLanguage(next);
+    localStorage.setItem("sahara-language", next);
   };
 
-  const toggleLanguage = () => setLanguage((prev) => (prev === "en" ? "hi" : "en"));
-
-  const pageContent = {
+  // Translations
+  const t = {
     en: {
-      tagline: "A little help goes a long way",
-      title: "Reset your SAHARA password.",
+      welcomeTitle: "Reset your SAHARA password.",
+      welcomeText: "Don't worry, choose your preferred recovery method: instant SMS OTP or a secure email reset link.",
+      quote: "A little help goes a long way. Recover your account safely.",
+      features: [
+        "Instant Phone OTP",
+        "Email Reset Link",
+        "100% Free Recovery",
+        "End-to-End Secure",
+      ],
+      cardTitle: "Password Recovery",
+      cardSubtitle: "Choose how you want to reset your password",
+      secureBadge: "SECURE",
+      tabPhone: "Phone OTP",
+      tabEmail: "Gmail / Email",
+      step1: "1. Enter Phone",
+      step2: "2. Verify OTP",
+      step3: "3. New Password",
+      phoneLabel: "Registered Mobile Number",
+      phonePlaceholder: "Enter 10-digit mobile number",
+      sendOtpBtn: "Send OTP via SMS",
+      sendingOtp: "Sending OTP...",
+      otpLabel: "6-Digit SMS OTP Code",
+      otpPlaceholder: "Enter 6-digit OTP code",
+      verifyOtpBtn: "Verify Code & Proceed",
+      verifyingOtp: "Verifying Code...",
+      changePhone: "← Change number",
+      newPwdLabel: "New Password",
+      newPwdPlaceholder: "At least 6 characters",
+      confirmPwdLabel: "Confirm New Password",
+      confirmPwdPlaceholder: "Re-enter new password",
+      updatePwdBtn: "Update Password & Login",
+      updatingPwd: "Updating Password...",
+      emailLabel: "Registered Email Address",
+      emailPlaceholder: "Enter your registered email",
+      emailHelp: "We will send a 15-minute password reset link to this email.",
+      sendLinkBtn: "Send Reset Link",
+      sendingLink: "Sending Link...",
+      secureNote: "Your information is kept safe and encrypted.",
       remember: "Remember your password?",
-      login: "Login",
+      loginLink: "Login →",
       noAccount: "Don't have an account?",
-      register: "Register →",
+      registerLink: "Register →",
     },
     hi: {
-      tagline: "छोटी मदद बड़ा बदलाव ला सकती है",
-      title: "अपना सहारा पासवर्ड रीसेट करें।",
-      remember: "पासवर्ड याद है?",
-      login: "लॉगिन →",
+      welcomeTitle: "अपना सहारा पासवर्ड रीसेट करें।",
+      welcomeText: "चिंता न करें, अपना पसंदीदा तरीका चुनें: सुरक्षित ईमेल रीसेट लिंक या परीक्षण हेतु फोन OTP।",
+      quote: "सच्ची खुशी दूसरों की सेवा करने में है। अपना खाता सुरक्षित रूप से पुनर्प्राप्त करें।",
+      features: [
+        "ईमेल रीसेट लिंक",
+        "परीक्षण फोन OTP",
+        "100% मुफ़्त रिकवरी",
+        "सुरक्षित और एन्क्रिप्टेड",
+      ],
+      cardTitle: "खाता रिकवरी",
+      cardSubtitle: "पासवर्ड रीसेट करने का तरीका चुनें",
+      secureBadge: "सुरक्षित",
+      tabPhone: "फोन OTP (टेस्ट)",
+      tabEmail: "जीमेल / ईमेल",
+      step1: "1. मोबाइल नंबर",
+      step2: "2. OTP सत्यापन",
+      step3: "3. नया पासवर्ड",
+      phoneLabel: "पंजीकृत मोबाइल नंबर",
+      phonePlaceholder: "10 अंकों का मोबाइल नंबर दर्ज करें",
+      sendOtpBtn: "SMS द्वारा OTP भेजें",
+      sendingOtp: "OTP भेजा जा रहा है...",
+      otpLabel: "6 अंकों का SMS OTP कोड",
+      otpPlaceholder: "6 अंकों का OTP दर्ज करें",
+      verifyOtpBtn: "OTP सत्यापित करें",
+      verifyingOtp: "सत्यापन जारी है...",
+      changePhone: "← नंबर बदलें",
+      newPwdLabel: "नया पासवर्ड",
+      newPwdPlaceholder: "कम से कम 6 अक्षर",
+      confirmPwdLabel: "नए पासवर्ड की पुष्टि करें",
+      confirmPwdPlaceholder: "नया पासवर्ड दोबारा दर्ज करें",
+      updatePwdBtn: "पासवर्ड बदलें और लॉगिन करें",
+      updatingPwd: "पासवर्ड बदला जा रहा है...",
+      emailLabel: "पंजीकृत ईमेल पता",
+      emailPlaceholder: "अपना पंजीकृत ईमेल दर्ज करें",
+      emailHelp: "हम इस ईमेल पर 15 मिनट का पासवर्ड रीसेट लिंक भेजेंगे।",
+      sendLinkBtn: "रीसेट लिंक भेजें",
+      sendingLink: "लिंक भेजा जा रहा है...",
+      secureNote: "आपकी जानकारी 256-बिट एन्क्रिप्शन से सुरक्षित है।",
+      remember: "पासवर्ड याद आ गया?",
+      loginLink: "लॉगिन करें →",
       noAccount: "खाता नहीं है?",
-      register: "रजिस्टर →",
+      registerLink: "रजिस्टर करें →",
     },
-  };
-  const content = pageContent[language];
+  }[language];
 
   // ==========================================
   // METHOD 1: EMAIL-BASED RESET
@@ -108,9 +238,7 @@ export default function ForgotPassword() {
       setEmail("");
     } catch (err: unknown) {
       setEmailError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again."
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
       );
     } finally {
       setEmailLoading(false);
@@ -120,8 +248,6 @@ export default function ForgotPassword() {
   // ==========================================
   // METHOD 2: PHONE OTP-BASED RESET
   // ==========================================
-
-  // Step 1: Check phone in DB & Send OTP
   const handleSendOtp = async (e: FormEvent) => {
     e.preventDefault();
     setPhoneError("");
@@ -136,7 +262,6 @@ export default function ForgotPassword() {
     setPhoneLoading(true);
 
     try {
-      // 1. Verify that user exists in SAHARA database first
       const checkRes = await fetch(`${apiBaseUrl}/api/auth/check-phone`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -152,7 +277,6 @@ export default function ForgotPassword() {
 
       setUserName(checkData.name || "");
 
-      // 2. Send SMS OTP via Firebase if configured
       if (isFirebaseConfigured && firebaseAuth) {
         if (!recaptchaVerifierRef.current) {
           recaptchaVerifierRef.current = new RecaptchaVerifier(
@@ -160,9 +284,7 @@ export default function ForgotPassword() {
             "recaptcha-container",
             {
               size: "invisible",
-              callback: () => {
-                // reCAPTCHA solved
-              },
+              callback: () => { },
             }
           );
         }
@@ -176,9 +298,8 @@ export default function ForgotPassword() {
         confirmationResultRef.current = confirmation;
         setPhoneMessage(`SMS OTP sent successfully to +91 ${cleanPhone}.`);
       } else {
-        // Fallback / Development mode message
         setPhoneMessage(
-          `Account verified for ${checkData.name || "User"}! (Firebase credentials not yet in client/.env — Test OTP: 123456)`
+          `Account verified for ${checkData.name || "User"}! (Firebase test mode — Demo OTP: 123456)`
         );
       }
 
@@ -192,7 +313,6 @@ export default function ForgotPassword() {
     }
   };
 
-  // Step 2: Verify OTP code
   const handleVerifyOtp = async (e: FormEvent) => {
     e.preventDefault();
     setPhoneError("");
@@ -210,7 +330,6 @@ export default function ForgotPassword() {
       if (isFirebaseConfigured && confirmationResultRef.current) {
         await confirmationResultRef.current.confirm(cleanOtp);
       } else {
-        // Demo OTP verification fallback
         if (cleanOtp !== "123456") {
           throw new Error("Invalid OTP code. Please enter the correct code (or 123456 in test mode).");
         }
@@ -227,7 +346,6 @@ export default function ForgotPassword() {
     }
   };
 
-  // Step 3: Update New Password
   const handleResetPasswordWithPhone = async (e: FormEvent) => {
     e.preventDefault();
     setPhoneError("");
@@ -274,465 +392,460 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F9F6] text-[#26343A]">
+    <div className="login">
       {/* Invisible container for Firebase reCAPTCHA */}
       <div id="recaptcha-container"></div>
 
-      {/* Shared SAHARA Navbar */}
-      <Navbar
-        language={language}
-        toggleLanguage={toggleLanguage}
-        t={{ nav: navContent[language] }}
-      />
+      <Navbar language={language} toggleLanguage={toggleLanguage} />
 
-      {/* Main Content */}
-      <main className="mx-auto grid min-h-[calc(100vh-145px)] max-w-7xl items-center gap-10 px-5 py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-16">
-        {/* Left Branding Section */}
-        <section className="mx-auto w-full max-w-xl">
-          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#CDE6D3] bg-white px-4 py-2 text-sm font-semibold text-[#287B53] shadow-sm">
-            <span>💚</span>
-            {content.tagline}
-          </p>
+      <main className="login__main">
+        {/* Left: welcome + photo + features */}
+        <section className="lg-intro">
+          <h2 className="lg-intro__title">{t.welcomeTitle}</h2>
+          <p className="lg-intro__text">{t.welcomeText}</p>
 
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-[#086474] sm:text-5xl lg:text-6xl">
-            {content.title}
-          </h1>
-
-          <p className="mt-5 max-w-lg text-base leading-7 text-[#647780] sm:text-lg">
-            Forgot your password? Choose your preferred recovery method: Instant SMS OTP on your phone or a secure reset link to your email.
-          </p>
-
-          {/* Donation Illustration */}
-          <div className="relative mx-auto my-9 flex h-64 max-w-sm items-center justify-center sm:h-72">
-            <div className="absolute h-56 w-56 rounded-full border-2 border-dashed border-[#9CD5D6] sm:h-64 sm:w-64" />
-            <div className="absolute h-48 w-48 rounded-full bg-[#DFF1E4] sm:h-56 sm:w-56" />
-
-            <div className="relative flex h-40 w-40 flex-col items-center justify-center rounded-full border-[5px] border-[#4C9A42] bg-white shadow-[0_18px_40px_rgba(8,100,116,0.15)] sm:h-48 sm:w-48">
-              <span className="text-6xl sm:text-7xl">🤲</span>
-              <span className="mt-1 text-2xl font-black tracking-tight text-[#086474]">
-                SAHARA
-              </span>
-              <span className="mt-1 text-center text-[10px] font-semibold leading-4 text-[#287B53] sm:text-xs">
-                Give What You Can,
-                <br />
-                Get What You Need
-              </span>
-            </div>
-
-            <span className="absolute left-5 top-12 flex h-12 w-12 items-center justify-center rounded-full border border-[#DCE8E1] bg-white text-2xl shadow-md sm:left-8">
-              📦
+          <div className="lg-photo">
+            <span className="lg-photo__frame" aria-hidden="true" />
+            <img
+              className="lg-photo__img"
+              src={volunteersImg}
+              alt="Volunteers packing donated goods together"
+            />
+            <span className="lg-photo__shade" aria-hidden="true" />
+            <span className="lg-photo__badge" aria-hidden="true">
+              <HandHeartIcon size={24} />
             </span>
-            <span className="absolute right-5 top-16 flex h-12 w-12 items-center justify-center rounded-full border border-[#DCE8E1] bg-white text-2xl shadow-md sm:right-8">
-              👕
+            <span className="lg-photo__tags" aria-hidden="true">
+              <GiftIcon size={16} />
+              <HeartIcon size={16} />
+              <UsersIcon size={16} />
             </span>
-            <span className="absolute bottom-5 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border border-[#DCE8E1] bg-white text-2xl shadow-md">
-              🍲
-            </span>
+            <p className="lg-photo__caption">“{t.quote}”</p>
           </div>
 
-          {/* Feature Cards */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {[
-              ["📱", "Instant Phone OTP"],
-              ["✉️", "Email Link Option"],
-              ["🌱", "100% Free Recovery"],
-              ["🛡️", "Safe & Secure"],
-            ].map(([icon, title]) => (
-              <div
-                key={title}
-                className="flex min-h-[68px] items-center gap-3 rounded-2xl border border-[#DCE8E1] bg-white/85 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#E8F5EA] text-xl">
-                  {icon}
-                </span>
-                <span className="text-sm font-semibold text-[#26343A] sm:text-base">
-                  {title}
-                </span>
-              </div>
-            ))}
+          <ul className="lg-intro__features">
+            <li>
+              <span className="lg-intro__icon">
+                <ShieldCheckIcon size={18} />
+              </span>
+              <span>{t.features[0]}</span>
+            </li>
+            <li>
+              <span className="lg-intro__icon">
+                <HandHeartIcon size={18} />
+              </span>
+              <span>{t.features[1]}</span>
+            </li>
+            <li>
+              <span className="lg-intro__icon">
+                <SproutIcon size={18} />
+              </span>
+              <span>{t.features[2]}</span>
+            </li>
+            <li>
+              <span className="lg-intro__icon">
+                <LockIcon size={18} />
+              </span>
+              <span>{t.features[3]}</span>
+            </li>
           </ul>
         </section>
 
-        {/* Right: forgot password card */}
-        <section className="fp-card">
-          <div className="fp-card__head">
+        {/* Right: Recovery Card */}
+        <section className="lg-card">
+          <div className="lg-card__head">
             <div>
-              <h2 className="fp-card__title">{content.cardTitle}</h2>
-              <p className="fp-card__subtitle">{content.cardSubtitle}</p>
+              <h2 className="lg-card__title">{t.cardTitle}</h2>
+              <p className="lg-card__subtitle">{t.cardSubtitle}</p>
             </div>
-            <span className="fp-card__badge">{content.reset}</span>
+            <span className="lg-card__badge">{t.secureBadge}</span>
           </div>
 
-            <div className="p-6 sm:p-9 lg:p-10">
-              <div className="mb-6 flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-extrabold tracking-tight text-[#29353B] sm:text-3xl">
-                    Password Recovery
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-[#71818A]">
-                    Choose how you want to reset your password
-                  </p>
-                </div>
+          {/* Recovery Method Tabs */}
+          <div style={{ padding: "16px 34px 0" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "8px",
+                background: "var(--green-soft)",
+                padding: "5px",
+                borderRadius: "14px",
+              }}
+            >
+              {/* Left Tab: Email Link (Standard / All Users) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setResetMethod("email");
+                  setEmailError("");
+                  setEmailMessage("");
+                }}
+                style={{
+                  padding: "9px 12px",
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  border: 0,
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  background: resetMethod === "email" ? "var(--surface)" : "transparent",
+                  color: resetMethod === "email" ? "var(--teal-dark)" : "var(--muted)",
+                  boxShadow:
+                    resetMethod === "email" ? "0 2px 8px rgba(6,90,107,0.12)" : "none",
+                  transition: "all 0.15s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                }}
+              >
+                <span>✉️</span>
+                {t.tabEmail}
+              </button>
 
-                <span className="shrink-0 rounded-full border border-[#B7DFBC] bg-[#EAF6EC] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#086474]">
-                  Secure
+              {/* Right Tab: Phone OTP (Test / Beta Users) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setResetMethod("phone");
+                  setPhoneError("");
+                  setPhoneMessage("");
+                }}
+                style={{
+                  padding: "9px 12px",
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  border: 0,
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  background: resetMethod === "phone" ? "var(--surface)" : "transparent",
+                  color: resetMethod === "phone" ? "var(--teal-dark)" : "var(--muted)",
+                  boxShadow:
+                    resetMethod === "phone" ? "0 2px 8px rgba(6,90,107,0.12)" : "none",
+                  transition: "all 0.15s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                }}
+              >
+                <span>📱</span>
+                {t.tabPhone}
+              </button>
+            </div>
+          </div>
+
+          {/* ========================================================= */}
+          {/* METHOD 1: PHONE NUMBER (SMS OTP) RESET                   */}
+          {/* ========================================================= */}
+          {resetMethod === "phone" && (
+            <div className="lg-form" style={{ paddingBottom: "10px" }}>
+              {/* Step indicator */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "10px 0 14px",
+                  borderBottom: "1px solid var(--border)",
+                  marginBottom: "16px",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  color: "var(--muted)",
+                }}
+              >
+                <span style={{ color: phoneStep >= 1 ? "var(--teal-dark)" : "inherit", fontWeight: phoneStep === 1 ? 700 : 500 }}>
+                  {t.step1}
                 </span>
-                <input
-                  id="reset-email"
-                  name="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={content.placeholder}
-                  autoComplete="email"
-                  required
-                />
+                <span>→</span>
+                <span style={{ color: phoneStep >= 2 ? "var(--teal-dark)" : "inherit", fontWeight: phoneStep === 2 ? 700 : 500 }}>
+                  {t.step2}
+                </span>
+                <span>→</span>
+                <span style={{ color: phoneStep >= 3 ? "var(--teal-dark)" : "inherit", fontWeight: phoneStep === 3 ? 700 : 500 }}>
+                  {t.step3}
+                </span>
               </div>
 
-              {/* Recovery Method Tabs */}
-              <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-[#EEF5F1] p-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResetMethod("phone");
-                    setPhoneError("");
-                    setPhoneMessage("");
+              {phoneMessage && (
+                <div
+                  style={{
+                    margin: "0 0 14px",
+                    padding: "10px 14px",
+                    background: "#E8F5E9",
+                    border: "1px solid #A5D6A7",
+                    color: "#1B5E20",
+                    borderRadius: "12px",
+                    fontSize: "0.85rem",
+                    fontWeight: 500,
                   }}
-                  className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${resetMethod === "phone"
-                      ? "bg-white text-[#086474] shadow-sm"
-                      : "text-[#62777E] hover:text-[#26343A]"
-                    }`}
+                  role="status"
                 >
-                  <span>📱</span>
-                  Phone OTP (Free)
-                </button>
+                  ✓ {phoneMessage}
+                </div>
+              )}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResetMethod("email");
-                    setEmailError("");
-                    setEmailMessage("");
-                  }}
-                  className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${resetMethod === "email"
-                      ? "bg-white text-[#086474] shadow-sm"
-                      : "text-[#62777E] hover:text-[#26343A]"
-                    }`}
-                >
-                  <span>✉️</span>
-                  Gmail / Email
-                </button>
-              </div>
+              {phoneError && (
+                <p className="lg-form__error" role="alert">
+                  {phoneError}
+                </p>
+              )}
 
-              {/* ========================================== */}
-              {/* TAB 1: PHONE NUMBER (SMS OTP) RESET       */}
-              {/* ========================================== */}
-              {resetMethod === "phone" && (
-                <div>
-                  {phoneMessage && (
-                    <div
-                      role="status"
-                      className="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm leading-6 text-green-800"
-                    >
-                      <span className="mr-2">✓</span>
-                      {phoneMessage}
+              {/* STEP 1: Enter Phone */}
+              {phoneStep === 1 && (
+                <form onSubmit={handleSendOtp} noValidate>
+                  <div className="lg-field">
+                    <label htmlFor="phone">{t.phoneLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <PhoneFieldIcon />
+                      </span>
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        maxLength={10}
+                        inputMode="numeric"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                        placeholder={t.phonePlaceholder}
+                        required
+                        autoComplete="tel"
+                      />
                     </div>
-                  )}
-
-                  {phoneError && (
-                    <div
-                      role="alert"
-                      className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700"
-                    >
-                      {phoneError}
-                    </div>
-                  )}
-
-                  {/* Step Progress indicator */}
-                  <div className="mb-6 flex items-center justify-between border-b border-[#E8EFEA] pb-4 text-xs font-semibold text-[#71818A]">
-                    <span className={phoneStep >= 1 ? "text-[#086474] font-bold" : ""}>
-                      1. Enter Phone
-                    </span>
-                    <span>→</span>
-                    <span className={phoneStep >= 2 ? "text-[#086474] font-bold" : ""}>
-                      2. Verify OTP
-                    </span>
-                    <span>→</span>
-                    <span className={phoneStep >= 3 ? "text-[#086474] font-bold" : ""}>
-                      3. New Password
-                    </span>
                   </div>
 
-                  {/* STEP 1: Enter Phone */}
-                  {phoneStep === 1 && (
-                    <form onSubmit={handleSendOtp} className="space-y-5">
-                      <div>
-                        <label
-                          htmlFor="reset-phone"
-                          className="mb-2 block text-sm font-semibold text-[#34434A]"
-                        >
-                          Registered Mobile Number <span className="text-red-500">*</span>
-                        </label>
-
-                        <div className="flex items-center rounded-2xl border border-[#D9E5E9] bg-[#E9F1FD] px-4 transition focus-within:border-[#0B8790] focus-within:ring-4 focus-within:ring-[#0B8790]/10">
-                          <span className="mr-2 text-sm font-bold text-[#4B636E]">
-                            +91
-                          </span>
-                          <input
-                            id="reset-phone"
-                            type="tel"
-                            maxLength={10}
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                            placeholder="Enter 10-digit mobile number"
-                            required
-                            className="min-w-0 flex-1 bg-transparent py-4 text-sm text-[#26343A] outline-none placeholder:text-[#8A9AA5] sm:text-base"
-                          />
-                        </div>
-                        <p className="mt-2 text-xs leading-5 text-[#71818A]">
-                          We will check your registered account and send a 6-digit OTP.
-                        </p>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={phoneLoading}
-                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#078C96] to-[#075A6A] px-5 py-4 font-bold text-white shadow-[0_12px_22px_rgba(7,105,119,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(7,105,119,0.28)] focus:outline-none focus:ring-4 focus:ring-[#078C96]/20 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {phoneLoading ? "Verifying & Sending OTP..." : "Send Free SMS OTP →"}
-                      </button>
-                    </form>
-                  )}
-
-                  {/* STEP 2: Enter OTP */}
-                  {phoneStep === 2 && (
-                    <form onSubmit={handleVerifyOtp} className="space-y-5">
-                      <div>
-                        <div className="mb-2 flex items-center justify-between">
-                          <label
-                            htmlFor="reset-otp"
-                            className="text-sm font-semibold text-[#34434A]"
-                          >
-                            Enter 6-Digit OTP <span className="text-red-500">*</span>
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPhoneStep(1);
-                              setPhoneError("");
-                              setPhoneMessage("");
-                            }}
-                            className="text-xs font-semibold text-[#078C96] hover:underline"
-                          >
-                            Change Number
-                          </button>
-                        </div>
-
-                        <div className="flex items-center rounded-2xl border border-[#D9E5E9] bg-[#E9F1FD] px-4 transition focus-within:border-[#0B8790] focus-within:ring-4 focus-within:ring-[#0B8790]/10">
-                          <span className="mr-3 text-lg" aria-hidden="true">
-                            🔑
-                          </span>
-                          <input
-                            id="reset-otp"
-                            type="text"
-                            maxLength={6}
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                            placeholder="Enter 6-digit code"
-                            required
-                            autoFocus
-                            className="min-w-0 flex-1 bg-transparent py-4 text-center tracking-[0.3em] text-lg font-bold text-[#26343A] outline-none placeholder:tracking-normal placeholder:text-sm placeholder:text-[#8A9AA5]"
-                          />
-                        </div>
-                        <p className="mt-2 text-xs leading-5 text-[#71818A]">
-                          OTP was sent to mobile: <strong>+91 {phone}</strong> {userName && `(${userName})`}
-                        </p>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={phoneLoading}
-                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#078C96] to-[#075A6A] px-5 py-4 font-bold text-white shadow-[0_12px_22px_rgba(7,105,119,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(7,105,119,0.28)] focus:outline-none focus:ring-4 focus:ring-[#078C96]/20 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {phoneLoading ? "Verifying OTP..." : "Verify OTP Code →"}
-                      </button>
-                    </form>
-                  )}
-
-                  {/* STEP 3: Enter New Password */}
-                  {phoneStep === 3 && (
-                    <form onSubmit={handleResetPasswordWithPhone} className="space-y-5">
-                      <div>
-                        <label
-                          htmlFor="new-pwd"
-                          className="mb-2 block text-sm font-semibold text-[#34434A]"
-                        >
-                          New Password <span className="text-red-500">*</span>
-                        </label>
-                        <div className="flex items-center rounded-2xl border border-[#D9E5E9] bg-[#E9F1FD] px-4 transition focus-within:border-[#0B8790] focus-within:ring-4 focus-within:ring-[#0B8790]/10">
-                          <span className="mr-3 text-lg" aria-hidden="true">
-                            🔒
-                          </span>
-                          <input
-                            id="new-pwd"
-                            type={showPassword ? "text" : "password"}
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="At least 6 characters"
-                            required
-                            minLength={6}
-                            className="min-w-0 flex-1 bg-transparent py-4 text-sm text-[#26343A] outline-none placeholder:text-[#8A9AA5] sm:text-base"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="text-xs font-semibold text-[#078C96] hover:underline"
-                          >
-                            {showPassword ? "Hide" : "Show"}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="confirm-pwd"
-                          className="mb-2 block text-sm font-semibold text-[#34434A]"
-                        >
-                          Confirm New Password <span className="text-red-500">*</span>
-                        </label>
-                        <div className="flex items-center rounded-2xl border border-[#D9E5E9] bg-[#E9F1FD] px-4 transition focus-within:border-[#0B8790] focus-within:ring-4 focus-within:ring-[#0B8790]/10">
-                          <span className="mr-3 text-lg" aria-hidden="true">
-                            🔒
-                          </span>
-                          <input
-                            id="confirm-pwd"
-                            type={showPassword ? "text" : "password"}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Re-enter your new password"
-                            required
-                            minLength={6}
-                            className="min-w-0 flex-1 bg-transparent py-4 text-sm text-[#26343A] outline-none placeholder:text-[#8A9AA5] sm:text-base"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={phoneLoading}
-                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#287B53] to-[#1E6040] px-5 py-4 font-bold text-white shadow-[0_12px_22px_rgba(40,123,83,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(40,123,83,0.28)] focus:outline-none focus:ring-4 focus:ring-[#287B53]/20 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {phoneLoading ? "Updating Password..." : "Update Password & Login →"}
-                      </button>
-                    </form>
-                  )}
-                </div>
+                  <button
+                    type="submit"
+                    className="lg-submit"
+                    style={{ width: "100%" }}
+                    disabled={phoneLoading}
+                  >
+                    {phoneLoading ? (
+                      t.sendingOtp
+                    ) : (
+                      <>
+                        {t.sendOtpBtn} <ArrowRightIcon size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
               )}
 
-              {/* ========================================== */}
-              {/* TAB 2: EMAIL-BASED RESET                   */}
-              {/* ========================================== */}
-              {resetMethod === "email" && (
-                <div>
-                  {emailMessage && (
-                    <div
-                      role="status"
-                      className="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm leading-6 text-green-800"
-                    >
-                      <span className="mr-2">✓</span>
-                      {emailMessage}
-                    </div>
-                  )}
-
-                  {emailError && (
-                    <div
-                      role="alert"
-                      className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700"
-                    >
-                      {emailError}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleEmailSubmit} className="space-y-6">
-                    <div>
-                      <label
-                        htmlFor="reset-email"
-                        className="mb-2 block text-sm font-semibold text-[#34434A]"
-                      >
-                        Registered Email Address <span className="text-red-500">*</span>
-                      </label>
-
-                      <div className="flex items-center gap-3 rounded-2xl border border-[#D9E5E9] bg-[#E9F1FD] px-4 transition focus-within:border-[#0B8790] focus-within:ring-4 focus-within:ring-[#0B8790]/10">
-                        <span className="text-lg" aria-hidden="true">
-                          ✉️
-                        </span>
-
-                        <input
-                          id="reset-email"
-                          name="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Enter your registered email"
-                          autoComplete="email"
-                          required
-                          className="min-w-0 flex-1 bg-transparent py-4 text-sm text-[#26343A] outline-none placeholder:text-[#8A9AA5] sm:text-base"
-                        />
-                      </div>
-
-                      <p className="mt-2 text-xs leading-5 text-[#71818A]">
-                        We will send a 15-minute password reset link to this email.
-                      </p>
-                    </div>
-
+              {/* STEP 2: Enter OTP */}
+              {phoneStep === 2 && (
+                <form onSubmit={handleVerifyOtp} noValidate>
+                  <div style={{ marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                      {userName ? `Account: ${userName}` : `+91 ${phone}`}
+                    </span>
                     <button
-                      type="submit"
-                      disabled={emailLoading}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#078C96] to-[#075A6A] px-5 py-4 font-bold text-white shadow-[0_12px_22px_rgba(7,105,119,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(7,105,119,0.28)] focus:outline-none focus:ring-4 focus:ring-[#078C96]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      type="button"
+                      onClick={() => setPhoneStep(1)}
+                      style={{
+                        background: "none",
+                        border: 0,
+                        color: "var(--teal)",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
                     >
-                      {emailLoading ? "Sending Reset Link..." : "Send Reset Link →"}
+                      {t.changePhone}
                     </button>
-                  </form>
+                  </div>
+
+                  <div className="lg-field">
+                    <label htmlFor="otp">{t.otpLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <KeyFieldIcon />
+                      </span>
+                      <input
+                        id="otp"
+                        name="otp"
+                        type="text"
+                        maxLength={6}
+                        inputMode="numeric"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                        placeholder={t.otpPlaceholder}
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="lg-submit"
+                    style={{ width: "100%" }}
+                    disabled={phoneLoading}
+                  >
+                    {phoneLoading ? (
+                      t.verifyingOtp
+                    ) : (
+                      <>
+                        {t.verifyOtpBtn} <ArrowRightIcon size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {/* STEP 3: Enter New Password */}
+              {phoneStep === 3 && (
+                <form onSubmit={handleResetPasswordWithPhone} noValidate>
+                  <div className="lg-field">
+                    <label htmlFor="newPassword">{t.newPwdLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <LockIcon size={18} />
+                      </span>
+                      <input
+                        id="newPassword"
+                        name="newPassword"
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder={t.newPwdPlaceholder}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        className="lg-field__toggle"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label="Toggle password"
+                      >
+                        {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="lg-field">
+                    <label htmlFor="confirmPassword">{t.confirmPwdLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <LockIcon size={18} />
+                      </span>
+                      <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder={t.confirmPwdPlaceholder}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="lg-submit"
+                    style={{ width: "100%" }}
+                    disabled={phoneLoading}
+                  >
+                    {phoneLoading ? (
+                      t.updatingPwd
+                    ) : (
+                      <>
+                        {t.updatePwdBtn} <ArrowRightIcon size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* METHOD 2: EMAIL-BASED RESET                               */}
+          {/* ========================================================= */}
+          {resetMethod === "email" && (
+            <div className="lg-form" style={{ paddingBottom: "10px" }}>
+              {emailMessage && (
+                <div
+                  style={{
+                    margin: "0 0 14px",
+                    padding: "10px 14px",
+                    background: "#E8F5E9",
+                    border: "1px solid #A5D6A7",
+                    color: "#1B5E20",
+                    borderRadius: "12px",
+                    fontSize: "0.85rem",
+                    fontWeight: 500,
+                  }}
+                  role="status"
+                >
+                  ✓ {emailMessage}
                 </div>
               )}
 
-              <div className="my-7 border-t border-[#E1EAE5]" />
-
-              {/* Card Footer */}
-              <div className="space-y-3 text-center">
-                <p className="text-sm text-[#71818A]">
-                  <span aria-hidden="true">🔒</span> Your information is kept safe and encrypted.
+              {emailError && (
+                <p className="lg-form__error" role="alert">
+                  {emailError}
                 </p>
+              )}
 
-                <p className="text-sm text-[#71818A]">
-                  {content.remember}{" "}
-                  <Link
-                    to="/login"
-                    className="font-bold text-[#078C96] transition hover:text-[#075A6A] hover:underline"
-                  >
-                    {content.login}
-                  </Link>
-                </p>
+              <form onSubmit={handleEmailSubmit} noValidate>
+                <div className="lg-field">
+                  <label htmlFor="email">{t.emailLabel}</label>
+                  <div className="lg-field__control">
+                    <span className="lg-field__icon" aria-hidden="true">
+                      <MailFieldIcon />
+                    </span>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t.emailPlaceholder}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                  <span style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "4px" }}>
+                    {t.emailHelp}
+                  </span>
+                </div>
 
-                <p className="text-sm text-[#71818A]">
-                  {content.noAccount}{" "}
-                  <Link
-                    to="/register"
-                    className="font-bold text-[#078C96] transition hover:text-[#075A6A] hover:underline"
-                  >
-                    {content.register}
-                  </Link>
-                </p>
-              </div>
+                <button
+                  type="submit"
+                  className="lg-submit"
+                  style={{ width: "100%", marginTop: "10px" }}
+                  disabled={emailLoading}
+                >
+                  {emailLoading ? (
+                    t.sendingLink
+                  ) : (
+                    <>
+                      {t.sendLinkBtn} <ArrowRightIcon size={18} />
+                    </>
+                  )}
+                </button>
+              </form>
             </div>
+          )}
+
+          {/* Card Footer matching Login */}
+          <div className="lg-card__foot">
+            <p className="lg-card__secure">
+              <LockIcon size={14} /> {t.secureNote}
+            </p>
+            <p className="lg-card__register">
+              {t.remember} <Link to="/login">{t.loginLink}</Link>
+            </p>
+            <p className="lg-card__register">
+              {t.noAccount} <Link to="/register">{t.registerLink}</Link>
+            </p>
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-[#DCE8E1] bg-white/70 px-4 py-5 text-center text-xs text-[#71818A] sm:text-sm">
-        © 2026 SAHARA &nbsp;•&nbsp; Give &nbsp;•&nbsp; Help &nbsp;•&nbsp; Build Communities &nbsp;•&nbsp; Together
-      </footer>
     </div>
   );
 }
