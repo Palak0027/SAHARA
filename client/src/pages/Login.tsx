@@ -16,7 +16,7 @@ import {
 } from '../components/Icons/Icons';
 import { loginTranslations, type Language, type LoginErrorKey } from './translations';
 import { useAuth, type UserRole } from '../context/AuthContext';
-import '../styles/Login.css';
+import '../styles/login.css';
 
 /* ---------- Config ---------- */
 

@@ -16,7 +16,7 @@ import {
 } from "../components/Icons/Icons";
 import { firebaseAuth, isFirebaseConfigured } from "../services/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
-import "../styles/Login.css";
+import "../styles/login.css";
 
 /* Phone Icon component matching Login UserIcon */
 const PhoneFieldIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
