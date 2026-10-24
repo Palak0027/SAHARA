@@ -87,18 +87,44 @@ export default function ForgotPassword() {
 
   const content = {
     en: {
-       
-      intro: "Forgot your password? It happens. Follow a simple, secure process to regain access to your account and continue making a difference in your community.",
-      features: ["Support Communities", "Help People", "Build a Better Tomorrow", "Safe & Secure"],
-      cardTitle: "Forgot Your Password?",
-      cardSubtitle: "No worries! We'll help you get back into your account.",
-      reset: "Reset",
-      email: "Email Address",
-      placeholder: "Enter your registered email",
-      hint: "Make sure you use the email linked to your account.",
-      sending: "Sending Reset Link...",
-      send: "Send Reset Link",
-      safe: "Your information is kept safe and secure.",
+      welcomeTitle: "Reset your SAHARA password.",
+      welcomeText: "Enter your registered email address and we will send you a secure link to reset your password.",
+      quote: "A little help goes a long way. Recover your account safely.",
+      features: [
+        "Email Reset Link",
+        "15-Minute Expiry",
+        "100% Free Recovery",
+        "End-to-End Secure",
+      ],
+      cardTitle: "Password Recovery",
+      cardSubtitle: "Enter your registered email to receive a recovery link",
+      secureBadge: "SECURE",
+      tabPhone: "Phone OTP",
+      tabEmail: "Gmail / Email",
+      step1: "1. Enter Phone",
+      step2: "2. Verify OTP",
+      step3: "3. New Password",
+      phoneLabel: "Registered Mobile Number",
+      phonePlaceholder: "Enter 10-digit mobile number",
+      sendOtpBtn: "Send OTP via SMS",
+      sendingOtp: "Sending OTP...",
+      otpLabel: "6-Digit SMS OTP Code",
+      otpPlaceholder: "Enter 6-digit OTP code",
+      verifyOtpBtn: "Verify Code & Proceed",
+      verifyingOtp: "Verifying Code...",
+      changePhone: "← Change number",
+      newPwdLabel: "New Password",
+      newPwdPlaceholder: "At least 6 characters",
+      confirmPwdLabel: "Confirm New Password",
+      confirmPwdPlaceholder: "Re-enter new password",
+      updatePwdBtn: "Update Password & Login",
+      updatingPwd: "Updating Password...",
+      emailLabel: "Registered Email Address",
+      emailPlaceholder: "Enter your registered email",
+      emailHelp: "We will send a 15-minute password reset link to this email.",
+      sendLinkBtn: "Send Reset Link",
+      sendingLink: "Sending Link...",
+      secureNote: "Your information is kept safe and encrypted.",
       remember: "Remember your password?",
       login: "Login",
       noAccount: "Don't have an account?",
@@ -108,25 +134,48 @@ export default function ForgotPassword() {
       fallbackError: "Something went wrong. Please try again.",
     },
     hi: {
-      
-      intro: "पासवर्ड भूल गए? कोई बात नहीं। अपने अकाउंट का दोबारा उपयोग करने और समुदाय की मदद जारी रखने के लिए इस आसान और सुरक्षित प्रक्रिया का पालन करें।",
-      features: ["समुदायों का सहयोग करें", "लोगों की मदद करें", "बेहतर कल बनाएँ", "सुरक्षित और भरोसेमंद"],
-      cardTitle: "पासवर्ड भूल गए?",
-      cardSubtitle: "चिंता न करें! हम आपके अकाउंट तक दोबारा पहुँचने में मदद करेंगे।",
-      reset: "रीसेट",
-      email: "ईमेल पता",
-      placeholder: "अपना पंजीकृत ईमेल दर्ज करें",
-      hint: "अपने अकाउंट से जुड़े ईमेल पते का ही उपयोग करें।",
-      sending: "रीसेट लिंक भेजा जा रहा है...",
-      send: "रीसेट लिंक भेजें",
-      safe: "आपकी जानकारी सुरक्षित रखी जाती है।",
-      remember: "पासवर्ड याद है?",
-      login: "लॉगिन करें",
-      noAccount: "अकाउंट नहीं है?",
-      register: "रजिस्टर करें",
-      requestError: "आपका अनुरोध पूरा नहीं हो सका। कृपया दोबारा प्रयास करें।",
-      fallbackMessage: "यदि इस ईमेल से अकाउंट जुड़ा है, तो आपको जल्द ही पासवर्ड रीसेट लिंक मिलेगा।",
-      fallbackError: "कुछ गलत हो गया। कृपया दोबारा प्रयास करें।",
+      welcomeTitle: "अपना सहारा पासवर्ड रीसेट करें।",
+      welcomeText: "अपना पंजीकृत ईमेल दर्ज करें और हम पासवर्ड रीसेट करने के लिए एक सुरक्षित लिंक भेजेंगे।",
+      quote: "सच्ची खुशी दूसरों की सेवा करने में है। अपना खाता सुरक्षित रूप से पुनर्प्राप्त करें।",
+      features: [
+        "ईमेल रीसेट लिंक",
+        "15-मिनट की वैधता",
+        "100% मुफ़्त रिकवरी",
+        "सुरक्षित और एन्क्रिप्टेड",
+      ],
+      cardTitle: "खाता रिकवरी",
+      cardSubtitle: "रीसेट लिंक प्राप्त करने के लिए अपना पंजीकृत ईमेल दर्ज करें",
+      secureBadge: "सुरक्षित",
+      tabPhone: "फोन OTP (टेस्ट)",
+      tabEmail: "जीमेल / ईमेल",
+      step1: "1. मोबाइल नंबर",
+      step2: "2. OTP सत्यापन",
+      step3: "3. नया पासवर्ड",
+      phoneLabel: "पंजीकृत मोबाइल नंबर",
+      phonePlaceholder: "10 अंकों का मोबाइल नंबर दर्ज करें",
+      sendOtpBtn: "SMS द्वारा OTP भेजें",
+      sendingOtp: "OTP भेजा जा रहा है...",
+      otpLabel: "6 अंकों का SMS OTP कोड",
+      otpPlaceholder: "6 अंकों का OTP दर्ज करें",
+      verifyOtpBtn: "OTP सत्यापित करें",
+      verifyingOtp: "सत्यापन जारी है...",
+      changePhone: "← नंबर बदलें",
+      newPwdLabel: "नया पासवर्ड",
+      newPwdPlaceholder: "कम से कम 6 अक्षर",
+      confirmPwdLabel: "नए पासवर्ड की पुष्टि करें",
+      confirmPwdPlaceholder: "नया पासवर्ड दोबारा दर्ज करें",
+      updatePwdBtn: "पासवर्ड बदलें और लॉगिन करें",
+      updatingPwd: "पासवर्ड बदला जा रहा है...",
+      emailLabel: "पंजीकृत ईमेल पता",
+      emailPlaceholder: "अपना पंजीकृत ईमेल दर्ज करें",
+      emailHelp: "हम इस ईमेल पर 15 मिनट का पासवर्ड रीसेट लिंक भेजेंगे।",
+      sendLinkBtn: "रीसेट लिंक भेजें",
+      sendingLink: "लिंक भेजा जा रहा है...",
+      secureNote: "आपकी जानकारी 256-बिट एन्क्रिप्शन से सुरक्षित है।",
+      remember: "पासवर्ड याद आ गया?",
+      loginLink: "लॉगिन करें →",
+      noAccount: "खाता नहीं है?",
+      registerLink: "रजिस्टर करें →",
     },
   }[language];
 
@@ -228,11 +277,38 @@ export default function ForgotPassword() {
             <span className="fp-card__badge">{content.reset}</span>
           </div>
 
-          <form className="fp-form" onSubmit={handleSubmit}>
-            {message && (
-              <div role="status" className="fp-status fp-status--ok">
-                <CheckIcon size={18} />
-                <span>{message}</span>
+          {/* Recovery Form - Email Reset */}
+
+          {/* ========================================================= */}
+          {/* METHOD 1: PHONE NUMBER (SMS OTP) RESET                   */}
+          {/* ========================================================= */}
+          {resetMethod === "phone" && (
+            <div className="lg-form" style={{ paddingBottom: "10px" }}>
+              {/* Step indicator */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "10px 0 14px",
+                  borderBottom: "1px solid var(--border)",
+                  marginBottom: "16px",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  color: "var(--muted)",
+                }}
+              >
+                <span style={{ color: phoneStep >= 1 ? "var(--teal-dark)" : "inherit", fontWeight: phoneStep === 1 ? 700 : 500 }}>
+                  {t.step1}
+                </span>
+                <span>→</span>
+                <span style={{ color: phoneStep >= 2 ? "var(--teal-dark)" : "inherit", fontWeight: phoneStep === 2 ? 700 : 500 }}>
+                  {t.step2}
+                </span>
+                <span>→</span>
+                <span style={{ color: phoneStep >= 3 ? "var(--teal-dark)" : "inherit", fontWeight: phoneStep === 3 ? 700 : 500 }}>
+                  {t.step3}
+                </span>
               </div>
             )}
 

@@ -16,6 +16,8 @@ import {
 } from '../components/Icons/Icons';
 import { translations, type ErrorKey, type Language } from './translations';
 import { useAuth, type RegisterData } from '../context/AuthContext';
+import { VoiceFormAssistant } from '../components/common/VoiceFormAssistant';
+import { type ParsedDonationOrNeed } from '../services/voiceNlpParser';
 import '../styles/Register.css';
 
 /* ---------- Types ---------- */
@@ -277,6 +279,22 @@ const Register: React.FC = () => {
     setErrors({});
   };
 
+  const handleApplyVoice = (parsed: ParsedDonationOrNeed) => {
+    setForm((prev) => ({
+      ...prev,
+      name: parsed.name || prev.name,
+      phone: parsed.phone || prev.phone,
+      email: parsed.email || prev.email,
+      city: parsed.city || prev.city,
+      pincode: parsed.pincode || prev.pincode,
+      address: parsed.address || prev.address,
+    }));
+
+    if (parsed.intent) {
+      setIntent(parsed.intent as Intent);
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -403,9 +421,17 @@ const Register: React.FC = () => {
             </button>
           </div>
 
-          {/* Only this area scrolls (and only when the receiver form is long) */}
           <div className="card__body">
             <form className="form" onSubmit={handleSubmit} noValidate>
+              {/* AI Voice Assistant */}
+              <div className="form__voice-assistant">
+                <VoiceFormAssistant
+                  context="register"
+                  language={language}
+                  onApply={handleApplyVoice}
+                />
+              </div>
+
               {isReceiver && (
                 <div className="field field--wide">
                   <label htmlFor="receiverType">{t.labels.receiverType}</label>

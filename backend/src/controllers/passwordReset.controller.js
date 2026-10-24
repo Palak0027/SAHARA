@@ -1,24 +1,9 @@
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const { sendEmail } = require('../services/email.service');
 
 const GENERIC_MESSAGE = 'If an account exists for that email, a password reset link has been sent.';
-
-function createMailer() {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    throw new Error('Email service is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASS.');
-  }
-
-  const port = Number(SMTP_PORT);
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS }
-  });
-}
 
 async function forgotPassword(req, res, next) {
   try {
@@ -26,14 +11,27 @@ async function forgotPassword(req, res, next) {
       ? req.body.email.trim().toLowerCase()
       : '';
 
-    // Keep the response generic to avoid exposing which emails have accounts.
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(200).json({ success: true, message: GENERIC_MESSAGE });
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.'
+      });
     }
 
+    // 1. Check if user is registered in database
     const user = await User.findOne({ email });
-    if (!user || !user.isActive) {
-      return res.status(200).json({ success: true, message: GENERIC_MESSAGE });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this email address. Please check your email or register.'
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'This account has been deactivated. Please contact SAHARA support.'
+      });
     }
 
     const rawToken = crypto.randomBytes(32).toString('hex');
@@ -43,34 +41,43 @@ async function forgotPassword(req, res, next) {
     user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+    let frontendUrl = (process.env.FRONTEND_URL || '').trim();
+    if (!frontendUrl || frontendUrl === '*' || !frontendUrl.startsWith('http')) {
+      const origin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : null);
+      if (origin && origin.startsWith('http') && !origin.includes('*')) {
+        frontendUrl = origin;
+      } else {
+        frontendUrl = 'https://sahara-woad.vercel.app';
+      }
+    }
+    frontendUrl = frontendUrl.replace(/\/$/, '');
     const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
 
     try {
-      const mailer = createMailer();
-      await mailer.sendMail({
-        from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      await sendEmail({
         to: user.email,
         subject: 'Reset your SAHARA password',
         text: `Hello ${user.name},\n\nWe received a request to reset your SAHARA password. Open this link within 15 minutes:\n${resetUrl}\n\nIf you did not request this, you can ignore this email.\n\nSAHARA Support`,
-        html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#26332f"><h2 style="color:#2f5547">Reset your SAHARA password</h2><p>Hello ${escapeHtml(user.name)},</p><p>We received a request to reset your password. This link expires in <strong>15 minutes</strong>.</p><p><a href="${resetUrl}" style="display:inline-block;background:#2f5547;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">Reset password</a></p><p>If the button does not work, copy this link into your browser:</p><p>${resetUrl}</p><p>If you did not request this, you can safely ignore this email.</p><p>— SAHARA Support</p></div>`
+        html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#26332f;line-height:1.6"><h2 style="color:#2f5547">Reset your SAHARA password</h2><p>Hello ${escapeHtml(user.name)},</p><p>We received a request to reset your SAHARA password. Click the link below within <strong>15 minutes</strong> to set a new password:</p><p style="margin:20px 0"><a href="${resetUrl}" style="display:inline-block;background:#2f5547;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold">Reset Password</a></p><p style="font-size:13px;color:#64748b">If the button does not work, copy and paste this URL into your browser:</p><p style="font-size:13px;color:#087f8c;word-break:break-all">${resetUrl}</p><p style="font-size:13px;color:#64748b;margin-top:20px">If you did not request this, you can safely ignore this email.</p><p style="font-size:13px;color:#64748b">— SAHARA Support</p></div>`,
+        origin: frontendUrl
       });
     } catch (mailError) {
-      // Do not leave a valid reset token behind if delivery failed.
+      console.error('[PasswordReset Controller] Failed to dispatch reset email:', mailError.message || mailError);
+      // Clean up token if email failed
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save();
       
-      const isConfigError = mailError.message && mailError.message.includes('Email service is not configured');
-      return res.status(isConfigError ? 503 : 500).json({
+      return res.status(500).json({
         success: false,
-        message: isConfigError
-          ? 'Email service is not configured in backend/.env. Please configure Gmail SMTP or use Phone OTP reset.'
-          : 'Failed to send password reset email. Please try again later or use Phone OTP reset.'
+        message: `Failed to send password reset email: ${mailError.message || 'Please try again later'}.`
       });
     }
 
-    return res.status(200).json({ success: true, message: GENERIC_MESSAGE });
+    return res.status(200).json({
+      success: true,
+      message: `A password reset link has been sent to ${user.email}. Please check your inbox (and spam folder).`
+    });
   } catch (error) {
     next(error);
   }

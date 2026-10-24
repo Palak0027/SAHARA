@@ -22,6 +22,8 @@ import {
   donorApi,
 } from "../../../services/api/donorApi";
 import { NeedPrefillData } from "../types";
+import { VoiceFormAssistant } from "../../common/VoiceFormAssistant";
+import { type ParsedDonationOrNeed } from "../../../services/voiceNlpParser";
 
 interface PostDonationTabProps {
   categories: CategoryItem[];
@@ -114,6 +116,36 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
     }
   }, [categories, needPrefill]);
 
+  const handleApplyVoice = (parsed: ParsedDonationOrNeed) => {
+    if (parsed.title) setTitle(parsed.title);
+    if (parsed.description) setDescription(parsed.description);
+    if (parsed.quantity) setQuantity(String(parsed.quantity));
+    if (parsed.quantityUnit) setUnit(parsed.quantityUnit);
+    if (parsed.city) setCity(parsed.city);
+    if (parsed.address) setAddress(parsed.address);
+    if (parsed.pincode) setPincode(parsed.pincode);
+
+    if (parsed.categoryName && categories.length > 0) {
+      const targetName = parsed.categoryName.toLowerCase();
+      const matched = categories.find((c) =>
+        c.name.toLowerCase() === targetName ||
+        c.name.toLowerCase().includes(targetName) ||
+        targetName.includes(c.name.toLowerCase())
+      );
+      if (matched) {
+        setSelectedCategoryId(matched._id);
+        setIsAddingNewCategory(false);
+      } else {
+        // Fallback to "Other" category if custom category not in default list
+        const otherCat = categories.find((c) => c.name.toLowerCase().includes("other"));
+        if (otherCat) {
+          setSelectedCategoryId(otherCat._id);
+        }
+        setNewCategoryName(parsed.categoryName);
+      }
+    }
+  };
+
   // Determine if current category is food
   const selectedCategory = categories.find((c) => c._id === selectedCategoryId);
   const isFoodCategory = Boolean(
@@ -198,7 +230,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
       return;
     }
 
-    let foodPayload = null;
+    let foodPayload: any = null;
     if (isFoodCategory) {
       const prepDate = preparedOn ? new Date(preparedOn) : null;
       const safeDate = safeUntil ? new Date(safeUntil) : null;
@@ -296,6 +328,14 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
       )}
 
       <form onSubmit={handleSubmit} className="sd-card sd-form">
+        {/* AI Voice Assistant */}
+        <VoiceFormAssistant
+          context="donor"
+          language={language}
+          availableCategories={categories.map((c) => ({ id: c._id, name: c.name }))}
+          onApply={handleApplyVoice}
+        />
+
         {/* Category Dropdown */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
