@@ -1,24 +1,9 @@
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const { sendEmail } = require('../services/email.service');
 
 const GENERIC_MESSAGE = 'If an account exists for that email, a password reset link has been sent.';
-
-function createMailer() {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    throw new Error('Email service is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASS.');
-  }
-
-  const port = Number(SMTP_PORT);
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS }
-  });
-}
 
 async function forgotPassword(req, res, next) {
   try {
@@ -47,15 +32,14 @@ async function forgotPassword(req, res, next) {
     const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
 
     try {
-      const mailer = createMailer();
-      await mailer.sendMail({
-        from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      await sendEmail({
         to: user.email,
         subject: 'Reset your SAHARA password',
         text: `Hello ${user.name},\n\nWe received a request to reset your SAHARA password. Open this link within 15 minutes:\n${resetUrl}\n\nIf you did not request this, you can ignore this email.\n\nSAHARA Support`,
         html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#26332f"><h2 style="color:#2f5547">Reset your SAHARA password</h2><p>Hello ${escapeHtml(user.name)},</p><p>We received a request to reset your password. This link expires in <strong>15 minutes</strong>.</p><p><a href="${resetUrl}" style="display:inline-block;background:#2f5547;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">Reset password</a></p><p>If the button does not work, copy this link into your browser:</p><p>${resetUrl}</p><p>If you did not request this, you can safely ignore this email.</p><p>— SAHARA Support</p></div>`
       });
     } catch (mailError) {
+      console.error('[PasswordReset Controller] Failed to dispatch reset email:', mailError.message || mailError);
       // Do not leave a valid reset token behind if delivery failed.
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;

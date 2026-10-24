@@ -1,19 +1,5 @@
 const ContactMessage = require('../models/ContactMessage');
-const nodemailer = require('nodemailer');
-
-function createMailerSafe() {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    return null;
-  }
-  const port = Number(SMTP_PORT);
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS }
-  });
-}
+const { sendEmail } = require('../services/email.service');
 
 /**
  * Public: Submit a contact message from Home page
@@ -55,25 +41,20 @@ async function submitContactMessage(req, res, next) {
 
     // Attempt to send email notification (non-blocking)
     try {
-      const mailer = createMailerSafe();
-      if (mailer) {
-        // Send auto-acknowledgement to sender
-        await mailer.sendMail({
-          from: process.env.MAIL_FROM || process.env.SMTP_USER,
-          to: contactMsg.email,
-          subject: `We received your message: ${contactMsg.subject}`,
-          html: `<div style="font-family:Arial,sans-serif;color:#26343a;max-width:560px;margin:auto;">
-            <h2 style="color:#2f5547">Hello ${contactMsg.name},</h2>
-            <p>Thank you for reaching out to SAHARA. We have received your inquiry:</p>
-            <blockquote style="background:#f4f9f6;border-left:4px solid #2f5547;padding:10px 15px;margin:15px 0;">
-              <strong>Subject:</strong> ${contactMsg.subject}<br/><br/>
-              ${contactMsg.message}
-            </blockquote>
-            <p>Our team will review your message and get back to you shortly.</p>
-            <p style="color:#71818a;font-size:12px;">— SAHARA Community Support</p>
-          </div>`
-        });
-      }
+      await sendEmail({
+        to: contactMsg.email,
+        subject: `We received your message: ${contactMsg.subject}`,
+        html: `<div style="font-family:Arial,sans-serif;color:#26343a;max-width:560px;margin:auto;">
+          <h2 style="color:#2f5547">Hello ${contactMsg.name},</h2>
+          <p>Thank you for reaching out to SAHARA. We have received your inquiry:</p>
+          <blockquote style="background:#f4f9f6;border-left:4px solid #2f5547;padding:10px 15px;margin:15px 0;">
+            <strong>Subject:</strong> ${contactMsg.subject}<br/><br/>
+            ${contactMsg.message}
+          </blockquote>
+          <p>Our team will review your message and get back to you shortly.</p>
+          <p style="color:#71818a;font-size:12px;">— SAHARA Community Support</p>
+        </div>`
+      });
     } catch (mailErr) {
       // Don't fail the API if email fails
       console.warn('Contact auto-reply email skipped or failed:', mailErr.message);
