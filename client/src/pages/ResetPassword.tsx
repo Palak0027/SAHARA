@@ -380,9 +380,6 @@ export default function ResetPassword() {
 
           {/* Card Footer matching Login and ForgotPassword */}
           <div className="lg-card__foot">
-            <p className="lg-card__secure">
-              <LockIcon size={14} /> {t.secureNote}
-            </p>
             <p className="lg-card__register">
               {t.remember} <Link to="/login">{t.loginLink}</Link>
             </p>

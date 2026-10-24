@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useRef, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import volunteersImg from "../components/image/volunteers.jpg";
 import {
@@ -11,81 +11,112 @@ import {
   ShieldCheckIcon,
   LockIcon,
   ArrowRightIcon,
+  EyeIcon,
+  EyeOffIcon,
 } from "../components/Icons/Icons";
-import "../styles/ForgotPassword.css";
+import { firebaseAuth, isFirebaseConfigured } from "../services/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
+import "../styles/login.css";
 
-/* One icon per feature (same order as content.features) */
-const FEATURE_ICONS = [HeartIcon, HandHeartIcon, SproutIcon, ShieldCheckIcon];
+/* Phone Icon component matching Login UserIcon */
+const PhoneFieldIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+  </svg>
+);
 
-/* Small local icons used only on this page */
-const svgProps = {
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 2,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-  "aria-hidden": true,
-  focusable: false,
-};
-
-const MailIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} {...svgProps}>
+const MailFieldIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
     <rect width="20" height="16" x="2" y="4" rx="2" />
     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
   </svg>
 );
 
-const CheckIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} {...svgProps}>
-    <path d="M20 6 9 17l-5-5" />
-  </svg>
-);
-
-const AlertIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} {...svgProps}>
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 8v4" />
-    <path d="M12 16h.01" />
-  </svg>
-);
-
-const SpinnerIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} {...svgProps} className="fp-spin">
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+const KeyFieldIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" />
+    <path d="m21 2-9.6 9.6" />
+    <circle cx="7.5" cy="15.5" r="5.5" />
   </svg>
 );
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
+
   const [language, setLanguage] = useState<"en" | "hi">(() => {
     const saved = localStorage.getItem("sahara-language");
     return saved === "hi" ? "hi" : "en";
   });
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
-  const navContent = {
-    en: {
-      home: "Home",
-      about: "About",
-      how: "How it works",
-      explore: "Explore donations",
-      login: "Login",
-      signup: "Sign up",
-    },
-    hi: {
-      home: "होम",
-      about: "हमारे बारे में",
-      how: "कैसे काम करता है",
-      explore: "दान देखें",
-      login: "लॉगिन",
-      signup: "साइन अप",
-    },
+  const [resetMethod, setResetMethod] = useState<"phone" | "email">("email");
+
+  // Email Flow States
+  const [email, setEmail] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  // Phone OTP Flow States (Step 1 = Enter Phone, Step 2 = Enter OTP, Step 3 = Set New Password)
+  const [phoneStep, setPhoneStep] = useState<1 | 2 | 3>(1);
+  const [phone, setPhone] = useState("");
+  const [userName, setUserName] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneMessage, setPhoneMessage] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+
+  const confirmationResultRef = useRef<ConfirmationResult | null>(null);
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+
+  const apiBaseUrl = (
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+  ).replace(/\/$/, "");
+
+  const toggleLanguage = () => {
+    const next = language === "en" ? "hi" : "en";
+    setLanguage(next);
+    localStorage.setItem("sahara-language", next);
   };
 
-  const content = {
+  // Translations
+  const t = {
     en: {
       welcomeTitle: "Reset your SAHARA password.",
       welcomeText: "Enter your registered email address and we will send you a secure link to reset your password.",
@@ -126,12 +157,9 @@ export default function ForgotPassword() {
       sendingLink: "Sending Link...",
       secureNote: "Your information is kept safe and encrypted.",
       remember: "Remember your password?",
-      login: "Login",
+      loginLink: "Login →",
       noAccount: "Don't have an account?",
-      register: "Register",
-      requestError: "Unable to process your request. Please try again.",
-      fallbackMessage: "If an account exists with this email, you will receive a password reset link shortly.",
-      fallbackError: "Something went wrong. Please try again.",
+      registerLink: "Register →",
     },
     hi: {
       welcomeTitle: "अपना सहारा पासवर्ड रीसेट करें।",
@@ -179,102 +207,258 @@ export default function ForgotPassword() {
     },
   }[language];
 
-  const toggleLanguage = () => {
-    const next = language === "en" ? "hi" : "en";
-    setLanguage(next);
-    localStorage.setItem("sahara-language", next);
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  // ==========================================
+  // METHOD 1: EMAIL-BASED RESET
+  // ==========================================
+  const handleEmailSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setMessage("");
-    setError("");
-    setLoading(true);
+    setEmailMessage("");
+    setEmailError("");
+    setEmailLoading(true);
 
     try {
-      const apiBaseUrl = (
-        import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
-      ).replace(/\/$/, "");
-
       const response = await fetch(`${apiBaseUrl}/api/auth/forgot-password`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || content.requestError);
+        throw new Error(
+          data.message || "Unable to process your request. Please try again."
+        );
       }
 
-      setMessage(data.message || content.fallbackMessage);
+      setEmailMessage(
+        data.message ||
+        "If an account exists with this email, you will receive a password reset link shortly."
+      );
       setEmail("");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : content.fallbackError);
+      setEmailError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
+      );
     } finally {
-      setLoading(false);
+      setEmailLoading(false);
+    }
+  };
+
+  // ==========================================
+  // METHOD 2: PHONE OTP-BASED RESET
+  // ==========================================
+  const handleSendOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    setPhoneError("");
+    setPhoneMessage("");
+
+    const cleanPhone = phone.trim();
+    if (!/^[0-9]{10}$/.test(cleanPhone)) {
+      setPhoneError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    setPhoneLoading(true);
+
+    try {
+      const checkRes = await fetch(`${apiBaseUrl}/api/auth/check-phone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: cleanPhone }),
+      });
+
+      const checkData = await checkRes.json();
+      if (!checkRes.ok) {
+        throw new Error(
+          checkData.message || "No registered active account found with this number."
+        );
+      }
+
+      setUserName(checkData.name || "");
+
+      if (isFirebaseConfigured && firebaseAuth) {
+        if (!recaptchaVerifierRef.current) {
+          recaptchaVerifierRef.current = new RecaptchaVerifier(
+            firebaseAuth,
+            "recaptcha-container",
+            {
+              size: "invisible",
+              callback: () => { },
+            }
+          );
+        }
+
+        const formattedPhone = `+91${cleanPhone}`;
+        const confirmation = await signInWithPhoneNumber(
+          firebaseAuth,
+          formattedPhone,
+          recaptchaVerifierRef.current
+        );
+        confirmationResultRef.current = confirmation;
+        setPhoneMessage(`SMS OTP sent successfully to +91 ${cleanPhone}.`);
+      } else {
+        setPhoneMessage(
+          `Account verified for ${checkData.name || "User"}! (Firebase test mode — Demo OTP: 123456)`
+        );
+      }
+
+      setPhoneStep(2);
+    } catch (err: unknown) {
+      setPhoneError(
+        err instanceof Error ? err.message : "Failed to send OTP. Please try again."
+      );
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    setPhoneError("");
+    setPhoneMessage("");
+
+    const cleanOtp = otp.trim();
+    if (cleanOtp.length < 6) {
+      setPhoneError("Please enter the complete 6-digit OTP code.");
+      return;
+    }
+
+    setPhoneLoading(true);
+
+    try {
+      if (isFirebaseConfigured && confirmationResultRef.current) {
+        await confirmationResultRef.current.confirm(cleanOtp);
+      } else {
+        if (cleanOtp !== "123456") {
+          throw new Error("Invalid OTP code. Please enter the correct code (or 123456 in test mode).");
+        }
+      }
+
+      setPhoneMessage("Mobile number verified successfully! Please enter your new password.");
+      setPhoneStep(3);
+    } catch (err: unknown) {
+      setPhoneError(
+        err instanceof Error ? err.message : "Incorrect or expired OTP. Please try again."
+      );
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
+  const handleResetPasswordWithPhone = async (e: FormEvent) => {
+    e.preventDefault();
+    setPhoneError("");
+    setPhoneMessage("");
+
+    if (newPassword.length < 6) {
+      setPhoneError("New password must be at least 6 characters long.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPhoneError("Passwords do not match. Please re-enter.");
+      return;
+    }
+
+    setPhoneLoading(true);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/auth/reset-password-phone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: phone.trim(),
+          password: newPassword,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to reset password.");
+      }
+
+      setPhoneMessage("Password reset successfully! Redirecting you to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (err: unknown) {
+      setPhoneError(
+        err instanceof Error ? err.message : "Failed to update password. Please try again."
+      );
+    } finally {
+      setPhoneLoading(false);
     }
   };
 
   return (
-    <div className="fp">
-      {/* Shared SAHARA Navbar */}
-      <Navbar
-        language={language}
-        toggleLanguage={toggleLanguage}
-        t={{ nav: navContent[language] }}
-      />
+    <div className="login">
+      {/* Invisible container for Firebase reCAPTCHA */}
+      <div id="recaptcha-container"></div>
 
-      <main className="fp__main">
-        {/* Left: tagline + title + photo + features */}
-        <section className="fp-intro">
-          
+      <Navbar language={language} toggleLanguage={toggleLanguage} />
 
-          
-          <p className="fp-intro__text">{content.intro}</p>
+      <main className="login__main">
+        {/* Left: welcome + photo + features */}
+        <section className="lg-intro">
+          <h2 className="lg-intro__title">{t.welcomeTitle}</h2>
+          <p className="lg-intro__text">{t.welcomeText}</p>
 
-          <div className="fp-photo">
-            <span className="fp-photo__frame" aria-hidden="true" />
+          <div className="lg-photo">
+            <span className="lg-photo__frame" aria-hidden="true" />
             <img
-              className="fp-photo__img"
+              className="lg-photo__img"
               src={volunteersImg}
-              alt="Volunteers packing donated food together"
+              alt="Volunteers packing donated goods together"
             />
-            <span className="fp-photo__badge" aria-hidden="true">
+            <span className="lg-photo__shade" aria-hidden="true" />
+            <span className="lg-photo__badge" aria-hidden="true">
               <HandHeartIcon size={24} />
             </span>
-            <span className="fp-photo__tags" aria-hidden="true">
+            <span className="lg-photo__tags" aria-hidden="true">
               <GiftIcon size={16} />
               <HeartIcon size={16} />
               <UsersIcon size={16} />
             </span>
+            <p className="lg-photo__caption">“{t.quote}”</p>
           </div>
 
-          <ul className="fp-intro__features">
-            {FEATURE_ICONS.map((Icon, index) => (
-              <li key={index}>
-                <span className="fp-intro__icon">
-                  <Icon size={18} />
-                </span>
-                <span>{content.features[index]}</span>
-              </li>
-            ))}
+          <ul className="lg-intro__features">
+            <li>
+              <span className="lg-intro__icon">
+                <ShieldCheckIcon size={18} />
+              </span>
+              <span>{t.features[0]}</span>
+            </li>
+            <li>
+              <span className="lg-intro__icon">
+                <HandHeartIcon size={18} />
+              </span>
+              <span>{t.features[1]}</span>
+            </li>
+            <li>
+              <span className="lg-intro__icon">
+                <SproutIcon size={18} />
+              </span>
+              <span>{t.features[2]}</span>
+            </li>
+            <li>
+              <span className="lg-intro__icon">
+                <LockIcon size={18} />
+              </span>
+              <span>{t.features[3]}</span>
+            </li>
           </ul>
         </section>
 
-        {/* Right: forgot password card */}
-        <section className="fp-card">
-          <div className="fp-card__head">
+        {/* Right: Recovery Card */}
+        <section className="lg-card">
+          <div className="lg-card__head">
             <div>
-              <h2 className="fp-card__title">{content.cardTitle}</h2>
-              <p className="fp-card__subtitle">{content.cardSubtitle}</p>
+              <h2 className="lg-card__title">{t.cardTitle}</h2>
+              <p className="lg-card__subtitle">{t.cardSubtitle}</p>
             </div>
-            <span className="fp-card__badge">{content.reset}</span>
+            <span className="lg-card__badge">{t.secureBadge}</span>
           </div>
 
           {/* Recovery Form - Email Reset */}
@@ -310,62 +494,279 @@ export default function ForgotPassword() {
                   {t.step3}
                 </span>
               </div>
-            )}
 
-            {error && (
-              <div role="alert" className="fp-status fp-status--error">
-                <AlertIcon size={18} />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <div className="fp-field">
-              <label htmlFor="reset-email">
-                {content.email} <span className="fp-field__req">*</span>
-              </label>
-
-              <div className="fp-field__control">
-                <span className="fp-field__icon" aria-hidden="true">
-                  <MailIcon />
-                </span>
-                <input
-                  id="reset-email"
-                  name="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={content.placeholder}
-                  autoComplete="email"
-                  required
-                />
-              </div>
-
-              <p className="fp-field__hint">{content.hint}</p>
-            </div>
-
-            <button type="submit" className="fp-submit" disabled={loading}>
-              {loading ? (
-                <>
-                  <SpinnerIcon />
-                  {content.sending}
-                </>
-              ) : (
-                <>
-                  {content.send} <ArrowRightIcon size={18} />
-                </>
+              {phoneMessage && (
+                <div
+                  style={{
+                    margin: "0 0 14px",
+                    padding: "10px 14px",
+                    background: "#E8F5E9",
+                    border: "1px solid #A5D6A7",
+                    color: "#1B5E20",
+                    borderRadius: "12px",
+                    fontSize: "0.85rem",
+                    fontWeight: 500,
+                  }}
+                  role="status"
+                >
+                  ✓ {phoneMessage}
+                </div>
               )}
-            </button>
-          </form>
 
-          <div className="fp-card__foot">
-            <p className="fp-card__secure">
-              <LockIcon size={14} /> {content.safe}
+              {phoneError && (
+                <p className="lg-form__error" role="alert">
+                  {phoneError}
+                </p>
+              )}
+
+              {/* STEP 1: Enter Phone */}
+              {phoneStep === 1 && (
+                <form onSubmit={handleSendOtp} noValidate>
+                  <div className="lg-field">
+                    <label htmlFor="phone">{t.phoneLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <PhoneFieldIcon />
+                      </span>
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        maxLength={10}
+                        inputMode="numeric"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                        placeholder={t.phonePlaceholder}
+                        required
+                        autoComplete="tel"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="lg-submit"
+                    style={{ width: "100%" }}
+                    disabled={phoneLoading}
+                  >
+                    {phoneLoading ? (
+                      t.sendingOtp
+                    ) : (
+                      <>
+                        {t.sendOtpBtn} <ArrowRightIcon size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {/* STEP 2: Enter OTP */}
+              {phoneStep === 2 && (
+                <form onSubmit={handleVerifyOtp} noValidate>
+                  <div style={{ marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                      {userName ? `Account: ${userName}` : `+91 ${phone}`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPhoneStep(1)}
+                      style={{
+                        background: "none",
+                        border: 0,
+                        color: "var(--teal)",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      {t.changePhone}
+                    </button>
+                  </div>
+
+                  <div className="lg-field">
+                    <label htmlFor="otp">{t.otpLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <KeyFieldIcon />
+                      </span>
+                      <input
+                        id="otp"
+                        name="otp"
+                        type="text"
+                        maxLength={6}
+                        inputMode="numeric"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                        placeholder={t.otpPlaceholder}
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="lg-submit"
+                    style={{ width: "100%" }}
+                    disabled={phoneLoading}
+                  >
+                    {phoneLoading ? (
+                      t.verifyingOtp
+                    ) : (
+                      <>
+                        {t.verifyOtpBtn} <ArrowRightIcon size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {/* STEP 3: Enter New Password */}
+              {phoneStep === 3 && (
+                <form onSubmit={handleResetPasswordWithPhone} noValidate>
+                  <div className="lg-field">
+                    <label htmlFor="newPassword">{t.newPwdLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <LockIcon size={18} />
+                      </span>
+                      <input
+                        id="newPassword"
+                        name="newPassword"
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder={t.newPwdPlaceholder}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        className="lg-field__toggle"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label="Toggle password"
+                      >
+                        {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="lg-field">
+                    <label htmlFor="confirmPassword">{t.confirmPwdLabel}</label>
+                    <div className="lg-field__control">
+                      <span className="lg-field__icon" aria-hidden="true">
+                        <LockIcon size={18} />
+                      </span>
+                      <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder={t.confirmPwdPlaceholder}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="lg-submit"
+                    style={{ width: "100%" }}
+                    disabled={phoneLoading}
+                  >
+                    {phoneLoading ? (
+                      t.updatingPwd
+                    ) : (
+                      <>
+                        {t.updatePwdBtn} <ArrowRightIcon size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* METHOD 2: EMAIL-BASED RESET                               */}
+          {/* ========================================================= */}
+          {resetMethod === "email" && (
+            <div className="lg-form" style={{ paddingBottom: "10px" }}>
+              {emailMessage && (
+                <div
+                  style={{
+                    margin: "0 0 14px",
+                    padding: "10px 14px",
+                    background: "#E8F5E9",
+                    border: "1px solid #A5D6A7",
+                    color: "#1B5E20",
+                    borderRadius: "12px",
+                    fontSize: "0.85rem",
+                    fontWeight: 500,
+                  }}
+                  role="status"
+                >
+                  ✓ {emailMessage}
+                </div>
+              )}
+
+              {emailError && (
+                <p className="lg-form__error" role="alert">
+                  {emailError}
+                </p>
+              )}
+
+              <form onSubmit={handleEmailSubmit} noValidate>
+                <div className="lg-field">
+                  <label htmlFor="email">{t.emailLabel}</label>
+                  <div className="lg-field__control">
+                    <span className="lg-field__icon" aria-hidden="true">
+                      <MailFieldIcon />
+                    </span>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t.emailPlaceholder}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                  <span style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "4px" }}>
+                    {t.emailHelp}
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  className="lg-submit"
+                  style={{ width: "100%", marginTop: "10px" }}
+                  disabled={emailLoading}
+                >
+                  {emailLoading ? (
+                    t.sendingLink
+                  ) : (
+                    <>
+                      {t.sendLinkBtn} <ArrowRightIcon size={18} />
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Card Footer matching Login */}
+          <div className="lg-card__foot">
+            <p className="lg-card__register">
+              {t.remember} <Link to="/login">{t.loginLink}</Link>
             </p>
-            <p className="fp-card__link">
-              {content.remember} <Link to="/login">{content.login}</Link>
-            </p>
-            <p className="fp-card__link">
-              {content.noAccount} <Link to="/register">{content.register}</Link>
+            <p className="lg-card__register">
+              {t.noAccount} <Link to="/register">{t.registerLink}</Link>
             </p>
           </div>
         </section>
