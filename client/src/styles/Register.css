@@ -335,6 +335,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: space-between; /* spare height is shared between the rows */
   gap: 0 16px;
+  padding-bottom: 8px;
+}
+
+.form__voice-assistant {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 /* Every field reserves a slot for its error text, so errors never push anything */
@@ -499,7 +505,8 @@
   justify-content: center;
   gap: 8px;
   height: 46px;
-  margin-top: 2px;
+  margin-top: 6px;
+  margin-bottom: 10px;
   font: inherit;
   font-size: 0.98rem;
   font-weight: 700;
@@ -511,7 +518,7 @@
   position: sticky;
   bottom: 0;
   z-index: 2;
-  box-shadow: 0 -12px 0 6px var(--surface);
+  box-shadow: 0 4px 14px rgba(6, 90, 107, 0.25);
   transition: transform 0.15s, filter 0.15s;
 }
 
