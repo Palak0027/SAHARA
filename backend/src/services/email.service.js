@@ -6,15 +6,15 @@ const nodemailer = require('nodemailer');
  *   Sends emails to ANY recipient email address in the world without sandbox limits.
  * - Fallback / Secondary: Resend REST API (over HTTPS Port 443).
  */
-async function sendEmail({ to, subject, text, html }) {
+async function sendEmail({ to, subject, text, html, origin }) {
   const errors = [];
 
   // Helper 1: Try Vercel Serverless Relay (runs Nodemailer on Vercel where ports 465/587 are NOT blocked)
   const tryVercelNodemailerRelay = async () => {
     const candidateUrls = [
+      origin ? `${origin.replace(/\/$/, '')}/api/send-email` : null,
       process.env.VERCEL_RELAY_URL,
       process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/$/, '')}/api/send-email` : null,
-      'https://sahara-1m64cwpv1-palak-5539.vercel.app/api/send-email',
       'https://sahara-woad.vercel.app/api/send-email'
     ].filter(Boolean);
 
@@ -45,12 +45,17 @@ async function sendEmail({ to, subject, text, html }) {
 
         clearTimeout(timeoutId);
 
-        const data = await response.json().catch(() => ({}));
+        const textData = await response.text();
+        let data = {};
+        try {
+          data = JSON.parse(textData);
+        } catch (_) {}
+
         if (response.ok && data.success) {
           console.log(`[EmailService] Nodemailer email sent successfully via Vercel relay (${url})`);
           return { success: true, provider: 'nodemailer-vercel', id: data.messageId };
         } else {
-          lastError = new Error(data.message || `Relay returned status ${response.status}`);
+          lastError = new Error(data.message || `Relay (${new URL(url).hostname}) returned status ${response.status}`);
         }
       } catch (err) {
         lastError = err;
