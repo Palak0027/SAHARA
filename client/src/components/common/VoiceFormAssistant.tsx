@@ -35,6 +35,8 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
   const recognitionRef = useRef<any>(null);
   const isUserActiveRef = useRef<boolean>(false);
   const accumulatedFinalRef = useRef<string>("");
+  const voiceLangRef = useRef<string>(voiceLang);
+  const restartTimeoutRef = useRef<any>(null);
 
   // Check Web Speech API availability on mount
   useEffect(() => {
@@ -47,15 +49,25 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
 
   // Sync voice language when parent language changes
   useEffect(() => {
-    setVoiceLang(language === "hi" ? "hi-IN" : "en-IN");
+    const lang = language === "hi" ? "hi-IN" : "en-IN";
+    setVoiceLang(lang);
+    voiceLangRef.current = lang;
   }, [language]);
 
   // Clean up active speech recognition on unmount
   useEffect(() => {
     return () => {
       isUserActiveRef.current = false;
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
       if (recognitionRef.current) {
         try {
+          recognitionRef.current.onstart = null;
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.onerror = null;
+          recognitionRef.current.onend = null;
           recognitionRef.current.abort();
         } catch (_) { }
         recognitionRef.current = null;
@@ -65,9 +77,17 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
 
   const stopListening = () => {
     isUserActiveRef.current = false;
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
     setIsListening(false);
     if (recognitionRef.current) {
       try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
         recognitionRef.current.stop();
       } catch (_) { }
       recognitionRef.current = null;
@@ -102,38 +122,34 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
 
     if (!SpeechClass) {
       setIsSupported(false);
-      setErrorMsg(
-        voiceLang === "hi-IN"
-          ? "इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है। आप नीचे सीधे लिख सकते हैं या 1-क्लिक सैंपल इस्तेमाल कर सकते हैं।"
-          : "Speech recognition is not supported in this browser. You can type directly or click any 1-click sample below."
-      );
+      setIsListening(false);
       return;
     }
 
-    // Check secure context for production deployment
-    const isSecure =
-      window.isSecureContext ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-    if (!isSecure) {
-      setErrorMsg(
-        voiceLang === "hi-IN"
-          ? "ब्राउज़र वॉयस इनपुट के लिए HTTPS आवश्यक है। डिप्लॉयमेंट में https:// का उपयोग करें, या नीचे डेमो सैंपल/टाइपिंग का इस्तेमाल करें।"
-          : "Browser microphone access requires HTTPS. In production use HTTPS, or test with the 1-click samples / typing below."
-      );
+    // Safely cleanup previous instance before instantiating a new one
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (_) {}
+      recognitionRef.current = null;
     }
 
     try {
       const recognition = new SpeechClass();
-      recognition.lang = voiceLang;
+      recognition.lang = voiceLangRef.current;
       recognition.continuous = true;
       recognition.interimResults = true;
-
-      isUserActiveRef.current = true;
+      recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
-        setIsListening(true);
-        setErrorMsg("");
+        if (isUserActiveRef.current) {
+          setIsListening(true);
+          setErrorMsg("");
+        }
       };
 
       recognition.onresult = (event: any) => {
@@ -170,20 +186,28 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
           return;
         }
 
-        if (event.error === "not-allowed") {
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
           isUserActiveRef.current = false;
           setIsListening(false);
           setErrorMsg(
-            voiceLang === "hi-IN"
+            voiceLangRef.current === "hi-IN"
               ? "माइक्रोफ़ोन की अनुमति नहीं मिली। कृपया ब्राउज़र एड्रेस बार में लॉक (🔒) आइकॉन दबाकर माइक्रोफ़ोन Allow करें।"
               : "Microphone permission denied. Click the lock (🔒) icon in your address bar and allow microphone access."
+          );
+        } else if (event.error === "audio-capture") {
+          isUserActiveRef.current = false;
+          setIsListening(false);
+          setErrorMsg(
+            voiceLangRef.current === "hi-IN"
+              ? "कोई माइक्रोफ़ोन नहीं मिला या माइक्रोफ़ोन बंद है। कृपया माइक चेक करें।"
+              : "No microphone detected or microphone is muted. Please check your mic settings."
           );
         } else if (event.error === "no-speech") {
           // Brief silence: Do not disconnect user! Keep listening active so pauses don't break flow
         } else if (event.error === "network") {
           setErrorMsg(
-            voiceLang === "hi-IN"
-              ? "वॉयस नेटवर्क सेवा में रुकावट। आप नीचे सीधे लिख सकते हैं या 1-क्लिक सैंपल आज़मा सकते हैं।"
+            voiceLangRef.current === "hi-IN"
+              ? "वॉयस नेटवर्क सेवा में रुकावट। कृपया इंटरनेट चेक करें या नीचे सीधे लिखें।"
               : "Network connection issue with speech service. You can type directly or click a 1-click sample."
           );
         }
@@ -191,14 +215,15 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
 
       recognition.onend = () => {
         // RESILIENT AUTO-RESTART ON PAUSE:
-        // Browsers stop speech recognition after brief 1-2s pauses.
-        // If user is still in listening mode, auto-restart so they can speak, pause, and continue!
+        // Chromium stops speech recognition after brief pauses or when continuous limit hits.
+        // If user is still in listening mode, spawn a fresh SpeechRecognition instance after 200ms!
         if (isUserActiveRef.current) {
-          try {
-            recognition.start();
-          } catch (_) {
-            // Already active or restarting
-          }
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            if (isUserActiveRef.current) {
+              initAndStartRecognition();
+            }
+          }, 200);
         } else {
           setIsListening(false);
         }
@@ -208,23 +233,92 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
       recognition.start();
     } catch (err: any) {
       console.warn("Failed to start speech recognition:", err);
+      if (isUserActiveRef.current) {
+        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = setTimeout(() => {
+          if (isUserActiveRef.current) {
+            initAndStartRecognition();
+          }
+        }, 300);
+      }
+    }
+  };
+
+  const startListening = async () => {
+    setErrorMsg("");
+
+    // Automatically clear previous/demo text so fresh spoken voice starts on a clean slate
+    setTranscript("");
+    setInterimText("");
+    accumulatedFinalRef.current = "";
+    setParsedData(null);
+
+    isUserActiveRef.current = true;
+    setIsListening(true);
+
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+
+    const win = window as unknown as IWindow;
+    const SpeechClass = win.SpeechRecognition || win.webkitSpeechRecognition;
+
+    if (!SpeechClass) {
+      setIsSupported(false);
+      setIsListening(false);
+      isUserActiveRef.current = false;
       setErrorMsg(
         err.message ||
         (voiceLang === "hi-IN"
           ? "माइक्रोफ़ोन शुरू करने में समस्या आई। नीचे डेमो सैंपल का उपयोग करें।"
           : "Failed to initialize microphone. You can type or use the demo sample.")
       );
-      isUserActiveRef.current = false;
-      setIsListening(false);
+      return;
     }
+
+    // Check secure context for production deployment
+    const isSecure =
+      window.isSecureContext ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    if (!isSecure) {
+      setErrorMsg(
+        voiceLang === "hi-IN"
+          ? "ब्राउज़र वॉयस इनपुट के लिए HTTPS आवश्यक है। डिप्लॉयमेंट में https:// का उपयोग करें, या नीचे डेमो सैंपल/टाइपिंग का इस्तेमाल करें।"
+          : "Browser microphone access requires HTTPS. In production use HTTPS, or test with the 1-click samples / typing below."
+      );
+    }
+
+    // Explicitly prompt for mic permission under user gesture if needed
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Immediately stop tracks so Web Speech API has exclusive microphone access
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (micErr: any) {
+        console.warn("Microphone access error:", micErr);
+        if (micErr.name === "NotAllowedError" || micErr.name === "PermissionDeniedError") {
+          isUserActiveRef.current = false;
+          setIsListening(false);
+          setErrorMsg(
+            voiceLang === "hi-IN"
+              ? "माइक्रोफ़ोन की अनुमति नहीं मिली। कृपया ब्राउज़र एड्रेस बार में लॉक (🔒) आइकॉन दबाकर माइक्रोफ़ोन Allow करें।"
+              : "Microphone permission denied. Click the lock (🔒) icon in your address bar and allow microphone access."
+          );
+          return;
+        }
+      }
+    }
+
+    initAndStartRecognition();
   };
 
   const handleOpenModal = () => {
     setShowModal(true);
     setErrorMsg("");
-    setTimeout(() => {
-      startListening();
-    }, 150);
+    // Start listening immediately within user click gesture
+    startListening();
   };
 
   const handleCloseModal = () => {
@@ -509,9 +603,9 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
                     type="button"
                     onClick={() => {
                       setVoiceLang("hi-IN");
-                      if (isListening) {
-                        stopListening();
-                        setTimeout(() => startListening(), 100);
+                      voiceLangRef.current = "hi-IN";
+                      if (isListening || isUserActiveRef.current) {
+                        initAndStartRecognition();
                       }
                     }}
                     style={{
@@ -532,9 +626,9 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
                     type="button"
                     onClick={() => {
                       setVoiceLang("en-IN");
-                      if (isListening) {
-                        stopListening();
-                        setTimeout(() => startListening(), 100);
+                      voiceLangRef.current = "en-IN";
+                      if (isListening || isUserActiveRef.current) {
+                        initAndStartRecognition();
                       }
                     }}
                     style={{
@@ -619,6 +713,24 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
                   : voiceLang === "hi-IN"
                     ? "बोलने के लिए माइक दबाएं"
                     : "Tap mic to start speaking"}
+              </div>
+              <div
+                style={{
+                  marginTop: "2px",
+                  fontSize: "0.71rem",
+                  color: "#64748B",
+                  fontWeight: 500,
+                }}
+              >
+                {voiceLang === "hi-IN" ? (
+                  <span>
+                    🇮🇳 <strong>हिन्दी मोड:</strong> आप हिन्दी में बोलें (अंग्रेज़ी के लिए ऊपर <strong>English</strong> चुनें)
+                  </span>
+                ) : (
+                  <span>
+                    🌐 <strong>English Mode:</strong> Speak in English (हिन्दी में बोलने के लिए ऊपर <strong>हिन्दी</strong> चुनें)
+                  </span>
+                )}
               </div>
             </div>
 
