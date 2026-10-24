@@ -28,7 +28,16 @@ async function forgotPassword(req, res, next) {
     user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+    let frontendUrl = (process.env.FRONTEND_URL || '').trim();
+    if (!frontendUrl || frontendUrl === '*' || !frontendUrl.startsWith('http')) {
+      const origin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : null);
+      if (origin && origin.startsWith('http') && !origin.includes('*')) {
+        frontendUrl = origin;
+      } else {
+        frontendUrl = 'https://sahara-woad.vercel.app';
+      }
+    }
+    frontendUrl = frontendUrl.replace(/\/$/, '');
     const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
 
     try {
