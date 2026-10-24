@@ -69,7 +69,7 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
           recognitionRef.current.onerror = null;
           recognitionRef.current.onend = null;
           recognitionRef.current.abort();
-        } catch (_) {}
+        } catch (_) { }
         recognitionRef.current = null;
       }
     };
@@ -89,7 +89,7 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
         recognitionRef.current.onerror = null;
         recognitionRef.current.onend = null;
         recognitionRef.current.stop();
-      } catch (_) {}
+      } catch (_) { }
       recognitionRef.current = null;
     }
 
@@ -100,13 +100,22 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
     }
   };
 
-  /**
-   * Initializes a brand-new SpeechRecognition instance and starts listening.
-   * NOTE: In Chromium / Web Speech API, an instance that fired `onend` CANNOT be restarted;
-   * a fresh instance MUST be created every single time to prevent silent InvalidStateError crashes.
-   */
-  const initAndStartRecognition = () => {
-    if (!isUserActiveRef.current) return;
+  const startListening = () => {
+    setErrorMsg("");
+
+    // Automatically clear previous/demo text so fresh spoken voice starts on a clean slate
+    setTranscript("");
+    setInterimText("");
+    accumulatedFinalRef.current = "";
+    setParsedData(null);
+
+    // Stop existing session first to avoid InvalidStateError
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) { }
+      recognitionRef.current = null;
+    }
 
     const win = window as unknown as IWindow;
     const SpeechClass = win.SpeechRecognition || win.webkitSpeechRecognition;
@@ -260,9 +269,10 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
       setIsListening(false);
       isUserActiveRef.current = false;
       setErrorMsg(
-        voiceLang === "hi-IN"
-          ? "इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है। आप नीचे सीधे लिख सकते हैं या 1-क्लिक सैंपल इस्तेमाल कर सकते हैं।"
-          : "Speech recognition is not supported in this browser. You can type directly or click any 1-click sample below."
+        err.message ||
+        (voiceLang === "hi-IN"
+          ? "माइक्रोफ़ोन शुरू करने में समस्या आई। नीचे डेमो सैंपल का उपयोग करें।"
+          : "Failed to initialize microphone. You can type or use the demo sample.")
       );
       return;
     }
@@ -354,36 +364,36 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
     context === "register"
       ? voiceLang === "hi-IN"
         ? [
-            {
-              label: "👤 राहुल वर्मा (डोनर - लखनऊ)",
-              text: "मेरा नाम राहुल वर्मा है, फोन 9876543210, शहर लखनऊ, पिनकोड 226001, डोनर अकाउंट बनाना है।",
-            },
-            {
-              label: "👤 प्रिया शर्मा (रिसीवर - मुंबई)",
-              text: "मेरा नाम प्रिया शर्मा है, फोन 9123456780, शहर मुंबई, मुझे भोजन और राशन की मदद चाहिए, रिसीवर अकाउंट।",
-            },
-            {
-              label: "🏢 समर्पण संस्था (संगठन - दिल्ली)",
-              text: "समर्पण फाउंडेशन, फोन 9811223344, शहर दिल्ली, पिनकोड 110001, संगठन खाता।",
-            },
-          ]
+          {
+            label: "👤 राहुल वर्मा (डोनर - लखनऊ)",
+            text: "मेरा नाम राहुल वर्मा है, फोन 9876543210, शहर लखनऊ, पिनकोड 226001, डोनर अकाउंट बनाना है।",
+          },
+          {
+            label: "👤 प्रिया शर्मा (रिसीवर - मुंबई)",
+            text: "मेरा नाम प्रिया शर्मा है, फोन 9123456780, शहर मुंबई, मुझे भोजन और राशन की मदद चाहिए, रिसीवर अकाउंट।",
+          },
+          {
+            label: "🏢 समर्पण संस्था (संगठन - दिल्ली)",
+            text: "समर्पण फाउंडेशन, फोन 9811223344, शहर दिल्ली, पिनकोड 110001, संगठन खाता।",
+          },
+        ]
         : [
-            {
-              label: "👤 Rahul Verma (Donor - Lucknow)",
-              text: "My name is Rahul Verma, phone 9876543210, city Lucknow, pincode 226001, donor account.",
-            },
-            {
-              label: "👤 Priya Sharma (Receiver - Mumbai)",
-              text: "My name is Priya Sharma, phone 9123456780, email priya@gmail.com, city Mumbai, receiver account.",
-            },
-            {
-              label: "🏢 Samarpan NGO (Organization - Delhi)",
-              text: "Samarpan Foundation, phone 9811223344, city Delhi, pincode 110001, organization receiver account.",
-            },
-          ]
+          {
+            label: "👤 Rahul Verma (Donor - Lucknow)",
+            text: "My name is Rahul Verma, phone 9876543210, city Lucknow, pincode 226001, donor account.",
+          },
+          {
+            label: "👤 Priya Sharma (Receiver - Mumbai)",
+            text: "My name is Priya Sharma, phone 9123456780, email priya@gmail.com, city Mumbai, receiver account.",
+          },
+          {
+            label: "🏢 Samarpan NGO (Organization - Delhi)",
+            text: "Samarpan Foundation, phone 9811223344, city Delhi, pincode 110001, organization receiver account.",
+          },
+        ]
       : context === "receiver"
-      ? voiceLang === "hi-IN"
-        ? [
+        ? voiceLang === "hi-IN"
+          ? [
             {
               label: "🍲 भोजन (30 पैकेट - पटना)",
               text: "हमें 30 पैकेट ताजा भोजन की बहुत तत्काल आवश्यकता है पटना में।",
@@ -393,7 +403,7 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
               text: "हमें 5 बच्चों के लिए गर्म कपड़े और कंबल चाहिए, बहुत जरूरी है जयपुर में।",
             },
           ]
-        : [
+          : [
             {
               label: "🍲 30 Food Packets (Patna)",
               text: "We urgently need 30 packets of fresh food in Patna for flood relief.",
@@ -403,27 +413,27 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
               text: "We urgently need warm winter clothes for 5 people in Jaipur.",
             },
           ]
-      : voiceLang === "hi-IN"
-      ? [
-          {
-            label: "🍲 15 भोजन पैकेट (दिल्ली)",
-            text: "मुझे 15 पैकेट ताजा भोजन और रोटियां दान करनी हैं, दिल्ली रोहिणी में।",
-          },
-          {
-            label: "🧥 20 गर्म कपड़े (जयपुर)",
-            text: "मैं जयपुर में 20 गर्म स्वेटर और कपड़े दान करना चाहता हूँ।",
-          },
-        ]
-      : [
-          {
-            label: "🍲 15 Food Packets (Delhi)",
-            text: "I want to donate 15 food packets and rice in Delhi near Rohini sector 15.",
-          },
-          {
-            label: "🧥 20 Warm Clothes (Jaipur)",
-            text: "I want to donate 20 warm winter clothes and blankets in Jaipur.",
-          },
-        ];
+        : voiceLang === "hi-IN"
+          ? [
+            {
+              label: "🍲 15 भोजन पैकेट (दिल्ली)",
+              text: "मुझे 15 पैकेट ताजा भोजन और रोटियां दान करनी हैं, दिल्ली रोहिणी में।",
+            },
+            {
+              label: "🧥 20 गर्म कपड़े (जयपुर)",
+              text: "मैं जयपुर में 20 गर्म स्वेटर और कपड़े दान करना चाहता हूँ।",
+            },
+          ]
+          : [
+            {
+              label: "🍲 15 Food Packets (Delhi)",
+              text: "I want to donate 15 food packets and rice in Delhi near Rohini sector 15.",
+            },
+            {
+              label: "🧥 20 Warm Clothes (Jaipur)",
+              text: "I want to donate 20 warm winter clothes and blankets in Jaipur.",
+            },
+          ];
 
   const handleUseSample = (sampleText: string) => {
     stopListening();
@@ -701,8 +711,8 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
                     ? "🔴 सुन रहे हैं... आप रुक-रुक कर भी बोल सकते हैं"
                     : "🔴 Listening... You can pause naturally between words"
                   : voiceLang === "hi-IN"
-                  ? "बोलने के लिए माइक दबाएं"
-                  : "Tap mic to start speaking"}
+                    ? "बोलने के लिए माइक दबाएं"
+                    : "Tap mic to start speaking"}
               </div>
               <div
                 style={{
@@ -940,12 +950,12 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
                       ? "जैसे: 'मुझे 15 पैकेट ताजा भोजन डोनेट करना है दिल्ली में' (रुक-रुक कर भी बोल सकते हैं)"
                       : "e.g., 'I want to donate 15 food packets in Delhi' (you can speak with pauses)"
                     : context === "receiver"
-                    ? voiceLang === "hi-IN"
-                      ? "जैसे: 'हमें 5 गर्म कपड़े और कंबल चाहिए जयपुर में' (रुक-रुक कर भी बोल सकते हैं)"
-                      : "e.g., 'We urgently need 5 blankets in Jaipur' (you can speak with pauses)"
-                    : voiceLang === "hi-IN"
-                    ? "जैसे: 'प्रिया शर्मा, 9452845710, लखनऊ' (रुक-रुक कर भी बोल सकते हैं)"
-                    : "e.g., 'Priya Sharma, 9452845710, Lucknow' (you can speak with pauses)"
+                      ? voiceLang === "hi-IN"
+                        ? "जैसे: 'हमें 5 गर्म कपड़े और कंबल चाहिए जयपुर में' (रुक-रुक कर भी बोल सकते हैं)"
+                        : "e.g., 'We urgently need 5 blankets in Jaipur' (you can speak with pauses)"
+                      : voiceLang === "hi-IN"
+                        ? "जैसे: 'प्रिया शर्मा, 9484758113, लखनऊ' (रुक-रुक कर भी बोल सकते हैं)"
+                        : "e.g., 'Priya Sharma, 9484758113, Lucknow' (you can speak with pauses)"
                 }
                 rows={2}
                 style={{
