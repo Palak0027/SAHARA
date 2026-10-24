@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Bell, Menu, PlusCircle, RefreshCw, CheckCircle2, Clock, AlertTriangle, Languages } from "lucide-react";
+import { Bell, Menu, PlusCircle, RefreshCw, CheckCircle2, Clock, AlertTriangle, Languages, ArrowLeftRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { ReceiverTab, ReceiverNotification } from "./types";
 
 interface ReceiverHeaderProps {
@@ -55,6 +57,24 @@ export const ReceiverHeader: React.FC<ReceiverHeaderProps> = ({ activeTab, setSi
     Account: hi ? "अपनी प्रोफ़ाइल और लाभार्थी विवरण प्रबंधित करें" : "Your profile details, beneficiary registrations, and settings",
   };
 
+  const navigate = useNavigate();
+  const { switchRole } = useAuth();
+  const [switching, setSwitching] = useState(false);
+
+  const handleSwitchToDonor = async () => {
+    if (switching) return;
+    try {
+      setSwitching(true);
+      await switchRole("donor");
+      navigate("/donator-dashboard");
+    } catch (err: any) {
+      console.error("Failed to switch to donor:", err);
+      alert(err?.response?.data?.message || err.message || "Failed to switch mode");
+    } finally {
+      setSwitching(false);
+    }
+  };
+
   return <header className="rd-header">
     <div className="rd-header-left">
       <button type="button" onClick={() => setSidebarOpen(true)} className="rd-icon-btn rd-menu-btn" aria-label={hi ? "मेनू खोलें" : "Open menu"}><Menu size={19} /></button>
@@ -62,6 +82,36 @@ export const ReceiverHeader: React.FC<ReceiverHeaderProps> = ({ activeTab, setSi
     </div>
     <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
       <button type="button" onClick={toggleLanguage} className="rd-btn rd-btn-outline rd-btn-sm" title={hi ? "भाषा बदलें" : "Change language"} aria-label={hi ? "Switch to English" : "हिंदी में बदलें"} style={{ display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}><Languages size={16} />{hi ? "English" : "हिंदी"}</button>
+      
+      {/* Switch Role Button */}
+      <button
+        type="button"
+        onClick={handleSwitchToDonor}
+        disabled={switching}
+        title={hi ? "दाता (Donor) मोड में बदलें" : "Switch to Donor Mode"}
+        aria-label={hi ? "Switch to Donor" : "Switch to Donor"}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "6px",
+          background: "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)",
+          color: "#ffffff",
+          border: 0,
+          borderRadius: "8px",
+          padding: "6px 12px",
+          fontSize: "0.82rem",
+          fontWeight: 700,
+          cursor: switching ? "not-allowed" : "pointer",
+          boxShadow: "0 2px 6px rgba(47, 85, 71, 0.25)",
+          whiteSpace: "nowrap",
+          transition: "all 0.15s ease",
+          opacity: switching ? 0.7 : 1,
+        }}
+      >
+        <ArrowLeftRight size={14} className={switching ? "rd-spin" : ""} />
+        <span>{switching ? (hi ? "बदल रहे हैं..." : "Switching...") : (hi ? "दाता मोड" : "Donor Mode")}</span>
+      </button>
+
       <button type="button" onClick={onRefresh} disabled={refreshing} className="rd-icon-btn" title={hi ? "डैशबोर्ड रीफ़्रेश करें" : "Refresh dashboard data"} aria-label={hi ? "डेटा रीफ़्रेश करें" : "Refresh data"}><RefreshCw size={17} className={refreshing ? "rd-spin" : ""} /></button>
       {activeTab !== "Raise Need" && <button type="button" onClick={onRaiseNeedClick} className="rd-btn rd-btn-primary rd-btn-sm"><PlusCircle size={15} />{hi ? "ज़रूरत दर्ज करें" : "Raise a Need"}</button>}
       <div className="rd-notif-wrap">
