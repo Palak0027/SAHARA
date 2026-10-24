@@ -230,7 +230,7 @@ export const PostDonationTab: React.FC<PostDonationTabProps> = ({
       return;
     }
 
-    let foodPayload = null;
+    let foodPayload: any = null;
     if (isFoodCategory) {
       const prepDate = preparedOn ? new Date(preparedOn) : null;
       const safeDate = safeUntil ? new Date(safeUntil) : null;
