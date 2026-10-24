@@ -119,16 +119,16 @@ export default function ForgotPassword() {
   const t = {
     en: {
       welcomeTitle: "Reset your SAHARA password.",
-      welcomeText: "Don't worry, choose your preferred recovery method: instant SMS OTP or a secure email reset link.",
+      welcomeText: "Enter your registered email address and we will send you a secure link to reset your password.",
       quote: "A little help goes a long way. Recover your account safely.",
       features: [
-        "Instant Phone OTP",
         "Email Reset Link",
+        "15-Minute Expiry",
         "100% Free Recovery",
         "End-to-End Secure",
       ],
       cardTitle: "Password Recovery",
-      cardSubtitle: "Choose how you want to reset your password",
+      cardSubtitle: "Enter your registered email to receive a recovery link",
       secureBadge: "SECURE",
       tabPhone: "Phone OTP",
       tabEmail: "Gmail / Email",
@@ -163,16 +163,16 @@ export default function ForgotPassword() {
     },
     hi: {
       welcomeTitle: "अपना सहारा पासवर्ड रीसेट करें।",
-      welcomeText: "चिंता न करें, अपना पसंदीदा तरीका चुनें: सुरक्षित ईमेल रीसेट लिंक या परीक्षण हेतु फोन OTP।",
+      welcomeText: "अपना पंजीकृत ईमेल दर्ज करें और हम पासवर्ड रीसेट करने के लिए एक सुरक्षित लिंक भेजेंगे।",
       quote: "सच्ची खुशी दूसरों की सेवा करने में है। अपना खाता सुरक्षित रूप से पुनर्प्राप्त करें।",
       features: [
         "ईमेल रीसेट लिंक",
-        "परीक्षण फोन OTP",
+        "15-मिनट की वैधता",
         "100% मुफ़्त रिकवरी",
         "सुरक्षित और एन्क्रिप्टेड",
       ],
       cardTitle: "खाता रिकवरी",
-      cardSubtitle: "पासवर्ड रीसेट करने का तरीका चुनें",
+      cardSubtitle: "रीसेट लिंक प्राप्त करने के लिए अपना पंजीकृत ईमेल दर्ज करें",
       secureBadge: "सुरक्षित",
       tabPhone: "फोन OTP (टेस्ट)",
       tabEmail: "जीमेल / ईमेल",
@@ -461,79 +461,7 @@ export default function ForgotPassword() {
             <span className="lg-card__badge">{t.secureBadge}</span>
           </div>
 
-          {/* Recovery Method Tabs */}
-          <div style={{ padding: "16px 34px 0" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "8px",
-                background: "var(--green-soft)",
-                padding: "5px",
-                borderRadius: "14px",
-              }}
-            >
-              {/* Left Tab: Email Link (Standard / All Users) */}
-              <button
-                type="button"
-                onClick={() => {
-                  setResetMethod("email");
-                  setEmailError("");
-                  setEmailMessage("");
-                }}
-                style={{
-                  padding: "9px 12px",
-                  fontSize: "0.88rem",
-                  fontWeight: 700,
-                  border: 0,
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  background: resetMethod === "email" ? "var(--surface)" : "transparent",
-                  color: resetMethod === "email" ? "var(--teal-dark)" : "var(--muted)",
-                  boxShadow:
-                    resetMethod === "email" ? "0 2px 8px rgba(6,90,107,0.12)" : "none",
-                  transition: "all 0.15s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                }}
-              >
-                <span>✉️</span>
-                {t.tabEmail}
-              </button>
-
-              {/* Right Tab: Phone OTP (Test / Beta Users) */}
-              <button
-                type="button"
-                onClick={() => {
-                  setResetMethod("phone");
-                  setPhoneError("");
-                  setPhoneMessage("");
-                }}
-                style={{
-                  padding: "9px 12px",
-                  fontSize: "0.88rem",
-                  fontWeight: 700,
-                  border: 0,
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  background: resetMethod === "phone" ? "var(--surface)" : "transparent",
-                  color: resetMethod === "phone" ? "var(--teal-dark)" : "var(--muted)",
-                  boxShadow:
-                    resetMethod === "phone" ? "0 2px 8px rgba(6,90,107,0.12)" : "none",
-                  transition: "all 0.15s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                }}
-              >
-                <span>📱</span>
-                {t.tabPhone}
-              </button>
-            </div>
-          </div>
+          {/* Recovery Form - Email Reset */}
 
           {/* ========================================================= */}
           {/* METHOD 1: PHONE NUMBER (SMS OTP) RESET                   */}
