@@ -622,9 +622,6 @@ const Register: React.FC = () => {
           </div>
 
           <div className="card__foot">
-            <p className="card__secure">
-              <LockIcon size={14} /> {t.secureNote}
-            </p>
             <p className="card__login">
               {t.alreadyAccount} <Link to="/login">{t.login}</Link>
             </p>

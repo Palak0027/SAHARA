@@ -123,7 +123,7 @@ const COPY = {
       "Discover available donations or take the first step towards helping someone in your community.",
     getStarted: "Get started",
     learnMore: "Explore available items",
-    homepage: "Back to home",
+   
     availability: "Availability depends on current listings.",
     sectionLabel: "HOW IT WORKS",
     sectionTitle: "Giving made simple",
@@ -214,7 +214,7 @@ const COPY = {
       "उपलब्ध दान देखें या अपने समुदाय में किसी की मदद करने की शुरुआत करें।",
     getStarted: "शुरू करें",
     learnMore: "उपलब्ध वस्तुएँ देखें",
-    homepage: "होम पर जाएँ",
+    
     availability: "उपलब्धता वर्तमान सूची पर निर्भर करती है।",
     sectionLabel: "कैसे काम करता है",
     sectionTitle: "दान करना हुआ आसान",
@@ -394,7 +394,7 @@ export default function HowItWorks({ t: externalT }: HowItWorksProps) {
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link
+                <Link  style={{ textDecoration: "none" }} 
                   to="/donations"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#07545A] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[#07545A]/10 transition hover:-translate-y-0.5 hover:bg-[#06464B] hover:shadow-lg"
                 >
@@ -402,7 +402,8 @@ export default function HowItWorks({ t: externalT }: HowItWorksProps) {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
 
-                <Link
+                <Link style={{ textDecoration: "none" }}
+                
                   to="/register"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#C9DCD0] bg-white/90 px-6 py-3 text-sm font-bold text-[#176C62] transition hover:-translate-y-0.5 hover:bg-[#F0F7F1]"
                 >
@@ -606,7 +607,7 @@ export default function HowItWorks({ t: externalT }: HowItWorksProps) {
                   ))}
                 </ul>
 
-                <Link
+                <Link style={{ textDecoration: "none" }}
                   to="/register"
                   className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#07545A] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#06464B]"
                 >
@@ -636,7 +637,7 @@ export default function HowItWorks({ t: externalT }: HowItWorksProps) {
                   ))}
                 </ul>
 
-                <Link
+                <Link style={{ textDecoration: "none" }}
                   to="/donations"
                   className="mt-7 inline-flex items-center gap-2 rounded-xl border border-[#D8D0AE] bg-white px-5 py-3 text-sm font-bold text-[#725D2F] transition hover:bg-[#F9F5E8]"
                 >
@@ -706,14 +707,14 @@ export default function HowItWorks({ t: externalT }: HowItWorksProps) {
               </div>
 
               <div className="flex shrink-0 flex-wrap gap-3">
-                <Link
+                <Link  style={{ textDecoration: "none" }}
                   to="/donations"
                   className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#07545A] transition hover:bg-[#EDF5ED]"
                 >
                   {copy.learnMore}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link
+                <Link style={{ textDecoration: "none" }}
                   to="/register"
                   className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/30 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
                 >
@@ -724,10 +725,8 @@ export default function HowItWorks({ t: externalT }: HowItWorksProps) {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-[#819087]">
-            <Link to="/" className="hover:text-[#176C62]">
-              ← {copy.homepage}
-            </Link>
-            <span>{copy.availability}</span>
+             
+            
           </div>
         </section>
       </main>

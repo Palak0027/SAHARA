@@ -6,7 +6,7 @@ import {
   Shirt,
   Utensils,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type DonationCategoriesProps = {
   t: {
@@ -37,6 +37,8 @@ type DonationCategoriesProps = {
 export default function DonationCategories({
   t,
 }: DonationCategoriesProps) {
+  const navigate = useNavigate();
+
   const categories = [
     {
       icon: <Utensils />,
@@ -45,6 +47,8 @@ export default function DonationCategories({
       button: t.categories.food.button,
       className: "food-card",
       disabled: false,
+      // Category name as stored in the database (used for ?category=)
+      param: "Food",
     },
     {
       icon: <Shirt />,
@@ -53,6 +57,7 @@ export default function DonationCategories({
       button: t.categories.clothes.button,
       className: "clothes-card",
       disabled: false,
+      param: "Clothes",
     },
     {
       icon: <Pill />,
@@ -61,8 +66,14 @@ export default function DonationCategories({
       button: t.categories.medicine.button,
       className: "medicine-card",
       disabled: true,
+      param: "",
     },
   ];
+
+  // Card click -> Explore Donations page with this category already selected
+  const openCategory = (param: string) => {
+    navigate(`/donations?category=${encodeURIComponent(param)}`);
+  };
 
   return (
     <section id="donations" className="bg-white py-14 sm:py-16">
@@ -81,10 +92,13 @@ export default function DonationCategories({
             </h2>
           </div>
 
-          <button className="hidden items-center gap-1 text-sm font-semibold text-[#176C62] sm:flex">
+          <Link
+            to="/donations"
+            className="flex items-center gap-1 text-sm font-semibold text-[#176C62] no-underline hover:underline"
+          >
             {t.categories.explore}
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Link>
 
         </div>
 
@@ -95,8 +109,22 @@ export default function DonationCategories({
             <div
               key={category.title}
               className={`category-card group ${category.className} ${
-                category.disabled ? "opacity-80" : ""
+                category.disabled ? "opacity-80" : "cursor-pointer"
               }`}
+              {...(!category.disabled && {
+                role: "link",
+                tabIndex: 0,
+                onClick: () => openCategory(category.param),
+                onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+                  // ignore keys pressed on the inner button/link
+                  if (event.target !== event.currentTarget) return;
+
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openCategory(category.param);
+                  }
+                },
+              })}
             >
               <div className="flex items-start justify-between">
 
@@ -134,7 +162,8 @@ export default function DonationCategories({
               </button>
               ) : (
               <Link
-                to="/register"
+                to="/login"
+                onClick={(event) => event.stopPropagation()}
                 className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#176C62] shadow-sm transition-colors hover:bg-[#F5FAF7]"
               >
                 {category.button}

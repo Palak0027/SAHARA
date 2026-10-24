@@ -99,7 +99,7 @@
     "subtitle": "Enter your phone number and password to continue.",
     "badge": "LOGIN",
     "labels": {
-      "phone": "Phone Number*",
+      "phone": "Email / Phone Number*",
       "password": "Password*"
     },
     "placeholders": {

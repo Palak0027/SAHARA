@@ -50,11 +50,11 @@ export const ReceiverHeader: React.FC<ReceiverHeaderProps> = ({ activeTab, setSi
     Account: hi ? "प्रोफ़ाइल और खाता" : "Profile & Account",
   };
   const subtitles: Record<ReceiverTab, string> = {
-    Overview: hi ? "स्थानीय समुदाय के दान और सहायता देखें" : "Track resource relief and local community donations",
-    "Find Donations": hi ? "दाताओं द्वारा साझा की गई वस्तुएँ खोजें" : "Search, filter and claim resources posted by generous donors",
-    "Raise Need": hi ? "समुदाय की ज़रूरत के लिए अनुरोध भेजें" : "Submit a resource request for immediate community fulfillment",
-    "My Requests": hi ? "अपने अनुरोधों की स्थिति देखें" : "Track status of your submitted needs from match to delivery",
-    Account: hi ? "अपनी प्रोफ़ाइल और लाभार्थी विवरण प्रबंधित करें" : "Your profile details, beneficiary registrations, and settings",
+    Overview: hi ? " " : " ",
+    "Find Donations": hi ? " " : " ",
+    "Raise Need": hi ? " " : " ",
+    "My Requests": hi ? " " : " ",
+    Account: hi ? "" : "",
   };
 
   const navigate = useNavigate();

@@ -321,11 +321,7 @@ const Login: React.FC = () => {
           </form>
 
           <div className="lg-card__foot">
-            <p className="lg-card__secure">
-              <LockIcon size={14} /> {t.secureNote}
-            </p>
             <p className="lg-card__register">
-              {/* TODO: point this to your real forgot-password route */}
               {t.forgotaccount} <Link to="/forgot-password">{t.Password1}</Link>
             </p>
             <p className="lg-card__register">
