@@ -424,7 +424,7 @@ const Register: React.FC = () => {
           <div className="card__body">
             <form className="form" onSubmit={handleSubmit} noValidate>
               {/* AI Voice Assistant */}
-              <div style={{ padding: '0 4px 10px' }}>
+              <div className="form__voice-assistant">
                 <VoiceFormAssistant
                   context="register"
                   language={language}

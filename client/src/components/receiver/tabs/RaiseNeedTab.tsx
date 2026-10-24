@@ -127,11 +127,21 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
     if (parsed.pincode) setPincode(parsed.pincode);
 
     if (parsed.categoryName && categories.length > 0) {
+      const targetName = parsed.categoryName.toLowerCase();
       const matched = categories.find((c) =>
-        c.name.toLowerCase().includes(parsed.categoryName!.toLowerCase())
+        c.name.toLowerCase() === targetName ||
+        c.name.toLowerCase().includes(targetName) ||
+        targetName.includes(c.name.toLowerCase())
       );
       if (matched) {
         setSelectedCategoryId(matched._id);
+        setIsAddingNewCategory(false);
+      } else {
+        const otherCat = categories.find((c) => c.name.toLowerCase().includes("other"));
+        if (otherCat) {
+          setSelectedCategoryId(otherCat._id);
+        }
+        setNewCategoryName(parsed.categoryName);
       }
     }
   };

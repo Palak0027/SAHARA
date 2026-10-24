@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Mic, MicOff, Sparkles, Check, RefreshCw, Volume2, Globe } from "lucide-react";
+import { Mic, MicOff, Sparkles, Check, X, AlertCircle, Edit3, Trash2 } from "lucide-react";
 import { parseVoiceInput, type ParsedDonationOrNeed } from "../../services/voiceNlpParser";
 
 interface VoiceFormAssistantProps {
@@ -33,7 +33,10 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
   const [showModal, setShowModal] = useState(false);
 
   const recognitionRef = useRef<any>(null);
+  const isUserActiveRef = useRef<boolean>(false);
+  const accumulatedFinalRef = useRef<string>("");
 
+  // Check Web Speech API availability on mount
   useEffect(() => {
     const win = window as unknown as IWindow;
     const SpeechClass = win.SpeechRecognition || win.webkitSpeechRecognition;
@@ -42,23 +45,82 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
     }
   }, []);
 
-  // Update voice language if parent language changes
+  // Sync voice language when parent language changes
   useEffect(() => {
     setVoiceLang(language === "hi" ? "hi-IN" : "en-IN");
   }, [language]);
 
+  // Clean up active speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      isUserActiveRef.current = false;
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (_) {}
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
+
+  const stopListening = () => {
+    isUserActiveRef.current = false;
+    setIsListening(false);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+      recognitionRef.current = null;
+    }
+
+    const fullText = (accumulatedFinalRef.current + " " + interimText).trim();
+    if (fullText) {
+      const extracted = parseVoiceInput(fullText, availableCategories);
+      setParsedData(extracted);
+    }
+  };
+
   const startListening = () => {
     setErrorMsg("");
+
+    // Automatically clear previous/demo text so fresh spoken voice starts on a clean slate
     setTranscript("");
     setInterimText("");
+    accumulatedFinalRef.current = "";
     setParsedData(null);
+
+    // Stop existing session first to avoid InvalidStateError
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+      recognitionRef.current = null;
+    }
 
     const win = window as unknown as IWindow;
     const SpeechClass = win.SpeechRecognition || win.webkitSpeechRecognition;
 
     if (!SpeechClass) {
-      setErrorMsg("Speech recognition is not supported in this browser. You can type or use the sample demo.");
+      setIsSupported(false);
+      setErrorMsg(
+        voiceLang === "hi-IN"
+          ? "इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है। आप नीचे सीधे लिख सकते हैं या 1-क्लिक सैंपल इस्तेमाल कर सकते हैं।"
+          : "Speech recognition is not supported in this browser. You can type directly or click any 1-click sample below."
+      );
       return;
+    }
+
+    // Check secure context for production deployment
+    const isSecure =
+      window.isSecureContext ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    if (!isSecure) {
+      setErrorMsg(
+        voiceLang === "hi-IN"
+          ? "ब्राउज़र वॉयस इनपुट के लिए HTTPS आवश्यक है। डिप्लॉयमेंट में https:// का उपयोग करें, या नीचे डेमो सैंपल/टाइपिंग का इस्तेमाल करें।"
+          : "Browser microphone access requires HTTPS. In production use HTTPS, or test with the 1-click samples / typing below."
+      );
     }
 
     try {
@@ -67,189 +129,315 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
       recognition.continuous = true;
       recognition.interimResults = true;
 
+      isUserActiveRef.current = true;
+
       recognition.onstart = () => {
         setIsListening(true);
+        setErrorMsg("");
       };
 
       recognition.onresult = (event: any) => {
-        let finalStr = "";
-        let interimStr = "";
+        let finalChunk = "";
+        let interimChunk = "";
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
-            finalStr += event.results[i][0].transcript + " ";
+            finalChunk += event.results[i][0].transcript + " ";
           } else {
-            interimStr += event.results[i][0].transcript;
+            interimChunk += event.results[i][0].transcript;
           }
         }
 
-        if (finalStr) {
-          setTranscript((prev) => {
-            const updated = (prev + " " + finalStr).trim();
-            const extracted = parseVoiceInput(updated, availableCategories);
-            setParsedData(extracted);
-            return updated;
-          });
+        if (finalChunk) {
+          accumulatedFinalRef.current = (accumulatedFinalRef.current + " " + finalChunk).trim();
+          setTranscript(accumulatedFinalRef.current);
         }
-        setInterimText(interimStr);
+        setInterimText(interimChunk);
+
+        // Immediate parsing on both final and interim text so field lights up the moment words are uttered
+        const fullCurrentText = (accumulatedFinalRef.current + " " + interimChunk).trim();
+        if (fullCurrentText) {
+          const extracted = parseVoiceInput(fullCurrentText, availableCategories);
+          setParsedData(extracted);
+        }
       };
 
       recognition.onerror = (event: any) => {
         console.warn("Speech recognition error:", event.error);
-        if (event.error === "not-allowed") {
-          setErrorMsg("Microphone permission was denied. Please allow microphone access in your browser settings.");
-        } else if (event.error !== "no-speech") {
-          setErrorMsg(`Voice input error: ${event.error}`);
+
+        // 'aborted' is a normal cancellation - never display an error banner
+        if (event.error === "aborted") {
+          return;
         }
-        setIsListening(false);
+
+        if (event.error === "not-allowed") {
+          isUserActiveRef.current = false;
+          setIsListening(false);
+          setErrorMsg(
+            voiceLang === "hi-IN"
+              ? "माइक्रोफ़ोन की अनुमति नहीं मिली। कृपया ब्राउज़र एड्रेस बार में लॉक (🔒) आइकॉन दबाकर माइक्रोफ़ोन Allow करें।"
+              : "Microphone permission denied. Click the lock (🔒) icon in your address bar and allow microphone access."
+          );
+        } else if (event.error === "no-speech") {
+          // Brief silence: Do not disconnect user! Keep listening active so pauses don't break flow
+        } else if (event.error === "network") {
+          setErrorMsg(
+            voiceLang === "hi-IN"
+              ? "वॉयस नेटवर्क सेवा में रुकावट। आप नीचे सीधे लिख सकते हैं या 1-क्लिक सैंपल आज़मा सकते हैं।"
+              : "Network connection issue with speech service. You can type directly or click a 1-click sample."
+          );
+        }
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        // RESILIENT AUTO-RESTART ON PAUSE:
+        // Browsers stop speech recognition after brief 1-2s pauses.
+        // If user is still in listening mode, auto-restart so they can speak, pause, and continue!
+        if (isUserActiveRef.current) {
+          try {
+            recognition.start();
+          } catch (_) {
+            // Already active or restarting
+          }
+        } else {
+          setIsListening(false);
+        }
       };
 
       recognitionRef.current = recognition;
       recognition.start();
     } catch (err: any) {
-      console.error("Failed to start speech recognition:", err);
-      setErrorMsg(err.message || "Failed to start microphone.");
+      console.warn("Failed to start speech recognition:", err);
+      setErrorMsg(
+        err.message ||
+          (voiceLang === "hi-IN"
+            ? "माइक्रोफ़ोन शुरू करने में समस्या आई। नीचे डेमो सैंपल का उपयोग करें।"
+            : "Failed to initialize microphone. You can type or use the demo sample.")
+      );
+      isUserActiveRef.current = false;
       setIsListening(false);
     }
   };
 
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    }
-    const fullText = (transcript + " " + interimText).trim();
-    if (fullText) {
-      const extracted = parseVoiceInput(fullText, availableCategories);
-      setParsedData(extracted);
-    }
+  const handleOpenModal = () => {
+    setShowModal(true);
+    setErrorMsg("");
+    setTimeout(() => {
+      startListening();
+    }, 150);
+  };
+
+  const handleCloseModal = () => {
+    stopListening();
+    setShowModal(false);
+    setErrorMsg("");
+  };
+
+  const handleClearTranscript = () => {
+    stopListening();
+    setTranscript("");
+    setInterimText("");
+    accumulatedFinalRef.current = "";
+    setParsedData(null);
+    setErrorMsg("");
   };
 
   const handleApply = () => {
     if (parsedData) {
       onApply(parsedData);
-      setShowModal(false);
+      handleCloseModal();
       setTranscript("");
       setInterimText("");
+      accumulatedFinalRef.current = "";
       setParsedData(null);
     }
   };
 
-  // Sample prompt for Hackathon demo testing without mic
-  const handleUseDemoSample = () => {
-    let sample = "";
-    if (context === "donor") {
-      sample = voiceLang === "hi-IN"
-        ? "मुझे 10 पैकेट ताजा भोजन और रोटियां दान करनी हैं, दिल्ली रोहिणी में।"
-        : "I want to donate 10 food packets and rice in Delhi near Rohini sector 15.";
-    } else if (context === "receiver") {
-      sample = voiceLang === "hi-IN"
-        ? "हमें 5 बच्चों के लिए गर्म कपड़े और कंबल चाहिए, बहुत जरूरी है जयपुर में।"
-        : "We urgently need warm winter clothes for 5 people in Jaipur.";
+  const handleTextChange = (text: string) => {
+    setTranscript(text);
+    accumulatedFinalRef.current = text;
+    setInterimText("");
+    if (text.trim()) {
+      const extracted = parseVoiceInput(text, availableCategories);
+      setParsedData(extracted);
     } else {
-      sample = voiceLang === "hi-IN"
-        ? "मेरा नाम राहुल वर्मा है, फोन 9876543210, शहर लखनऊ, डोनर अकाउंट बनाना है।"
-        : "My name is Rahul Verma, phone 9876543210, city Lucknow, donor account.";
+      setParsedData(null);
     }
-
-    setTranscript(sample);
-    const extracted = parseVoiceInput(sample, availableCategories);
-    setParsedData(extracted);
   };
 
-  const promptExample =
-    context === "donor"
+  // Demo samples for both Hindi and English
+  const samplePills =
+    context === "register"
       ? voiceLang === "hi-IN"
-        ? 'जैसे: "मुझे 10 पैकेट खाना डोनेट करना है दिल्ली में"'
-        : 'e.g., "I want to donate 10 packets of food in Delhi"'
+        ? [
+            {
+              label: "👤 राहुल वर्मा (डोनर - लखनऊ)",
+              text: "मेरा नाम राहुल वर्मा है, फोन 9876543210, शहर लखनऊ, पिनकोड 226001, डोनर अकाउंट बनाना है।",
+            },
+            {
+              label: "👤 प्रिया शर्मा (रिसीवर - मुंबई)",
+              text: "मेरा नाम प्रिया शर्मा है, फोन 9123456780, शहर मुंबई, मुझे भोजन और राशन की मदद चाहिए, रिसीवर अकाउंट।",
+            },
+            {
+              label: "🏢 समर्पण संस्था (संगठन - दिल्ली)",
+              text: "समर्पण फाउंडेशन, फोन 9811223344, शहर दिल्ली, पिनकोड 110001, संगठन खाता।",
+            },
+          ]
+        : [
+            {
+              label: "👤 Rahul Verma (Donor - Lucknow)",
+              text: "My name is Rahul Verma, phone 9876543210, city Lucknow, pincode 226001, donor account.",
+            },
+            {
+              label: "👤 Priya Sharma (Receiver - Mumbai)",
+              text: "My name is Priya Sharma, phone 9123456780, email priya@gmail.com, city Mumbai, receiver account.",
+            },
+            {
+              label: "🏢 Samarpan NGO (Organization - Delhi)",
+              text: "Samarpan Foundation, phone 9811223344, city Delhi, pincode 110001, organization receiver account.",
+            },
+          ]
       : context === "receiver"
       ? voiceLang === "hi-IN"
-        ? 'जैसे: "हमें 5 गर्म कपड़े चाहिए जयपुर में बहुत जरूरी"'
-        : 'e.g., "We urgently need warm clothes for 5 people in Jaipur"'
+        ? [
+            {
+              label: "🍲 भोजन (30 पैकेट - पटना)",
+              text: "हमें 30 पैकेट ताजा भोजन की बहुत तत्काल आवश्यकता है पटना में।",
+            },
+            {
+              label: "🧥 गर्म कपड़े (जयपुर)",
+              text: "हमें 5 बच्चों के लिए गर्म कपड़े और कंबल चाहिए, बहुत जरूरी है जयपुर में।",
+            },
+          ]
+        : [
+            {
+              label: "🍲 30 Food Packets (Patna)",
+              text: "We urgently need 30 packets of fresh food in Patna for flood relief.",
+            },
+            {
+              label: "🧥 Warm Clothes (Jaipur)",
+              text: "We urgently need warm winter clothes for 5 people in Jaipur.",
+            },
+          ]
       : voiceLang === "hi-IN"
-      ? 'जैसे: "मेरा नाम राहुल है, फोन 9876543210, शहर दिल्ली"'
-      : 'e.g., "My name is Rahul, phone 9876543210, city Delhi"';
+      ? [
+          {
+            label: "🍲 15 भोजन पैकेट (दिल्ली)",
+            text: "मुझे 15 पैकेट ताजा भोजन और रोटियां दान करनी हैं, दिल्ली रोहिणी में।",
+          },
+          {
+            label: "🧥 20 गर्म कपड़े (जयपुर)",
+            text: "मैं जयपुर में 20 गर्म स्वेटर और कपड़े दान करना चाहता हूँ।",
+          },
+        ]
+      : [
+          {
+            label: "🍲 15 Food Packets (Delhi)",
+            text: "I want to donate 15 food packets and rice in Delhi near Rohini sector 15.",
+          },
+          {
+            label: "🧥 20 Warm Clothes (Jaipur)",
+            text: "I want to donate 20 warm winter clothes and blankets in Jaipur.",
+          },
+        ];
+
+  const handleUseSample = (sampleText: string) => {
+    stopListening();
+    handleTextChange(sampleText);
+  };
 
   return (
     <>
-      {/* Launch Banner Button (Displayed at top of Form) */}
+      {/* Launch Banner Button - Full width & compact */}
       <div
         style={{
-          background: "linear-gradient(135deg, rgba(47, 85, 71, 0.08) 0%, rgba(6, 90, 107, 0.12) 100%)",
+          background: "linear-gradient(135deg, rgba(47, 85, 71, 0.08) 0%, rgba(8, 127, 140, 0.12) 100%)",
           border: "1.5px dashed rgba(47, 85, 71, 0.35)",
-          borderRadius: "16px",
-          padding: "12px 18px",
+          borderRadius: "12px",
+          padding: "8px 12px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "12px",
-          margin: "0 0 20px 0",
-          boxShadow: "0 2px 10px rgba(47, 85, 71, 0.04)",
+          flexWrap: "wrap",
+          gap: "8px",
+          margin: "0 0 10px 0",
+          boxShadow: "0 2px 6px rgba(47, 85, 71, 0.04)",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: "200px", flex: "1 1 auto" }}>
           <div
             style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "12px",
-              background: "#2F5547",
+              width: "32px",
+              height: "32px",
+              minWidth: "32px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)",
               color: "#fff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(47, 85, 71, 0.25)",
+              boxShadow: "0 2px 6px rgba(47, 85, 71, 0.25)",
+              flexShrink: 0,
             }}
           >
-            <Sparkles size={20} />
+            <Sparkles size={16} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1B3B30", display: "flex", alignItems: "center", gap: "6px" }}>
-              <span>AI Voice Fill</span>
-              <span style={{ fontSize: "0.7rem", background: "#E8F5E9", color: "#2E7D32", padding: "2px 8px", borderRadius: "10px", fontWeight: 700 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.86rem", color: "#1B3B30", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span>AI Voice Fill • आवाज़ से भरें</span>
+              <span
+                style={{
+                  fontSize: "0.64rem",
+                  background: "#E8F5E9",
+                  color: "#2E7D32",
+                  padding: "1px 5px",
+                  borderRadius: "5px",
+                  fontWeight: 700,
+                  letterSpacing: "0.2px",
+                }}
+              >
                 NEW
               </span>
             </div>
-            <p style={{ margin: "2px 0 0", fontSize: "0.82rem", color: "#526B62" }}>
-              {language === "hi" ? "बोलकर फ़ॉर्म भरें (हिंदी / English)" : "Speak to autofill this entire form automatically"}
+            <p style={{ margin: "1px 0 0", fontSize: "0.74rem", color: "#526B62", lineHeight: 1.2 }}>
+              {voiceLang === "hi-IN"
+                ? "रुक-रुक कर बोलें या 1-क्लिक से फ़ॉर्म भरें (Hindi / English)"
+                : "Speak with natural pauses or 1-click sample (Hindi / English)"}
             </p>
           </div>
         </div>
 
         <button
           type="button"
-          onClick={() => {
-            setShowModal(true);
-            setTimeout(() => startListening(), 250);
-          }}
+          onClick={handleOpenModal}
           style={{
-            background: "#2F5547",
+            background: "linear-gradient(135deg, #2F5547 0%, #087F8C 100%)",
             color: "#fff",
             border: 0,
-            borderRadius: "12px",
-            padding: "8px 16px",
+            borderRadius: "8px",
+            padding: "7px 12px",
             fontWeight: 700,
-            fontSize: "0.88rem",
+            fontSize: "0.82rem",
             cursor: "pointer",
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
-            gap: "8px",
-            boxShadow: "0 4px 12px rgba(47, 85, 71, 0.2)",
-            transition: "all 0.2s ease",
+            gap: "5px",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+            boxShadow: "0 2px 8px rgba(47, 85, 71, 0.22)",
+            transition: "all 0.15s ease",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
           onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
-          <Mic size={16} />
-          <span>{language === "hi" ? "बोलें 🎙️" : "Speak Now 🎙️"}</span>
+          <Mic size={14} />
+          <span>{voiceLang === "hi-IN" ? "बोलें 🎙️" : "Speak Now 🎙️"}</span>
         </button>
       </div>
 
-      {/* Voice Assistant Modal */}
+      {/* Voice Assistant Modal - Continuous Listening & Guidance Tracker */}
       {showModal && (
         <div
           style={{
@@ -261,248 +449,522 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "16px",
+            padding: "12px",
+            boxSizing: "border-box",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseModal();
           }}
         >
           <div
             style={{
               background: "#ffffff",
-              borderRadius: "24px",
-              maxWidth: "520px",
+              borderRadius: "18px",
+              maxWidth: "480px",
               width: "100%",
-              padding: "26px",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+              maxHeight: "88vh",
+              overflowY: "auto",
+              padding: "16px 18px",
+              boxShadow: "0 16px 36px rgba(0,0,0,0.22)",
               border: "1px solid #E2E8F0",
               animation: "fadeIn 0.2s ease-out",
+              boxSizing: "border-box",
+              scrollbarWidth: "thin",
             }}
           >
-            {/* Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 0 16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "1.3rem" }}>✨</span>
+            {/* Modal Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "8px",
+                    background: "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Sparkles size={16} />
+                </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#1B3B30" }}>
-                    {language === "hi" ? "SAHARA AI वॉइस असिस्टेंट" : "SAHARA AI Voice Assistant"}
+                  <h3 style={{ margin: 0, fontSize: "0.96rem", fontWeight: 800, color: "#1B3B30" }}>
+                    {voiceLang === "hi-IN" ? "SAHARA AI वॉइस असिस्टेंट" : "SAHARA AI Voice Assistant"}
                   </h3>
-                  <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: "#64748B" }}>
-                    {promptExample}
+                  <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748B" }}>
+                    {voiceLang === "hi-IN"
+                      ? "रुक-रुक कर स्वाभाविक बोलें, माइक चालू रहेगा"
+                      : "Speak naturally with pauses, mic stays on"}
                   </p>
                 </div>
               </div>
 
-              {/* Language Switcher */}
-              <div style={{ display: "flex", gap: "4px", background: "#F1F5F9", padding: "3px", borderRadius: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                {/* Language Switcher */}
+                <div style={{ display: "flex", gap: "2px", background: "#F1F5F9", padding: "2px", borderRadius: "8px", border: "1px solid #E2E8F0" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVoiceLang("hi-IN");
+                      if (isListening) {
+                        stopListening();
+                        setTimeout(() => startListening(), 100);
+                      }
+                    }}
+                    style={{
+                      border: 0,
+                      padding: "3px 7px",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      background: voiceLang === "hi-IN" ? "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)" : "transparent",
+                      color: voiceLang === "hi-IN" ? "#fff" : "#475569",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    हिन्दी
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVoiceLang("en-IN");
+                      if (isListening) {
+                        stopListening();
+                        setTimeout(() => startListening(), 100);
+                      }
+                    }}
+                    style={{
+                      border: 0,
+                      padding: "3px 7px",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      background: voiceLang === "en-IN" ? "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)" : "transparent",
+                      color: voiceLang === "en-IN" ? "#fff" : "#475569",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    English
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setVoiceLang("hi-IN")}
+                  onClick={handleCloseModal}
                   style={{
+                    background: "transparent",
                     border: 0,
-                    padding: "4px 8px",
-                    borderRadius: "7px",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
+                    padding: "3px",
                     cursor: "pointer",
-                    background: voiceLang === "hi-IN" ? "#2F5547" : "transparent",
-                    color: voiceLang === "hi-IN" ? "#fff" : "#64748B",
+                    color: "#94A3B8",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "6px",
                   }}
+                  title="Close"
                 >
-                  हिन्दी
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVoiceLang("en-IN")}
-                  style={{
-                    border: 0,
-                    padding: "4px 8px",
-                    borderRadius: "7px",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    background: voiceLang === "en-IN" ? "#2F5547" : "transparent",
-                    color: voiceLang === "en-IN" ? "#fff" : "#64748B",
-                  }}
-                >
-                  English
+                  <X size={18} />
                 </button>
               </div>
             </div>
 
-            {/* Glowing Microphone Indicator */}
-            <div style={{ textAlign: "center", margin: "22px 0" }}>
+            {/* Compact Glowing Mic Section with Status */}
+            <div style={{ textAlign: "center", margin: "6px 0 8px" }}>
               <button
                 type="button"
                 onClick={isListening ? stopListening : startListening}
                 style={{
-                  width: "80px",
-                  height: "80px",
+                  width: "54px",
+                  height: "54px",
                   borderRadius: "50%",
                   border: 0,
                   cursor: "pointer",
                   background: isListening
                     ? "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
-                    : "linear-gradient(135deg, #2F5547 0%, #1B3B30 100%)",
+                    : "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)",
                   color: "#fff",
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
                   boxShadow: isListening
-                    ? "0 0 0 12px rgba(239, 68, 68, 0.2), 0 8px 24px rgba(239, 68, 68, 0.35)"
-                    : "0 0 0 8px rgba(47, 85, 71, 0.15), 0 8px 20px rgba(47, 85, 71, 0.3)",
-                  transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    ? "0 0 0 8px rgba(239, 68, 68, 0.2), 0 6px 16px rgba(239, 68, 68, 0.3)"
+                    : "0 0 0 6px rgba(47, 85, 71, 0.12), 0 4px 14px rgba(47, 85, 71, 0.25)",
+                  transition: "all 0.2s ease",
                 }}
               >
-                {isListening ? <Mic size={34} style={{ animation: "pulse 1.5s infinite" }} /> : <MicOff size={30} />}
+                {isListening ? (
+                  <Mic size={24} style={{ animation: "pulse 1.5s infinite" }} />
+                ) : (
+                  <MicOff size={22} />
+                )}
               </button>
-              <div style={{ marginTop: "12px", fontSize: "0.88rem", fontWeight: 700, color: isListening ? "#DC2626" : "#475569" }}>
-                {isListening ? (language === "hi" ? "सुन रहे हैं... बोलिए!" : "Listening... Speak now!") : (language === "hi" ? "माइक पर क्लिक करें" : "Tap mic to speak")}
+              <div
+                style={{
+                  marginTop: "5px",
+                  fontSize: "0.76rem",
+                  fontWeight: 700,
+                  color: isListening ? "#DC2626" : "#475569",
+                }}
+              >
+                {isListening
+                  ? voiceLang === "hi-IN"
+                    ? "🔴 सुन रहे हैं... आप रुक-रुक कर भी बोल सकते हैं"
+                    : "🔴 Listening... You can pause naturally between words"
+                  : voiceLang === "hi-IN"
+                  ? "बोलने के लिए माइक दबाएं"
+                  : "Tap mic to start speaking"}
               </div>
             </div>
 
-            {/* Live Transcript Box */}
+            {/* Real-time Context-Specific Field Detection Checklist */}
             <div
               style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "5px",
+                justifyContent: "center",
+                margin: "0 0 8px",
+                padding: "6px 8px",
                 background: "#F8FAFC",
-                borderRadius: "14px",
+                borderRadius: "10px",
                 border: "1px solid #E2E8F0",
-                padding: "12px 14px",
-                minHeight: "75px",
-                maxHeight: "120px",
-                overflowY: "auto",
-                fontSize: "0.9rem",
-                color: "#1E293B",
-                lineHeight: 1.5,
               }}
             >
-              {transcript || interimText ? (
+              {context === "donor" ? (
                 <>
-                  <span>{transcript}</span>
-                  <span style={{ color: "#94A3B8" }}> {interimText}</span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.categoryName ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.categoryName ? "#166534" : "#64748B",
+                      border: parsedData?.categoryName ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    📦 {parsedData?.categoryName ? `श्रेणी: ${parsedData.categoryName} ✓` : (voiceLang === "hi-IN" ? "सामग्री / Category बोलें" : "Say Category (e.g. Food, Clothes)")}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.quantity ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.quantity ? "#166534" : "#64748B",
+                      border: parsedData?.quantity ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    🔢 {parsedData?.quantity ? `मात्रा: ${parsedData.quantity} ${parsedData.quantityUnit || "items"} ✓` : (voiceLang === "hi-IN" ? "मात्रा बोलें (जैसे 15 पैकेट)" : "Say Quantity (e.g. 15 packets)")}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.city ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.city ? "#166534" : "#64748B",
+                      border: parsedData?.city ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    📍 {parsedData?.city ? `शहर: ${parsedData.city} ✓` : (voiceLang === "hi-IN" ? "शहर बोलें (जैसे Delhi)" : "Say City")}
+                  </span>
+                </>
+              ) : context === "receiver" ? (
+                <>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.categoryName ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.categoryName ? "#166534" : "#64748B",
+                      border: parsedData?.categoryName ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    📦 {parsedData?.categoryName ? `ज़रूरत: ${parsedData.categoryName} ✓` : (voiceLang === "hi-IN" ? "ज़रूरत की श्रेणी बोलें" : "Say Needed Category")}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.quantity ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.quantity ? "#166534" : "#64748B",
+                      border: parsedData?.quantity ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    🔢 {parsedData?.quantity ? `मात्रा: ${parsedData.quantity} ${parsedData.quantityUnit || "items"} ✓` : (voiceLang === "hi-IN" ? "मात्रा बोलें" : "Say Quantity")}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.city ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.city ? "#166534" : "#64748B",
+                      border: parsedData?.city ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    📍 {parsedData?.city ? `शहर: ${parsedData.city} ✓` : (voiceLang === "hi-IN" ? "शहर बोलें" : "Say City")}
+                  </span>
+                  {parsedData?.urgency === "high" && (
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        padding: "2px 7px",
+                        borderRadius: "6px",
+                        fontWeight: 600,
+                        background: "#FEE2E2",
+                        color: "#B91C1C",
+                        border: "1px solid #FCA5A5",
+                      }}
+                    >
+                      ⚡ तत्काल / Urgent ✓
+                    </span>
+                  )}
                 </>
               ) : (
-                <span style={{ color: "#94A3B8", fontStyle: "italic" }}>
-                  {language === "hi" ? "आपकी आवाज़ यहाँ दिखाई देगी..." : "Your spoken words will appear here in real-time..."}
-                </span>
+                <>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.name ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.name ? "#166534" : "#64748B",
+                      border: parsedData?.name ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    👤 {parsedData?.name ? `नाम: ${parsedData.name} ✓` : (voiceLang === "hi-IN" ? "नाम बोलें" : "Say Name")}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.phone ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.phone ? "#166534" : "#64748B",
+                      border: parsedData?.phone ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    📱 {parsedData?.phone ? `फोन: ${parsedData.phone} ✓` : (voiceLang === "hi-IN" ? "10 अंकों का फोन बोलें" : "Say 10-digit Phone")}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontWeight: 600,
+                      background: parsedData?.city ? "#DCFCE7" : "#FFFFFF",
+                      color: parsedData?.city ? "#166534" : "#64748B",
+                      border: parsedData?.city ? "1px solid #86EFAC" : "1px dashed #CBD5E1",
+                    }}
+                  >
+                    📍 {parsedData?.city ? `शहर: ${parsedData.city} ✓` : (voiceLang === "hi-IN" ? "शहर बोलें" : "Say City")}
+                  </span>
+                  {parsedData?.email && (
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        padding: "2px 7px",
+                        borderRadius: "6px",
+                        fontWeight: 600,
+                        background: "#DCFCE7",
+                        color: "#166534",
+                        border: "1px solid #86EFAC",
+                      }}
+                    >
+                      ✉️ {parsedData.email} ✓
+                    </span>
+                  )}
+                </>
               )}
             </div>
 
-            {errorMsg && (
-              <div style={{ margin: "10px 0 0", padding: "8px 12px", background: "#FEF2F2", color: "#B91C1C", borderRadius: "10px", fontSize: "0.8rem" }}>
-                ⚠️ {errorMsg}
+            {/* Live Editable Transcript Box with Clear Action */}
+            <div style={{ margin: "0 0 8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
+                <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
+                  {voiceLang === "hi-IN" ? "बोली गई बातें (लाइव टेक्स्ट):" : "Spoken words (live text):"}
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  {(transcript || interimText) && (
+                    <button
+                      type="button"
+                      onClick={handleClearTranscript}
+                      style={{
+                        background: "transparent",
+                        border: 0,
+                        color: "#DC2626",
+                        fontSize: "0.7rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "2px",
+                        padding: "0 2px",
+                      }}
+                    >
+                      <Trash2 size={11} />
+                      <span>{voiceLang === "hi-IN" ? "साफ़ करें" : "Clear"}</span>
+                    </button>
+                  )}
+                  <span style={{ fontSize: "0.68rem", color: "#94A3B8" }}>
+                    <Edit3 size={10} style={{ verticalAlign: "middle", marginRight: "2px" }} />
+                    {voiceLang === "hi-IN" ? "एडिटेबल" : "Editable"}
+                  </span>
+                </div>
               </div>
-            )}
+              <textarea
+                value={transcript + (interimText ? " " + interimText : "")}
+                onChange={(e) => handleTextChange(e.target.value)}
+                placeholder={
+                  context === "donor"
+                    ? voiceLang === "hi-IN"
+                      ? "जैसे: 'मुझे 15 पैकेट ताजा भोजन डोनेट करना है दिल्ली में' (रुक-रुक कर भी बोल सकते हैं)"
+                      : "e.g., 'I want to donate 15 food packets in Delhi' (you can speak with pauses)"
+                    : context === "receiver"
+                    ? voiceLang === "hi-IN"
+                      ? "जैसे: 'हमें 5 गर्म कपड़े और कंबल चाहिए जयपुर में' (रुक-रुक कर भी बोल सकते हैं)"
+                      : "e.g., 'We urgently need 5 blankets in Jaipur' (you can speak with pauses)"
+                    : voiceLang === "hi-IN"
+                    ? "जैसे: 'प्रिया शर्मा, 9452845710, लखनऊ' (रुक-रुक कर भी बोल सकते हैं)"
+                    : "e.g., 'Priya Sharma, 9452845710, Lucknow' (you can speak with pauses)"
+                }
+                rows={2}
+                style={{
+                  width: "100%",
+                  background: "#F8FAFC",
+                  borderRadius: "10px",
+                  border: "1.5px solid #E2E8F0",
+                  padding: "8px 10px",
+                  fontSize: "0.82rem",
+                  color: "#1E293B",
+                  lineHeight: 1.35,
+                  resize: "none",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "#087F8C")}
+                onBlur={(e) => (e.target.style.borderColor = "#E2E8F0")}
+              />
+            </div>
 
-            {/* Extracted Fields Preview */}
-            {parsedData && (
+            {/* Error Message with Resiliency Tips */}
+            {errorMsg && (
               <div
                 style={{
-                  marginTop: "14px",
-                  padding: "12px 14px",
-                  background: "#F0FDF4",
-                  border: "1px solid #BBF7D0",
-                  borderRadius: "14px",
+                  margin: "0 0 8px",
+                  padding: "6px 10px",
+                  background: "#FEF2F2",
+                  color: "#B91C1C",
+                  borderRadius: "8px",
+                  fontSize: "0.74rem",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "5px",
+                  lineHeight: 1.3,
                 }}
               >
-                <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#166534", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 6px" }}>
-                  {language === "hi" ? "AI द्वारा पहचानी गई जानकारी:" : "AI Extracted Fields:"}
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                  {parsedData.categoryName && (
-                    <span style={{ background: "#DCFCE7", color: "#15803D", padding: "3px 10px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}>
-                      📦 {parsedData.categoryName}
-                    </span>
-                  )}
-                  {parsedData.quantity ? (
-                    <span style={{ background: "#DCFCE7", color: "#15803D", padding: "3px 10px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}>
-                      🔢 {parsedData.quantity} {parsedData.quantityUnit || "items"}
-                    </span>
-                  ) : null}
-                  {parsedData.city && (
-                    <span style={{ background: "#DCFCE7", color: "#15803D", padding: "3px 10px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}>
-                      📍 {parsedData.city}
-                    </span>
-                  )}
-                  {parsedData.urgency && parsedData.urgency === "high" && (
-                    <span style={{ background: "#FEE2E2", color: "#B91C1C", padding: "3px 10px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}>
-                      ⚡ Urgent
-                    </span>
-                  )}
-                  {parsedData.name && (
-                    <span style={{ background: "#DCFCE7", color: "#15803D", padding: "3px 10px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}>
-                      👤 {parsedData.name}
-                    </span>
-                  )}
-                  {parsedData.phone && (
-                    <span style={{ background: "#DCFCE7", color: "#15803D", padding: "3px 10px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}>
-                      📱 {parsedData.phone}
-                    </span>
-                  )}
-                </div>
+                <AlertCircle size={14} style={{ flexShrink: 0, marginTop: "1px" }} />
+                <span>{errorMsg}</span>
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "18px", gap: "10px" }}>
+            {/* 1-Click Demo Sample Pills (Context + Language aware) */}
+            <div style={{ margin: "0 0 10px" }}>
+              <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#64748B", marginBottom: "4px" }}>
+                💡 {voiceLang === "hi-IN" ? "1-क्लिक टेस्ट सैंपल:" : "1-Click Demo Samples:"}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                {samplePills.map((pill, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleUseSample(pill.text)}
+                    style={{
+                      background: "#F1F5F9",
+                      border: "1px solid #E2E8F0",
+                      color: "#334155",
+                      padding: "3px 8px",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#E2E8F0";
+                      e.currentTarget.style.borderColor = "#CBD5E1";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#F1F5F9";
+                      e.currentTarget.style.borderColor = "#E2E8F0";
+                    }}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Bottom Actions */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
               <button
                 type="button"
-                onClick={handleUseDemoSample}
+                onClick={handleCloseModal}
                 style={{
-                  background: "#F1F5F9",
-                  border: 0,
-                  color: "#475569",
-                  padding: "9px 14px",
-                  borderRadius: "10px",
+                  background: "transparent",
+                  border: "1px solid #CBD5E1",
+                  color: "#64748B",
+                  padding: "6px 14px",
+                  borderRadius: "8px",
                   fontSize: "0.8rem",
                   fontWeight: 600,
                   cursor: "pointer",
                 }}
               >
-                💡 {language === "hi" ? "डेमो सैंपल डालें" : "Try Demo Sample"}
+                {voiceLang === "hi-IN" ? "रद्द करें" : "Cancel"}
               </button>
 
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    stopListening();
-                    setShowModal(false);
-                  }}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid #CBD5E1",
-                    color: "#64748B",
-                    padding: "9px 16px",
-                    borderRadius: "10px",
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  {language === "hi" ? "रद्द करें" : "Cancel"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleApply}
-                  disabled={!parsedData}
-                  style={{
-                    background: parsedData ? "#2F5547" : "#CBD5E1",
-                    color: "#fff",
-                    border: 0,
-                    padding: "9px 18px",
-                    borderRadius: "10px",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    cursor: parsedData ? "pointer" : "not-allowed",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    boxShadow: parsedData ? "0 4px 12px rgba(47, 85, 71, 0.25)" : "none",
-                  }}
-                >
-                  <Check size={16} />
-                  <span>{language === "hi" ? "फ़ॉर्म में भरें" : "Apply to Form"}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleApply}
+                disabled={!parsedData}
+                style={{
+                  background: parsedData ? "linear-gradient(135deg, #2F5547 0%, #087F8C 100%)" : "#CBD5E1",
+                  color: "#fff",
+                  border: 0,
+                  padding: "6px 16px",
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  cursor: parsedData ? "pointer" : "not-allowed",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  boxShadow: parsedData ? "0 2px 8px rgba(47, 85, 71, 0.25)" : "none",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <Check size={14} />
+                <span>{voiceLang === "hi-IN" ? "फ़ॉर्म में भरें" : "Apply to Form"}</span>
+              </button>
             </div>
           </div>
         </div>
