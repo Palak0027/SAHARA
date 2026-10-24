@@ -1,24 +1,39 @@
-
 import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
+  type MouseEvent as ReactMouseEvent,
+  type RefObject,
 } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
+  BedDouble,
+  BookOpen,
+  CalendarDays,
+  Eye,
+  Heart,
   MapPin,
+  Package,
   PackageSearch,
   Search,
+  ShieldCheck,
+  Shirt,
   SlidersHorizontal,
+  UtensilsCrossed,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import "../styles/ExploreDonations.css";
+
+ 
 
 type Language = "en" | "hi";
 
@@ -81,6 +96,15 @@ const TEXT = {
     footer: {
       tagline:
         "Connecting caring communities through sharing, support and everyday acts of kindness.",
+      quickLinks: "Quick Links",
+      getInvolved: "Get Involved",
+      contact: "Contact",
+      donate: "Donate",
+      findDonations: "Find Donations",
+      join: "Join SAHARA",
+      rights: "All rights reserved.",
+      madeWith: "Made with ♥ for stronger communities.",
+      location: "Kanpur, Uttar Pradesh, India",
     },
     eyebrow: "THE SAHARA MARKETPLACE",
     title: "Find donations near you",
@@ -90,6 +114,20 @@ const TEXT = {
     searchPlaceholder: "Try rice, clothes, groceries...",
     category: "Category",
     allCategories: "All categories",
+    other: "Other",
+    endingSoon: "Ending soon",
+    veg: "Vegetarian",
+    statusAvailable: "Available",
+    detailsBtn: "Details",
+    requestSupply: "Request Supply",
+    safeUntil: "Safe until",
+    locationTitle: "Location",
+    availableFrom: "Available from",
+    postedOn: "Posted on",
+    foodType: "Food type",
+    fullDescription: "Description",
+    close: "Close",
+    nonVeg: "Non-vegetarian",
     city: "City",
     cityPlaceholder: "Enter a city",
     sort: "Sort by",
@@ -132,6 +170,15 @@ const TEXT = {
     footer: {
       tagline:
         "साझा करने, सहयोग और रोज़मर्रा की दयालुता से समुदायों को जोड़ना।",
+      quickLinks: "त्वरित लिंक",
+      getInvolved: "जुड़ें",
+      contact: "संपर्क",
+      donate: "दान करें",
+      findDonations: "दान खोजें",
+      join: "SAHARA से जुड़ें",
+      rights: "सर्वाधिकार सुरक्षित।",
+      madeWith: "मज़बूत समुदायों के लिए ♥ के साथ बनाया गया।",
+      location: "कानपुर, उत्तर प्रदेश, भारत",
     },
     eyebrow: "SAHARA दान बाज़ार",
     title: "अपने आस-पास दान खोजें",
@@ -141,6 +188,20 @@ const TEXT = {
     searchPlaceholder: "जैसे चावल, कपड़े, राशन...",
     category: "श्रेणी",
     allCategories: "सभी श्रेणियाँ",
+    other: "अन्य",
+    endingSoon: "जल्द समाप्त",
+    veg: "शाकाहारी",
+    statusAvailable: "उपलब्ध",
+    detailsBtn: "विवरण",
+    requestSupply: "आपूर्ति माँगें",
+    safeUntil: "सुरक्षित रहने तक",
+    locationTitle: "स्थान",
+    availableFrom: "उपलब्धता शुरू",
+    postedOn: "पोस्ट की गई",
+    foodType: "भोजन का प्रकार",
+    fullDescription: "विवरण",
+    close: "बंद करें",
+    nonVeg: "मांसाहारी",
     city: "शहर",
     cityPlaceholder: "शहर दर्ज करें",
     sort: "क्रमबद्ध करें",
@@ -172,15 +233,17 @@ const TEXT = {
   },
 };
 
+/* ---------- Helpers ---------- */
+
 function getCategoryName(donation: Donation): string {
   if (
     donation.categoryId &&
     typeof donation.categoryId === "object"
   ) {
-    return donation.categoryId.name || "Other";
+    return donation.categoryId.name || "";
   }
 
-  return "Other";
+  return "";
 }
 
 function getCategoryId(donation: Donation): string {
@@ -223,6 +286,172 @@ function formatDate(
   ).format(date);
 }
 
+function getDaysLeft(value?: string): number | null {
+  if (!value) return null;
+
+  const end = new Date(value).getTime();
+
+  if (Number.isNaN(end)) return null;
+
+  return Math.ceil((end - Date.now()) / 86_400_000);
+}
+
+function formatDateTime(
+  value: string | null | undefined,
+  language: Language,
+): string {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat(
+    language === "hi" ? "hi-IN" : "en-IN",
+    {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    },
+  ).format(date);
+}
+
+function getCategoryIcon(name: string): LucideIcon {
+  const key = name.toLowerCase();
+
+  if (key.includes("food") || key.includes("meal") || key.includes("grocer")) {
+    return UtensilsCrossed;
+  }
+  if (key.includes("cloth")) return Shirt;
+  if (key.includes("blanket") || key.includes("bed")) return BedDouble;
+  if (key.includes("book") || key.includes("study")) return BookOpen;
+
+  return Package;
+}
+
+/* ---------- Details modal ---------- */
+
+type DetailsModalProps = {
+  donation: Donation;
+  language: Language;
+  t: (typeof TEXT)["en"];
+  onClose: () => void;
+  closeRef: RefObject<HTMLButtonElement | null>;
+  from: string;
+};
+
+function DonationDetailsModal({
+  donation,
+  language,
+  t,
+  onClose,
+  closeRef,
+  from,
+}: DetailsModalProps) {
+  const categoryName = getCategoryName(donation) || t.other;
+  const CategoryIcon = getCategoryIcon(categoryName);
+  const daysLeft = getDaysLeft(donation.availableUntil);
+  const endingSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
+  const isVeg = donation.foodDetails?.isVeg;
+
+  const fullLocation = [
+    donation.location?.city,
+    donation.location?.state,
+    donation.location?.pincode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const rows: { label: string; value: string; wide?: boolean }[] = [
+    { label: t.quantity, value: `${donation.quantity} ${donation.unit}` },
+    { label: t.category, value: categoryName },
+    { label: t.locationTitle, value: fullLocation || t.location, wide: true },
+  ];
+
+  const availableFrom = formatDateTime(donation.availableFrom, language);
+  const availableUntil = formatDateTime(donation.availableUntil, language);
+  const safeUntil = formatDateTime(donation.foodDetails?.safeUntil, language);
+  const postedOn = formatDate(donation.createdAt, language);
+
+  if (availableFrom) rows.push({ label: t.availableFrom, value: availableFrom });
+  if (availableUntil) rows.push({ label: t.availableUntil, value: availableUntil });
+  if (typeof isVeg === "boolean") {
+    rows.push({ label: t.foodType, value: isVeg ? t.veg : t.nonVeg });
+  }
+  if (safeUntil) rows.push({ label: t.safeUntil, value: safeUntil });
+  if (postedOn) rows.push({ label: t.postedOn, value: postedOn });
+
+  return (
+    <div className="ex-modal" onClick={onClose}>
+      <div
+        className="ex-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ex-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="ex-modal__head">
+          <span className="ex-card__icon" aria-hidden="true">
+            <CategoryIcon size={20} />
+          </span>
+
+          <div className="ex-modal__headtext">
+            <h2 id="ex-modal-title" className="ex-modal__title">
+              {donation.title}
+            </h2>
+
+            <span className={`ex-pill${endingSoon ? " ex-pill--soon" : ""}`}>
+              {endingSoon ? t.endingSoon : t.statusAvailable}
+            </span>
+          </div>
+
+          <button
+            ref={closeRef}
+            type="button"
+            className="ex-modal__close"
+            aria-label={t.close}
+            onClick={onClose}
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="ex-modal__body">
+          <h3 className="ex-modal__label">{t.fullDescription}</h3>
+          <p className="ex-modal__desc">{donation.description || t.details}</p>
+
+          <dl className="ex-modal__list">
+            {rows.map((row) => (
+              <div
+                key={row.label}
+                className={`ex-modal__row${row.wide ? " ex-modal__row--wide" : ""}`}
+              >
+                <dt>{row.label}</dt>
+                <dd>{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <div className="ex-modal__foot">
+          <button type="button" className="ex-btn ex-btn--outline" onClick={onClose}>
+            {t.close}
+          </button>
+
+          <Link to="/login" state={{ from }} className="ex-btn ex-btn--primary">
+            <Heart size={16} aria-hidden="true" />
+            {t.requestSupply}
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Page ---------- */
+
 export default function ExploreDonations() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -235,8 +464,16 @@ export default function ExploreDonations() {
 
   const t = TEXT[language];
 
-  const initialCategory =
-    new URLSearchParams(location.search).get("category") || "";
+  // Always points at the latest texts, so fetching doesn't depend on `t`
+  // (switching language must not re-fetch the list).
+  const tRef = useRef(t);
+  tRef.current = t;
+
+  // Category name coming from a homepage link, e.g. /donations?category=Food.
+  // Resolved once, then cleared, so "All categories" can still be chosen afterwards.
+  const pendingCategoryRef = useRef(
+    new URLSearchParams(location.search).get("category") || "",
+  );
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -250,8 +487,50 @@ export default function ExploreDonations() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Every category seen so far, so the dropdown keeps all options
+  // even after one category is selected.
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Details modal
+  const [selected, setSelected] = useState<Donation | null>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  const openDetails = (
+    donation: Donation,
+    event: ReactMouseEvent<HTMLButtonElement>,
+  ) => {
+    triggerRef.current = event.currentTarget;
+    setSelected(donation);
+  };
+
+  const closeDetails = useCallback(() => {
+    setSelected(null);
+    triggerRef.current?.focus();
+  }, []);
+
+  // Esc closes the modal, the page behind it does not scroll while it is open.
+  useEffect(() => {
+    if (!selected) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeDetails();
+    };
+
+    const previousOverflow = document.body.style.overflow;
+
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    closeBtnRef.current?.focus();
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [selected, closeDetails]);
 
   // Keep language changes made in the shared navbar in sync.
   useEffect(() => {
@@ -267,18 +546,11 @@ export default function ExploreDonations() {
       setLanguage(next);
     };
 
-    window.addEventListener(
-      "sahara-language-change",
-      updateLanguage,
-    );
-
+    window.addEventListener("sahara-language-change", updateLanguage);
     window.addEventListener("storage", updateLanguage);
 
     return () => {
-      window.removeEventListener(
-        "sahara-language-change",
-        updateLanguage,
-      );
+      window.removeEventListener("sahara-language-change", updateLanguage);
       window.removeEventListener("storage", updateLanguage);
     };
   }, []);
@@ -297,7 +569,6 @@ export default function ExploreDonations() {
   };
 
   // Load the public donation feed.
-  // The backend's public endpoint returns available donations.
   const fetchDonations = useCallback(
     async (signal?: AbortSignal) => {
       setLoading(true);
@@ -327,7 +598,7 @@ export default function ExploreDonations() {
           .catch(() => ({}))) as ApiResponse;
 
         if (!response.ok || data.success === false) {
-          throw new Error(data.message || t.apiError);
+          throw new Error(data.message || tRef.current.apiError);
         }
 
         setDonations(
@@ -345,7 +616,7 @@ export default function ExploreDonations() {
         }
 
         setError(
-          err instanceof Error ? err.message : t.apiError,
+          err instanceof Error ? err.message : tRef.current.apiError,
         );
 
         setDonations([]);
@@ -357,7 +628,7 @@ export default function ExploreDonations() {
         }
       }
     },
-    [page, category, city, t.apiError],
+    [page, category, city],
   );
 
   useEffect(() => {
@@ -368,44 +639,56 @@ export default function ExploreDonations() {
     return () => controller.abort();
   }, [fetchDonations]);
 
-  // Derive category choices from the fetched results.
-  const categories = useMemo(() => {
-    const categoryMap = new Map<string, string>();
+  // Go back to the top when the page changes.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
 
-    donations.forEach((donation) => {
-      const id = getCategoryId(donation);
-      const name = getCategoryName(donation);
+  // Collect category choices from everything fetched so far.
+  useEffect(() => {
+    if (!donations.length) return;
 
-      if (id && name !== "Other") {
-        categoryMap.set(id, name);
-      }
+    setCategoryMap((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      donations.forEach((donation) => {
+        const id = getCategoryId(donation);
+        const name = getCategoryName(donation);
+
+        if (id && name && next[id] !== name) {
+          next[id] = name;
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
     });
-
-    return Array.from(categoryMap.entries()).sort((a, b) =>
-      a[1].localeCompare(b[1]),
-    );
   }, [donations]);
 
-  // Homepage category links may pass a category name in the URL.
-  // Resolve that name against the available category data.
-  useEffect(() => {
-    if (!initialCategory || !donations.length) return;
+  const categories = useMemo(
+    () =>
+      Object.entries(categoryMap).sort((a, b) =>
+        a[1].localeCompare(b[1]),
+      ),
+    [categoryMap],
+  );
 
-    const match = donations.find(
-      (donation) =>
-        getCategoryName(donation).toLowerCase() ===
-        initialCategory.toLowerCase(),
+  // Resolve ?category=<name> from the URL once its id is known.
+  useEffect(() => {
+    const wanted = pendingCategoryRef.current;
+    if (!wanted) return;
+
+    const match = categories.find(
+      ([, name]) => name.toLowerCase() === wanted.toLowerCase(),
     );
 
     if (match) {
-      const id = getCategoryId(match);
-
-      if (id && id !== category) {
-        setCategory(id);
-        setPage(1);
-      }
+      pendingCategoryRef.current = "";
+      setCategory(match[0]);
+      setPage(1);
     }
-  }, [initialCategory, donations, category]);
+  }, [categories]);
 
   const visibleDonations = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -444,6 +727,12 @@ export default function ExploreDonations() {
       });
   }, [donations, search, sort]);
 
+  const selectCategory = (id: string) => {
+    pendingCategoryRef.current = "";
+    setCategory(id);
+    setPage(1);
+  };
+
   const applyFilters = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -453,6 +742,8 @@ export default function ExploreDonations() {
   };
 
   const clearFilters = () => {
+    pendingCategoryRef.current = "";
+
     setSearchInput("");
     setSearch("");
     setCategory("");
@@ -464,6 +755,10 @@ export default function ExploreDonations() {
     navigate("/donations", { replace: true });
   };
 
+  // When a text search is active only the loaded page is searched,
+  // so show the number of matches instead of the server total.
+  const resultCount = search.trim() ? visibleDonations.length : total;
+
   const navTranslations = { nav: t.nav };
   const footerTranslations = {
     nav: t.nav,
@@ -471,7 +766,7 @@ export default function ExploreDonations() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7FAF8] text-[#263238]">
+    <div className="ex-page">
       <Navbar
         language={language}
         toggleLanguage={toggleLanguage}
@@ -480,99 +775,84 @@ export default function ExploreDonations() {
 
       <main>
         {/* Marketplace header and filters */}
-        <section className="border-b border-[#DCE6E1] bg-gradient-to-br from-[#F5FAF7] via-white to-[#E7F4E8]">
-          <div className="mx-auto max-w-7xl px-5 py-10 sm:py-14 lg:px-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176C62]">
+        <section className="ex-hero">
+          <div className="ex-hero__blob" aria-hidden="true" />
+
+          <div className="ex-container ex-hero__inner">
+            <p className="ex-eyebrow">
+              <span className="ex-eyebrow__dot" aria-hidden="true" />
               {t.eyebrow}
             </p>
 
-            <h1 className="mt-3 max-w-3xl font-heading text-3xl font-bold tracking-tight text-[#17383D] sm:text-5xl">
-              {t.title}
-            </h1>
+            <h1 className="ex-title">{t.title}</h1>
+            <p className="ex-subtitle">{t.subtitle}</p>
 
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#5F6F76] sm:text-base">
-              {t.subtitle}
-            </p>
+            <form className="ex-filters" onSubmit={applyFilters}>
+              <label className="ex-field">
+                <span className="ex-field__label">{t.search}</span>
 
-            <form
-              onSubmit={applyFilters}
-              className="mt-7 grid gap-3 rounded-2xl border border-[#DCE6E1] bg-white p-3 shadow-sm sm:grid-cols-[minmax(0,1.5fr)_minmax(150px,1fr)_minmax(150px,1fr)_auto] sm:p-4"
-            >
-              <label className="flex min-h-12 items-center gap-2 rounded-xl border border-[#DCE6E1] px-3">
-                <Search className="h-4 w-4 shrink-0 text-[#176C62]" />
-
-                <span className="sr-only">{t.search}</span>
-
-                <input
-                  value={searchInput}
-                  onChange={(event) =>
-                    setSearchInput(event.target.value)
-                  }
-                  placeholder={t.searchPlaceholder}
-                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#879496]"
-                />
-              </label>
-
-              <label className="flex flex-col justify-center gap-1 rounded-xl border border-[#DCE6E1] px-3 py-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wide text-[#6D7D80]">
-                  {t.category}
+                <span className="ex-field__row">
+                  <Search className="ex-field__icon" aria-hidden="true" />
+                  <input
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    placeholder={t.searchPlaceholder}
+                  />
                 </span>
-
-                <select
-                  value={category}
-                  onChange={(event) => {
-                    setCategory(event.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full bg-transparent text-sm outline-none"
-                >
-                  <option value="">{t.allCategories}</option>
-
-                  {categories.map(([id, name]) => (
-                    <option key={id} value={id}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
               </label>
 
-              <label className="flex flex-col justify-center gap-1 rounded-xl border border-[#DCE6E1] px-3 py-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wide text-[#6D7D80]">
-                  {t.city}
+              <label className="ex-field">
+                <span className="ex-field__label">{t.city}</span>
+
+                <span className="ex-field__row">
+                  <MapPin className="ex-field__icon" aria-hidden="true" />
+                  <input
+                    value={cityInput}
+                    onChange={(event) => setCityInput(event.target.value)}
+                    placeholder={t.cityPlaceholder}
+                  />
                 </span>
-
-                <input
-                  value={cityInput}
-                  onChange={(event) =>
-                    setCityInput(event.target.value)
-                  }
-                  placeholder={t.cityPlaceholder}
-                  className="w-full bg-transparent text-sm outline-none placeholder:text-[#879496]"
-                />
               </label>
 
-              <button
-                type="submit"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#07545A] px-5 text-sm font-semibold text-white transition hover:bg-[#06464B]"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
+              <button type="submit" className="ex-btn ex-btn--primary ex-filters__submit">
+                <SlidersHorizontal size={16} aria-hidden="true" />
                 {t.apply}
               </button>
             </form>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-[#5F6F76]">
-                {total.toLocaleString(
-                  language === "hi" ? "hi-IN" : "en-IN",
-                )}{" "}
+            {/* Category chips */}
+            {categories.length > 0 && (
+              <div role="group" aria-label={t.category} className="ex-chips">
+                {[["", t.allCategories], ...categories].map(([id, name]) => {
+                  const active = category === id;
+
+                  return (
+                    <button
+                      key={id || "all"}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => selectCategory(id)}
+                      className={`ex-chip${active ? " is-active" : ""}`}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="ex-toolbar">
+              <p className="ex-count" aria-live="polite">
+                <strong>
+                  {resultCount.toLocaleString(
+                    language === "hi" ? "hi-IN" : "en-IN",
+                  )}
+                </strong>{" "}
                 {t.results}
               </p>
 
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <label
-                  htmlFor="donation-sort"
-                  className="text-[#6D7D80]"
-                >
+              <div className="ex-toolbar__right">
+                <label htmlFor="donation-sort" className="ex-toolbar__label">
                   {t.sort}
                 </label>
 
@@ -582,18 +862,14 @@ export default function ExploreDonations() {
                   onChange={(event) =>
                     setSort(event.target.value as "newest" | "expiry")
                   }
-                  className="rounded-lg border border-[#DCE6E1] bg-white px-3 py-2 outline-none focus:border-[#087F8C]"
+                  className="ex-select"
                 >
                   <option value="newest">{t.newest}</option>
                   <option value="expiry">{t.expiry}</option>
                 </select>
 
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="inline-flex items-center gap-1 rounded-lg px-2 py-2 font-semibold text-[#176C62] hover:bg-[#E7F4E8]"
-                >
-                  <X className="h-4 w-4" />
+                <button type="button" onClick={clearFilters} className="ex-clear">
+                  <X size={16} aria-hidden="true" />
                   {t.clear}
                 </button>
               </div>
@@ -601,150 +877,146 @@ export default function ExploreDonations() {
           </div>
         </section>
 
-        {/* Donation product cards */}
-        <section className="mx-auto max-w-7xl px-5 py-8 sm:py-10 lg:px-8">
+        {/* Donation cards */}
+        <section className="ex-container ex-results">
           {loading ? (
             <div
+              role="status"
+              aria-busy="true"
               aria-label={t.loading}
-              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              className="ex-grid"
             >
-              {Array.from({ length: 8 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="animate-pulse overflow-hidden rounded-2xl border border-[#DCE6E1] bg-white"
-                >
-                  <div className="h-48 bg-[#E7F4E8]" />
-
-                  <div className="space-y-3 p-4">
-                    <div className="h-4 w-2/3 rounded bg-[#E7F4E8]" />
-                    <div className="h-3 w-full rounded bg-[#F0F4F1]" />
-                    <div className="h-10 rounded bg-[#F0F4F1]" />
-                  </div>
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="ex-card ex-card--skeleton">
+                  <div className="ex-sk ex-sk--icon" />
+                  <div className="ex-sk ex-sk--line ex-sk--w80" />
+                  <div className="ex-sk ex-sk--line ex-sk--w35" />
+                  <div className="ex-sk ex-sk--line" />
+                  <div className="ex-sk ex-sk--line ex-sk--w60" />
+                  <div className="ex-sk ex-sk--btns" />
                 </div>
               ))}
             </div>
           ) : error ? (
-            <div className="rounded-2xl border border-red-200 bg-white p-8 text-center">
-              <h2 className="text-xl font-bold text-[#17383D]">
-                {t.errorTitle}
-              </h2>
-
-              <p className="mt-2 text-sm text-[#6D7D80]">
-                {error}
-              </p>
+            <div role="alert" className="ex-state ex-state--error">
+              <h2>{t.errorTitle}</h2>
+              <p>{error}</p>
 
               <button
                 type="button"
                 onClick={() => void fetchDonations()}
-                className="mt-5 rounded-lg bg-[#07545A] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#06464B]"
+                className="ex-btn ex-btn--primary"
               >
                 {t.retry}
               </button>
             </div>
           ) : visibleDonations.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[#B5CFC4] bg-white px-6 py-14 text-center">
-              <PackageSearch className="mx-auto h-10 w-10 text-[#176C62]" />
+            <div className="ex-state">
+              <PackageSearch className="ex-state__icon" aria-hidden="true" />
+              <h2>{t.emptyTitle}</h2>
+              <p>{t.emptyText}</p>
 
-              <h2 className="mt-4 text-xl font-bold text-[#17383D]">
-                {t.emptyTitle}
-              </h2>
-
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6D7D80]">
-                {t.emptyText}
-              </p>
-
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="mt-5 rounded-lg border border-[#B5CFC4] px-4 py-2 text-sm font-semibold text-[#176C62] hover:bg-[#E7F4E8]"
-              >
+              <button type="button" onClick={clearFilters} className="ex-btn ex-btn--outline">
                 {t.clear}
               </button>
             </div>
           ) : (
             <>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="ex-grid">
                 {visibleDonations.map((donation) => {
-                  const imageUrl = donation.images?.[0];
                   const place = getLocation(donation);
+                  const categoryName = getCategoryName(donation) || t.other;
+                  const CategoryIcon = getCategoryIcon(categoryName);
+                  const daysLeft = getDaysLeft(donation.availableUntil);
+                  const endingSoon =
+                    daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
+                  const isVeg = donation.foodDetails?.isVeg;
+                  const safeUntil = formatDateTime(
+                    donation.foodDetails?.safeUntil,
+                    language,
+                  );
+                  const availableUntil = formatDateTime(
+                    donation.availableUntil,
+                    language,
+                  );
 
                   return (
-                    <article
-                      key={donation._id}
-                      className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[#DCE6E1] bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-[#B5CFC4] hover:shadow-lg"
-                    >
-                      <div className="relative h-48 overflow-hidden bg-[#E7F4E8]">
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt={donation.title}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                            onError={(event) => {
-                              event.currentTarget.style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <PackageSearch className="h-12 w-12 text-[#7DAF97]" />
-                          </div>
-                        )}
-
-                        <span className="absolute left-3 top-3 rounded-full border border-white/70 bg-white/95 px-3 py-1 text-xs font-semibold text-[#176C62]">
-                          {getCategoryName(donation)}
+                    <article key={donation._id} className="ex-card">
+                      <div className="ex-card__top">
+                        <span className="ex-card__icon" aria-hidden="true">
+                          <CategoryIcon size={20} />
                         </span>
+
+                        <div className="ex-card__right">
+                          {typeof isVeg === "boolean" && (
+                            <span
+                              title={isVeg ? t.veg : t.nonVeg}
+                              aria-label={isVeg ? t.veg : t.nonVeg}
+                              role="img"
+                              className={`ex-veg ${isVeg ? "ex-veg--veg" : "ex-veg--nonveg"}`}
+                            >
+                              <span />
+                            </span>
+                          )}
+
+                          <span className={`ex-pill${endingSoon ? " ex-pill--soon" : ""}`}>
+                            {endingSoon ? t.endingSoon : t.statusAvailable}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="flex flex-1 flex-col p-4">
-                        <h2 className="line-clamp-2 font-heading text-lg font-bold text-[#17383D]">
-                          {donation.title}
-                        </h2>
+                      <h2 className="ex-card__title">{donation.title}</h2>
 
-                        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-[#6D7D80]">
-                          {donation.description || t.details}
+                      <p className="ex-card__meta">
+                        {categoryName} • {donation.quantity} {donation.unit}
+                      </p>
+
+                      <p className="ex-card__desc">
+                        {donation.description || t.details}
+                      </p>
+
+                      <div className="ex-card__info">
+                        <p className="ex-card__row">
+                          <MapPin size={14} className="ex-ic ex-ic--teal" aria-hidden="true" />
+                          <span>{place || t.location}</span>
                         </p>
 
-                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#EDF1EE] pt-3">
-                          <div className="min-w-0">
-                            <p className="text-[11px] uppercase tracking-wide text-[#879496]">
-                              {t.quantity}
-                            </p>
-
-                            <p className="mt-0.5 truncate text-sm font-bold text-[#17383D]">
-                              {donation.quantity} {donation.unit}
-                            </p>
-                          </div>
-
-                          <div className="max-w-[55%] text-right">
-                            <p className="flex items-center justify-end gap-1 text-[11px] uppercase tracking-wide text-[#879496]">
-                              <MapPin className="h-3 w-3" />
-                              {t.city}
-                            </p>
-
-                            <p className="mt-0.5 truncate text-sm font-semibold text-[#17383D]">
-                              {place || t.location}
-                            </p>
-                          </div>
-                        </div>
-
-                        {donation.availableUntil && (
-                          <p className="mt-3 text-xs text-[#6D7D80]">
-                            {t.availableUntil}:{" "}
-                            <span className="font-semibold text-[#17383D]">
-                              {formatDate(
-                                donation.availableUntil,
-                                language,
-                              )}
+                        {availableUntil && (
+                          <p className="ex-card__row">
+                            <CalendarDays size={14} className="ex-ic ex-ic--amber" aria-hidden="true" />
+                            <span>
+                              {t.availableUntil}: {availableUntil}
                             </span>
                           </p>
                         )}
 
-                        <Link
-                          to={`/donations/${donation._id}`}
-                          className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#07545A] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#06464B]"
+                        {safeUntil && (
+                          <p className="ex-card__row ex-card__row--safe">
+                            <ShieldCheck size={14} className="ex-ic ex-ic--green" aria-hidden="true" />
+                            <span>
+                              {t.safeUntil}: {safeUntil}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="ex-card__actions">
+                        <button
+                          type="button"
+                          onClick={(event) => openDetails(donation, event)}
+                          className="ex-btn ex-btn--outline ex-btn--sm"
                         >
-                          {t.view}
-                          <ArrowRight className="h-4 w-4" />
+                          <Eye size={14} aria-hidden="true" />
+                          {t.detailsBtn}
+                        </button>
+
+                        <Link
+                          to="/login"
+                          state={{ from: location.pathname + location.search }}
+                          className="ex-btn ex-btn--primary ex-btn--sm"
+                        >
+                          <Heart size={14} aria-hidden="true" />
+                          <span>{t.requestSupply}</span>
                         </Link>
                       </div>
                     </article>
@@ -752,63 +1024,66 @@ export default function ExploreDonations() {
                 })}
               </div>
 
-              {/* Pagination */}
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <button
-                  type="button"
-                  disabled={page <= 1}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#DCE6E1] bg-white px-4 text-sm font-semibold text-[#176C62] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  {t.previous}
-                </button>
+              {/* Pagination (only when there is more than one page) */}
+              {totalPages > 1 && (
+                <nav aria-label="Pagination" className="ex-pager">
+                  <button
+                    type="button"
+                    disabled={page <= 1}
+                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                    className="ex-btn ex-btn--outline"
+                  >
+                    <ArrowLeft size={16} aria-hidden="true" />
+                    {t.previous}
+                  </button>
 
-                <span className="text-sm text-[#6D7D80]">
-                  {t.page} {page} {t.of} {totalPages}
-                </span>
+                  <span className="ex-pager__text">
+                    {t.page} {page} {t.of} {totalPages}
+                  </span>
 
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() =>
-                    setPage((current) =>
-                      Math.min(totalPages, current + 1),
-                    )
-                  }
-                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#DCE6E1] bg-white px-4 text-sm font-semibold text-[#176C62] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {t.next}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    disabled={page >= totalPages}
+                    onClick={() =>
+                      setPage((current) => Math.min(totalPages, current + 1))
+                    }
+                    className="ex-btn ex-btn--outline"
+                  >
+                    {t.next}
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </button>
+                </nav>
+              )}
             </>
           )}
         </section>
 
         {/* Donor call to action */}
-        <section className="mx-auto max-w-7xl px-5 pb-12 lg:px-8">
-          <div className="flex flex-col items-start justify-between gap-4 rounded-2xl bg-[#07545A] p-6 text-white sm:flex-row sm:items-center sm:p-8">
+        <section className="ex-container ex-cta-wrap">
+          <div className="ex-cta">
             <div>
-              <h2 className="font-heading text-xl font-bold sm:text-2xl">
-                {t.donateCta}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-[#D4E6DE]">
-                {t.donateCtaText}
-              </p>
+              <h2>{t.donateCta}</h2>
+              <p>{t.donateCtaText}</p>
             </div>
 
-            <Link
-              to="/register"
-              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#07545A] hover:bg-[#E7F4E8]"
-            >
+            <Link to="/register" className="ex-cta__btn">
               {t.startDonating}
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
         </section>
       </main>
+
+      {selected && (
+        <DonationDetailsModal
+          donation={selected}
+          language={language}
+          t={t}
+          onClose={closeDetails}
+          closeRef={closeBtnRef}
+          from={location.pathname + location.search}
+        />
+      )}
 
       <Footer t={footerTranslations} />
     </div>

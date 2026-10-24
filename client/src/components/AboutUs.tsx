@@ -93,8 +93,8 @@ const CONTENT = {
       "Join SAHARA and help build a community where useful things reach people who need them.",
     join: "Join SAHARA",
     browse: "Browse donations",
-    back: "Back to home",
-    note: "Together, small acts can make a meaningful difference.",
+     
+ 
   },
   hi: {
     nav: {
@@ -208,7 +208,7 @@ export default function AboutUs() {
   const valueIcons = [Heart, Users, ShieldCheck, Globe2];
 
   return (
-    <div className="min-h-screen bg-[#F7FAF7] text-[#263238]">
+    <div className="min-h-screen bg-[#F7FAF7] ">
       <Navbar
         language={language}
         toggleLanguage={toggleLanguage}
@@ -237,17 +237,17 @@ export default function AboutUs() {
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link
+                <Link style={{ textDecoration: "none" }}
                   to="/donations"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#07545A] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[#07545A]/10 transition hover:-translate-y-0.5 hover:bg-[#06464B]"
+                  className="inline-flex no-underline inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#07545A] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[#07545A]/10 transition hover:-translate-y-0.5 hover:bg-[#06464B]"
                 >
                   {c.primary}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
 
-                <Link
+                <Link  style={{ textDecoration: "none" }}
                   to="/how-it-works"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#C9DCD0] bg-white/90 px-6 py-3 text-sm font-bold text-[#176C62] transition hover:-translate-y-0.5 hover:bg-[#F0F7F1]"
+                  className="inline-flex ... no-underline inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#C9DCD0] bg-white/90 px-6 py-3 text-sm font-bold text-[#176C62] transition hover:-translate-y-0.5 hover:bg-[#F0F7F1] "
                 >
                   {c.secondary}
                 </Link>
@@ -500,7 +500,7 @@ export default function AboutUs() {
               </div>
 
               <div className="flex shrink-0 flex-wrap gap-3">
-                <Link
+                <Link style={{ textDecoration: "none" }}
                   to="/register"
                   className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#07545A] transition hover:bg-[#EDF5ED]"
                 >
@@ -518,10 +518,8 @@ export default function AboutUs() {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-[#819087]">
-            <Link to="/" className="hover:text-[#176C62]">
-              ← {c.back}
-            </Link>
-            <span>{c.note}</span>
+             
+             
           </div>
         </section>
       </main>

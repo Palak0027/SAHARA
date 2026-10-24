@@ -52,7 +52,7 @@ export default function Footer({ t }: FooterProps) {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr]">
           {/* Brand */}
           <div>
-            <Link
+            <Link  style={{ textDecoration: "none" }} 
               to="/"
               aria-label="SAHARA home"
               className="inline-flex items-center gap-3 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#087F8C]"
@@ -62,12 +62,13 @@ export default function Footer({ t }: FooterProps) {
                 alt="LogoImg"
                 className="h-14 w-14 rounded-full bg-white object-contain shadow-sm ring-1 ring-[#DCE6E1]"
               />
-              <span className="text-2xl font-bold tracking-tight text-[#065A6B]">
+              <div
+              className="text-2xl font-bold tracking-tight text-[#065A6B] no-underline">
                 SAHARA
-              </span>
+              </div>
             </Link>
 
-            <p className="mt-4 max-w-xs text-sm leading-6 text-[#5F6F76]">
+            <p className="mt-2 max-w-xs text-sm leading-6 text-[#5F6F76]">
               {f.tagline}
             </p>
           </div>
@@ -78,16 +79,18 @@ export default function Footer({ t }: FooterProps) {
 
             <ul className="mt-4 flex flex-col gap-3 text-sm">
               <li>
-                <a href="/#home" className={linkClass}>{t.nav.home}</a>
+               <Link to="/"> <a href="/#home" className={linkClass}>{t.nav.home}</a></Link>
+              </li>
+                <li>
+                <Link to="/about" className={linkClass}>
+                  {f.donate ?? "about us"}
+                </Link>
               </li>
               <li>
-                <a href="/#about" className={linkClass}>{t.nav.about}</a>
+                <a href="/how-it-works" className={linkClass}>{t.nav.how}</a>
               </li>
               <li>
-                <a href="/#how-it-works" className={linkClass}>{t.nav.how}</a>
-              </li>
-              <li>
-                <a href="/#donations" className={linkClass}>{t.nav.explore}</a>
+                <a href="/donations" className={linkClass}>{t.nav.explore}</a>
               </li>
             </ul>
           </nav>

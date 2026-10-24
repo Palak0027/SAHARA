@@ -183,8 +183,7 @@ export default function ReceiverDashboard() {
     []
   );
 
-  // Fetch data without depending on the selected language.
-  // Changing language therefore does not trigger another API request.
+  
   const loadDashboardData = useCallback(
     async (isSilent = false) => {
       if (!isSilent) setLoading(true);

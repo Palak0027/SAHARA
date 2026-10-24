@@ -88,7 +88,6 @@ export default function ForgotPassword() {
   const content = {
     en: {
        
-    
       intro: "Forgot your password? It happens. Follow a simple, secure process to regain access to your account and continue making a difference in your community.",
       features: ["Support Communities", "Help People", "Build a Better Tomorrow", "Safe & Secure"],
       cardTitle: "Forgot Your Password?",
@@ -109,7 +108,6 @@ export default function ForgotPassword() {
       fallbackError: "Something went wrong. Please try again.",
     },
     hi: {
-     
       
       intro: "पासवर्ड भूल गए? कोई बात नहीं। अपने अकाउंट का दोबारा उपयोग करने और समुदाय की मदद जारी रखने के लिए इस आसान और सुरक्षित प्रक्रिया का पालन करें।",
       features: ["समुदायों का सहयोग करें", "लोगों की मदद करें", "बेहतर कल बनाएँ", "सुरक्षित और भरोसेमंद"],
@@ -186,9 +184,9 @@ export default function ForgotPassword() {
       <main className="fp__main">
         {/* Left: tagline + title + photo + features */}
         <section className="fp-intro">
-           
+          
 
-           
+          
           <p className="fp-intro__text">{content.intro}</p>
 
           <div className="fp-photo">

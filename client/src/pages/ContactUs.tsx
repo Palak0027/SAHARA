@@ -282,7 +282,7 @@ const ContactUs: React.FC = () => {
           {/* Help panel and contact form */}
           <section
             id="contact-form"
-            className="mt-7 grid items-start gap-5 lg:mt-8 lg:grid-cols-[0.7fr_1.5fr]"
+            className="mt-7 grid items-start gap-5 lg:mt-8 lg:grid-cols-[0.7fr_1.5fr] "
           >
             <aside className="rounded-2xl bg-[#174d39] p-5 text-white sm:p-6">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
@@ -441,7 +441,7 @@ const ContactUs: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1c6848] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15543a] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1c6848] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15543a] disabled:cursor-not-allowed disabled:opacity-60 "
                   >
                     <Send size={16} />
                     {loading ? t.sending : t.send}
