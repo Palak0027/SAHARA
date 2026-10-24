@@ -100,7 +100,7 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
     }
   };
 
-  const startListening = () => {
+  const initAndStartRecognition = () => {
     setErrorMsg("");
 
     // Automatically clear previous/demo text so fresh spoken voice starts on a clean slate
@@ -269,10 +269,9 @@ export const VoiceFormAssistant: React.FC<VoiceFormAssistantProps> = ({
       setIsListening(false);
       isUserActiveRef.current = false;
       setErrorMsg(
-        err.message ||
-        (voiceLang === "hi-IN"
-          ? "माइक्रोफ़ोन शुरू करने में समस्या आई। नीचे डेमो सैंपल का उपयोग करें।"
-          : "Failed to initialize microphone. You can type or use the demo sample.")
+        voiceLang === "hi-IN"
+          ? "इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है। आप नीचे सीधे लिख सकते हैं या 1-क्लिक सैंपल इस्तेमाल कर सकते हैं।"
+          : "Speech recognition is not supported in this browser. You can type directly or click any 1-click sample below."
       );
       return;
     }
