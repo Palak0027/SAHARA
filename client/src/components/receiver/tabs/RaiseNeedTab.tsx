@@ -27,6 +27,8 @@ import {
   OnBehalfOfData,
 } from "../../../services/api/receiverApi";
 import { RequestPrefillDonation } from "../types";
+import { VoiceFormAssistant } from "../../common/VoiceFormAssistant";
+import { type ParsedDonationOrNeed } from "../../../services/voiceNlpParser";
 
 interface RaiseNeedTabProps {
   language?: "en" | "hi";
@@ -113,6 +115,26 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
       setSelectedCategoryId(categories[0]._id);
     }
   }, [categories, prefillDonation]);
+
+  const handleApplyVoice = (parsed: ParsedDonationOrNeed) => {
+    if (parsed.title) setTitle(parsed.title);
+    if (parsed.description) setDescription(parsed.description);
+    if (parsed.quantity) setQuantity(String(parsed.quantity));
+    if (parsed.quantityUnit) setUnit(parsed.quantityUnit);
+    if (parsed.urgency) setUrgency(parsed.urgency);
+    if (parsed.city) setCity(parsed.city);
+    if (parsed.address) setAddress(parsed.address);
+    if (parsed.pincode) setPincode(parsed.pincode);
+
+    if (parsed.categoryName && categories.length > 0) {
+      const matched = categories.find((c) =>
+        c.name.toLowerCase().includes(parsed.categoryName!.toLowerCase())
+      );
+      if (matched) {
+        setSelectedCategoryId(matched._id);
+      }
+    }
+  };
 
   const selectedCategory = categories.find((c) => c._id === selectedCategoryId);
 
@@ -261,6 +283,14 @@ export const RaiseNeedTab: React.FC<RaiseNeedTabProps> = ({
       )}
 
       <form onSubmit={handleSubmit} className="rd-card rd-form">
+        {/* AI Voice Assistant */}
+        <VoiceFormAssistant
+          context="receiver"
+          language={language}
+          availableCategories={categories.map((c) => ({ id: c._id, name: c.name }))}
+          onApply={handleApplyVoice}
+        />
+
         {/* Resource Category Dropdown (Clean, Scalable UI) */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
