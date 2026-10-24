@@ -4,6 +4,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^9.5.0",
     "bootstrap": "^5.3.8",
+    "nodemailer": "^6.10.0",
     "tailwindcss": "^4.3.3"
   }
 }
