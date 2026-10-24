@@ -9,7 +9,10 @@ import {
   Clock,
   AlertTriangle,
   Languages,
+  ArrowLeftRight,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { DonorTab, DonorNotification } from "./types";
 
 interface DonorHeaderProps {
@@ -41,6 +44,24 @@ export const DonorHeader: React.FC<DonorHeaderProps> = ({
 
   const hi = language === "hi";
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const navigate = useNavigate();
+  const { switchRole } = useAuth();
+  const [switching, setSwitching] = useState(false);
+
+  const handleSwitchToReceiver = async () => {
+    if (switching) return;
+    try {
+      setSwitching(true);
+      await switchRole("receiver");
+      navigate("/receiver-dashboard");
+    } catch (err: any) {
+      console.error("Failed to switch to receiver:", err);
+      alert(err?.response?.data?.message || err.message || "Failed to switch mode");
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   const toggleLanguage = () => {
     const next = language === "en" ? "hi" : "en";
@@ -137,6 +158,35 @@ export const DonorHeader: React.FC<DonorHeaderProps> = ({
         >
           <Languages size={16} />
           {hi ? "English" : "हिंदी"}
+        </button>
+
+        {/* Switch Role Button */}
+        <button
+          type="button"
+          onClick={handleSwitchToReceiver}
+          disabled={switching}
+          title={hi ? "ज़रूरतमंद (Receiver) मोड में बदलें" : "Switch to Receiver Mode"}
+          aria-label={hi ? "Switch to Receiver" : "Switch to Receiver"}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "linear-gradient(135deg, #087F8C 0%, #2F5547 100%)",
+            color: "#ffffff",
+            border: 0,
+            borderRadius: "8px",
+            padding: "6px 12px",
+            fontSize: "0.82rem",
+            fontWeight: 700,
+            cursor: switching ? "not-allowed" : "pointer",
+            boxShadow: "0 2px 6px rgba(8, 127, 140, 0.25)",
+            whiteSpace: "nowrap",
+            transition: "all 0.15s ease",
+            opacity: switching ? 0.7 : 1,
+          }}
+        >
+          <ArrowLeftRight size={14} className={switching ? "sd-spin" : ""} />
+          <span>{switching ? (hi ? "बदल रहे हैं..." : "Switching...") : (hi ? "रिसीवर मोड" : "Receiver Mode")}</span>
         </button>
         <button
           type="button"

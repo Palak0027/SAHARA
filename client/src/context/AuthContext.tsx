@@ -112,6 +112,11 @@ interface AuthContextType {
   ) => Promise<User>;
 
   logout: () => void;
+
+  switchRole: (
+    targetRole: "donor" | "receiver",
+    payload?: Record<string, any>
+  ) => Promise<User>;
 }
 
 const AuthContext =
@@ -243,6 +248,36 @@ export function AuthProvider({
   };
 
   // --------------------------------
+  // SWITCH ROLE (DUAL-MODE CAPABILITY)
+  // --------------------------------
+
+  const switchRole = async (
+    targetRole: "donor" | "receiver",
+    payload?: Record<string, any>
+  ): Promise<User> => {
+    setLoading(true);
+
+    try {
+      const response = await http.put<AuthResponse>(
+        "/api/auth/switch-role",
+        {
+          targetRole,
+          ...payload,
+        }
+      );
+
+      saveAuth(
+        response.token,
+        response.user
+      );
+
+      return response.user;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --------------------------------
   // RESTORE SESSION
   // --------------------------------
 
@@ -297,6 +332,7 @@ export function AuthProvider({
         login,
         register,
         logout,
+        switchRole,
       }}
     >
       {children}

@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState } from "react";
-import { Languages, X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Languages, X, ArrowLeftRight } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import logoImg from "./image/sahara-logo.jpeg";
 
 type NavbarProps = {
@@ -27,6 +28,36 @@ export default function Navbar({
 }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname, hash, key } = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, switchRole } = useAuth();
+  const [switching, setSwitching] = useState(false);
+
+  const activeRole = user?.activeRole || user?.role;
+  const isDonor = activeRole === "donor";
+  const isReceiver = activeRole === "receiver";
+
+  const handleSwitch = async () => {
+    if (switching) return;
+    const targetRole = isDonor ? "receiver" : "donor";
+    try {
+      setSwitching(true);
+      await switchRole(targetRole);
+      navigate(targetRole === "donor" ? "/donator-dashboard" : "/receiver-dashboard");
+    } catch (err: any) {
+      console.error("Failed to switch:", err);
+      alert(err?.response?.data?.message || err.message || "Failed to switch mode");
+    } finally {
+      setSwitching(false);
+    }
+  };
+
+  const dashboardPath = isDonor
+    ? "/donator-dashboard"
+    : isReceiver
+    ? "/receiver-dashboard"
+    : user?.role === "volunteer"
+    ? "/volunteer-dashboard"
+    : "/admin-dashboard";
 
   const defaultNav =
     language === "en"
@@ -162,19 +193,54 @@ export default function Navbar({
             {language === "en" ? "हिंदी" : "English"}
           </button>
 
-          <Link
-            to="/login"
-            className="hidden h-9 items-center rounded-lg border border-[#DCE6E1] bg-white px-3 text-sm font-semibold !text-black transition-colors hover:bg-[#E8F5E9] sm:inline-flex"
-          >
-            {nav.login}
-          </Link>
+          {isAuthenticated && user && (isDonor || isReceiver) && (
+            <button
+              type="button"
+              onClick={handleSwitch}
+              disabled={switching}
+              className="hidden h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90 sm:inline-flex"
+              style={{
+                background: isDonor
+                  ? "linear-gradient(135deg, #087F8C 0%, #2F5547 100%)"
+                  : "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)"
+              }}
+              title={isDonor ? (language === "hi" ? "रिसीवर मोड में बदलें" : "Switch to Receiver Mode") : (language === "hi" ? "दाता मोड में बदलें" : "Switch to Donor Mode")}
+            >
+              <ArrowLeftRight className={`h-3.5 w-3.5 ${switching ? "animate-spin" : ""}`} />
+              <span>
+                {switching
+                  ? (language === "hi" ? "बदल रहे हैं..." : "Switching...")
+                  : isDonor
+                  ? (language === "hi" ? "रिसीवर मोड" : "Receiver Mode")
+                  : (language === "hi" ? "दाता मोड" : "Donor Mode")}
+              </span>
+            </button>
+          )}
 
-          <Link
-            to="/register"
-            className="home-action hidden h-9 items-center rounded-lg px-3 text-sm font-semibold !text-black transition-colors sm:inline-flex"
-          >
-            {nav.signup}
-          </Link>
+          {isAuthenticated && user ? (
+            <Link
+              to={dashboardPath}
+              className="home-action hidden h-9 items-center rounded-lg px-3 text-sm font-semibold !text-black transition-colors sm:inline-flex"
+            >
+              {language === "hi" ? "डैशबोर्ड" : "Dashboard"}
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="hidden h-9 items-center rounded-lg border border-[#DCE6E1] bg-white px-3 text-sm font-semibold !text-black transition-colors hover:bg-[#E8F5E9] sm:inline-flex"
+              >
+                {nav.login}
+              </Link>
+
+              <Link
+                to="/register"
+                className="home-action hidden h-9 items-center rounded-lg px-3 text-sm font-semibold !text-black transition-colors sm:inline-flex"
+              >
+                {nav.signup}
+              </Link>
+            </>
+          )}
 
           {/* Mobile menu toggle */}
           <button
@@ -211,22 +277,60 @@ export default function Navbar({
               </Link>
             ))}
 
-            <div className="flex gap-2 border-t border-[#DCE6E1] pt-3">
-              <Link
-                to="/login"
-                onClick={closeMenu}
-                className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[#DCE6E1] bg-white px-3 text-sm font-semibold !text-black transition-colors hover:bg-[#E8F5E9]"
+            {isAuthenticated && user && (isDonor || isReceiver) && (
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  handleSwitch();
+                }}
+                disabled={switching}
+                className="my-1 flex h-10 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{
+                  background: isDonor
+                    ? "linear-gradient(135deg, #087F8C 0%, #2F5547 100%)"
+                    : "linear-gradient(135deg, #2F5547 0%, #065A6B 100%)"
+                }}
               >
-                {nav.login}
-              </Link>
+                <ArrowLeftRight className={`h-4 w-4 ${switching ? "animate-spin" : ""}`} />
+                <span>
+                  {switching
+                    ? (language === "hi" ? "बदल रहे हैं..." : "Switching...")
+                    : isDonor
+                    ? (language === "hi" ? "रिसीवर मोड में बदलें" : "Switch to Receiver Mode")
+                    : (language === "hi" ? "दाता मोड में बदलें" : "Switch to Donor Mode")}
+                </span>
+              </button>
+            )}
 
-              <Link
-                to="/register"
-                onClick={closeMenu}
-                className="home-action flex h-10 flex-1 items-center justify-center rounded-lg px-3 text-sm font-semibold !text-black transition-colors"
-              >
-                {nav.signup}
-              </Link>
+            <div className="flex gap-2 border-t border-[#DCE6E1] pt-3">
+              {isAuthenticated && user ? (
+                <Link
+                  to={dashboardPath}
+                  onClick={closeMenu}
+                  className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[#DCE6E1] bg-white px-3 text-sm font-semibold !text-black transition-colors hover:bg-[#E8F5E9]"
+                >
+                  {language === "hi" ? "डैशबोर्ड" : "Dashboard"}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={closeMenu}
+                    className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[#DCE6E1] bg-white px-3 text-sm font-semibold !text-black transition-colors hover:bg-[#E8F5E9]"
+                  >
+                    {nav.login}
+                  </Link>
+
+                  <Link
+                    to="/register"
+                    onClick={closeMenu}
+                    className="home-action flex h-10 flex-1 items-center justify-center rounded-lg px-3 text-sm font-semibold !text-black transition-colors"
+                  >
+                    {nav.signup}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

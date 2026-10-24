@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Mail, MapPin } from "lucide-react";
 import logoImg from "./image/sahara-logo.jpeg"; // adjust if your logo lives elsewhere
 
- 
+
 
 type FooterProps = {
   t: {
@@ -123,13 +123,13 @@ export default function Footer({ t }: FooterProps) {
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 shrink-0 text-[#087F8C]" aria-hidden="true" />
                 <a href="mailto:support@sahara.org" className={linkClass}>
-                  support@sahara.org
+                  sahara.community.contact@gmail.com
                 </a>
               </li>
 
               <li className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#087F8C]" aria-hidden="true" />
-                <span>{f.location ?? "Kanpur, Uttar Pradesh, India"}</span>
+                <span>{f.location ?? "Uttar Pradesh, India"}</span>
               </li>
             </ul>
           </div>
